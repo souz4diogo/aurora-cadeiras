@@ -1,0 +1,34 @@
+﻿root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,csproj,props,sln,md}]
+indent_size = 2
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_sort_system_directives_first = true
+
+# Convenções de nomes
+dotnet_naming_rule.interfaces_com_i.severity = warning
+dotnet_naming_rule.interfaces_com_i.symbols = interfaces
+dotnet_naming_rule.interfaces_com_i.style = prefixo_i
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.prefixo_i.required_prefix = I
+dotnet_naming_style.prefixo_i.capitalization = pascal_case
+
+dotnet_naming_rule.campos_privados.severity = warning
+dotnet_naming_rule.campos_privados.symbols = campos_privados
+dotnet_naming_rule.campos_privados.style = underscore_camel
+dotnet_naming_symbols.campos_privados.applicable_kinds = field
+dotnet_naming_symbols.campos_privados.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case

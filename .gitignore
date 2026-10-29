@@ -1,0 +1,22 @@
+﻿bin/
+obj/
+.vs/
+.idea/
+*.user
+TestResults/
+coverage/
+*.log
+
+# Segredos e ambiente: nunca versionar
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+*.pfx
+*.key
+secrets.json
+
+# Mobile (quando existir)
+mobile/**/node_modules/
+mobile/**/.dart_tool/
+mobile/**/build/
