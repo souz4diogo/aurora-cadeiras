@@ -19,30 +19,8 @@ builder.Services.AddAuroraRateLimit();
 builder.Services.AddAuroraSwagger();
 builder.Services.AddAuroraHealth();
 builder.Services.AddControllers();
-builder.Services.AddProblemDetails(opcoes => opcoes.CustomizeProblemDetails = contexto =>
-{
-    var problema = contexto.ProblemDetails;
-    problema.Extensions["traceId"] = contexto.HttpContext.TraceIdentifier;
-    problema.Extensions.TryAdd("code", problema.Status switch
-    {
-        StatusCodes.Status401Unauthorized => "NAO_AUTENTICADO",
-        StatusCodes.Status403Forbidden => "SEM_PERMISSAO",
-        StatusCodes.Status404NotFound => "NAO_ENCONTRADO",
-        StatusCodes.Status429TooManyRequests => "LIMITE_EXCEDIDO",
-        _ => "ERRO",
-    });
-});
-
-builder.Services.AddCors();
-builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
-    .Configure<IConfiguration>((opcoes, configuracao) => opcoes.AddDefaultPolicy(politica =>
-    {
-        var origens = configuracao.GetSection("Cors:Origens").Get<string[]>() ?? [];
-        if (origens.Length > 0)
-        {
-            politica.WithOrigins(origens).AllowAnyHeader().AllowAnyMethod();
-        }
-    }));
+builder.Services.AddAuroraProblemDetails();
+builder.Services.AddAuroraCors();
 
 var app = builder.Build();
 
@@ -61,12 +39,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-if (app.Configuration.GetValue<bool>("Swagger:Habilitado"))
-{
-    app.MapSwagger().AllowAnonymous();
-    app.UseSwaggerUI(opcoes => opcoes.SwaggerEndpoint("/swagger/v1/swagger.json", "Aurora Cadeiras API v1"));
-}
-
+app.UseAuroraSwagger();
 app.MapControllers();
 app.MapAuroraHealth();
 

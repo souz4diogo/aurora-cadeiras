@@ -1,6 +1,7 @@
 ﻿using Aurora.Application.Abstracoes;
 using Aurora.Infrastructure.Persistencia;
 using Aurora.Infrastructure.Seguranca;
+using Aurora.Infrastructure.Tempo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

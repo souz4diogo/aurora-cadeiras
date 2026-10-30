@@ -102,10 +102,8 @@ public class AuthService(
 
     public async Task<MeDto> MeAsync(CancellationToken ct = default)
     {
-        var id = usuarioAtual.UsuarioId
-            ?? throw new RegraDeNegocioException("NAO_AUTENTICADO", "Não autenticado.", TipoErro.NaoAutenticado);
-        var usuario = await usuarios.ObterPorIdAsync(id, ct)
-            ?? throw new RegraDeNegocioException("NAO_AUTENTICADO", "Não autenticado.", TipoErro.NaoAutenticado);
+        var id = usuarioAtual.UsuarioId ?? throw NaoAutenticado();
+        var usuario = await usuarios.ObterPorIdAsync(id, ct) ?? throw NaoAutenticado();
         return new MeDto(UsuarioDto.De(usuario));
     }
 
@@ -120,6 +118,9 @@ public class AuthService(
             refresh,
             new UsuarioResumoDto(usuario.Id, usuario.Nome, usuario.Perfil.ToString()));
     }
+
+    private static RegraDeNegocioException NaoAutenticado() =>
+        new("NAO_AUTENTICADO", "Não autenticado.", TipoErro.NaoAutenticado);
 
     private static RegraDeNegocioException CredenciaisInvalidas() =>
         new("CREDENCIAIS_INVALIDAS", "E-mail ou senha inválidos.", TipoErro.NaoAutenticado);

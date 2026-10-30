@@ -1,13 +1,15 @@
-﻿namespace Aurora.Api.Seguranca;
+﻿using Aurora.Domain.Enums;
 
-/// <summary>Nomes dos perfis usados em [Authorize(Roles = ...)] (iguais aos de PerfilUsuario).</summary>
+namespace Aurora.Api.Seguranca;
+
+/// <summary>Nomes dos perfis para [Authorize(Roles = ...)]; derivados de PerfilUsuario para nunca divergirem.</summary>
 public static class Perfis
 {
-    public const string Administrador = "Administrador";
-    public const string GerenteProducao = "GerenteProducao";
-    public const string Operador = "Operador";
-    public const string Vendedor = "Vendedor";
-    public const string Almoxarife = "Almoxarife";
-    public const string Inspetor = "Inspetor";
-    public const string Cliente = "Cliente";
+    public const string Administrador = nameof(PerfilUsuario.Administrador);
+    public const string GerenteProducao = nameof(PerfilUsuario.GerenteProducao);
+    public const string Operador = nameof(PerfilUsuario.Operador);
+    public const string Vendedor = nameof(PerfilUsuario.Vendedor);
+    public const string Almoxarife = nameof(PerfilUsuario.Almoxarife);
+    public const string Inspetor = nameof(PerfilUsuario.Inspetor);
+    public const string Cliente = nameof(PerfilUsuario.Cliente);
 }
