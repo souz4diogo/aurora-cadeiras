@@ -1,0 +1,8 @@
+@* Lista suspensa Todos/Ativos/Inativos usada nos filtros das listas; o nome do campo é "ativo" *@
+@model bool?
+<label for="ativo" class="form-label">Situação</label>
+<select id="ativo" name="ativo" class="form-select">
+    <option value="" selected="@(Model is null)">Todos</option>
+    <option value="true" selected="@(Model == true)">Ativos</option>
+    <option value="false" selected="@(Model == false)">Inativos</option>
+</select>

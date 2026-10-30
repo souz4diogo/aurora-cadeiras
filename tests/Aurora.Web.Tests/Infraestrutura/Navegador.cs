@@ -53,5 +53,23 @@ public sealed partial class Navegador(HttpClient cliente) : IDisposable
         return WebUtility.HtmlDecode(correspondencia.Groups[1].Value);
     }
 
+    /// <summary>HTML sem as entidades (o Razor escreve "á" como "&amp;#xE1;"), para os testes compararem com o texto real.</summary>
+    public static string Decodificar(string html) => WebUtility.HtmlDecode(html);
+
+    /// <summary>Destino do redirecionamento só com caminho e consulta (o middleware de cookie devolve a URL absoluta).</summary>
+    public static string Destino(HttpResponseMessage resposta)
+    {
+        var destino = resposta.Headers.Location;
+        return destino is null ? "" : destino.IsAbsoluteUri ? destino.PathAndQuery : destino.OriginalString;
+    }
+
+    /// <summary>Id do primeiro registro com link de edição (<c>/{controller}/Editar/{id}</c>) na página da lista.</summary>
+    public static string IdDaPrimeiraEdicao(string html, string controller)
+    {
+        var correspondencia = Regex.Match(html, $@"/{controller}/Editar/(\d+)");
+        Assert.True(correspondencia.Success, $"A lista não tem link de edição de {controller}.");
+        return correspondencia.Groups[1].Value;
+    }
+
     public void Dispose() => cliente.Dispose();
 }

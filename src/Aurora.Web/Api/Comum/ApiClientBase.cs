@@ -10,13 +10,13 @@ public abstract class ApiClientBase(HttpClient http)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    protected Task<T> ObterAsync<T>(string url, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Get, url, null, ct);
+    protected Task<T> HttpGetAsync<T>(string url, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Get, url, null, ct);
 
-    protected Task<T> CriarAsync<T>(string url, object corpo, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Post, url, corpo, ct);
+    protected Task<T> HttpPostAsync<T>(string url, object corpo, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Post, url, corpo, ct);
 
-    protected Task<T> SubstituirAsync<T>(string url, object corpo, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Put, url, corpo, ct);
+    protected Task<T> HttpPutAsync<T>(string url, object corpo, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Put, url, corpo, ct);
 
-    protected Task<T> AtualizarParcialmenteAsync<T>(string url, object corpo, CancellationToken ct) =>
+    protected Task<T> HttpPatchAsync<T>(string url, object corpo, CancellationToken ct) =>
         EnviarAsync<T>(HttpMethod.Patch, url, corpo, ct);
 
     /// <summary>Monta "?a=1&amp;b=x" ignorando os parâmetros nulos ou vazios e usando sempre a cultura invariante.</summary>

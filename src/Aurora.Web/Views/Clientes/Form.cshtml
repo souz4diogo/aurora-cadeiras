@@ -1,0 +1,23 @@
+@model ClienteFormViewModel
+@{
+    var edicao = Model.Id is not null;
+    ViewData["Title"] = edicao ? "Editar cliente" : "Novo cliente";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form asp-action="@(edicao ? "Editar" : "Novo")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8"><aurora-campo for="Nome" tamanho-maximo="150" autocomplete="off" /></div>
+        <div class="col-12 col-lg-4"><aurora-campo for="CpfCnpj" modo="numeric" dica="Pode digitar com ou sem pontos e traço." /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Email" tipo="email" tamanho-maximo="150" autocomplete="off" /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Telefone" tipo="tel" tamanho-maximo="20" autocomplete="off" /></div>
+        <div class="col-12 col-lg-9"><aurora-campo for="Cidade" tamanho-maximo="80" autocomplete="off" /></div>
+        <div class="col-12 col-lg-3"><aurora-campo for="Uf" tamanho-maximo="2" autocomplete="off" /></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>

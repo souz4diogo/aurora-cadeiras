@@ -1,5 +1,8 @@
 using Aurora.Web.Api.Autenticacao;
+using Aurora.Web.Api.Clientes;
 using Aurora.Web.Api.Comum;
+using Aurora.Web.Api.Fornecedores;
+using Aurora.Web.Api.MateriasPrimas;
 
 namespace Aurora.Web.Extensions;
 
@@ -18,6 +21,10 @@ public static class ApiClientsExtensions
         services.AddTransient<TokenHandler>();
 
         services.AddHttpClient<IAuthApi, AuthApi>(cliente => cliente.BaseAddress = endereco);
+
+        services.AddModuloDaApi<IClientesApi, ClientesApi>(configuracao);
+        services.AddModuloDaApi<IFornecedoresApi, FornecedoresApi>(configuracao);
+        services.AddModuloDaApi<IMateriasPrimasApi, MateriasPrimasApi>(configuracao);
         return services;
     }
 

@@ -1,0 +1,39 @@
+@model MateriaPrimaFormViewModel
+@{
+    var edicao = Model.Id is not null;
+    ViewData["Title"] = edicao ? "Editar matéria-prima" : "Nova matéria-prima";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form asp-action="@(edicao ? "Editar" : "Novo")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-3"><aurora-campo for="Codigo" tamanho-maximo="20" autocomplete="off" dica="Letras, números e hífen." /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Nome" tamanho-maximo="120" autocomplete="off" /></div>
+        <div class="col-12 col-lg-3">
+            <div class="mb-3">
+                <label asp-for="Unidade" class="form-label"></label>
+                <select asp-for="Unidade" asp-items="Model.Unidades" class="form-select" aria-describedby="Unidade-erro"></select>
+                <span asp-validation-for="Unidade" id="Unidade-erro" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4"><aurora-campo for="EstoqueMinimo" modo="decimal" dica="Abaixo deste saldo o sistema gera alerta de compra." /></div>
+        <div class="col-12 col-lg-4"><aurora-campo for="CustoUnitario" modo="decimal" /></div>
+        <div class="col-12 col-lg-4">
+            <div class="mb-3">
+                <label asp-for="FornecedorPreferencialId" class="form-label"></label>
+                <select asp-for="FornecedorPreferencialId" asp-items="Model.Fornecedores" class="form-select" aria-describedby="FornecedorPreferencialId-erro">
+                    <option value="">Nenhum</option>
+                </select>
+                <span asp-validation-for="FornecedorPreferencialId" id="FornecedorPreferencialId-erro" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-muted">O saldo em estoque não é editado aqui: ele muda pelos movimentos de estoque (entradas, consumo e ajustes).</p>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>

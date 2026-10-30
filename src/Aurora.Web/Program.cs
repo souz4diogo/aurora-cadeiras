@@ -14,6 +14,7 @@ builder.Services.AddControllersWithViews(opcoes =>
 {
     opcoes.Filters.Add<ApiExceptionFilter>();
     opcoes.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+    opcoes.TraduzirMensagensDeValidacao();
 });
 
 var app = builder.Build();
@@ -27,6 +28,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuroraLocalizacao();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

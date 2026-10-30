@@ -16,7 +16,11 @@ public abstract class AuroraController : Controller
     /// formulário e devolve o resultado de <paramref name="aoFalhar"/> (normalmente a mesma tela). Outras falhas
     /// seguem para o filtro global de erros.
     /// </summary>
-    protected async Task<IActionResult> TentarAsync(Func<Task<IActionResult>> acao, Func<IActionResult> aoFalhar)
+    protected Task<IActionResult> TentarAsync(Func<Task<IActionResult>> acao, Func<IActionResult> aoFalhar) =>
+        TentarAsync(acao, () => Task.FromResult(aoFalhar()));
+
+    /// <summary>Como <see cref="TentarAsync(Func{Task{IActionResult}}, Func{IActionResult})"/>, para quando remontar a tela exige uma chamada assíncrona.</summary>
+    protected async Task<IActionResult> TentarAsync(Func<Task<IActionResult>> acao, Func<Task<IActionResult>> aoFalhar)
     {
         try
         {
@@ -25,7 +29,7 @@ public abstract class AuroraController : Controller
         catch (ApiException erro) when (erro.EhFalhaDeNegocio)
         {
             ModelState.AdicionarErrosDaApi(erro);
-            return aoFalhar();
+            return await aoFalhar();
         }
     }
 }

@@ -6,15 +6,6 @@ namespace Aurora.Web.Tests;
 [Collection("painel")]
 public class AutenticacaoWebTests(CenarioDoPainel cenario)
 {
-    private static string Decodificar(string html) => WebUtility.HtmlDecode(html);
-
-    /// <summary>Destino do redirecionamento só com caminho e consulta (o middleware de cookie devolve a URL absoluta).</summary>
-    private static string Local(HttpResponseMessage resposta)
-    {
-        var destino = resposta.Headers.Location;
-        return destino is null ? "" : destino.IsAbsoluteUri ? destino.PathAndQuery : destino.OriginalString;
-    }
-
     private static string CookieDeSessao(HttpResponseMessage resposta) =>
         resposta.Headers.TryGetValues("Set-Cookie", out var cookies)
             ? cookies.FirstOrDefault(c => c.StartsWith("aurora.sessao=", StringComparison.Ordinal)) ?? ""
@@ -29,8 +20,8 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
         var protegida = await navegador.GetAsync("/Home/Index?x=1");
 
         Assert.Equal(HttpStatusCode.Redirect, inicio.StatusCode);
-        Assert.StartsWith("/Conta/Login?ReturnUrl=", Local(inicio), StringComparison.Ordinal);
-        Assert.Contains("ReturnUrl=%2FHome%2FIndex%3Fx%3D1", Local(protegida), StringComparison.Ordinal);
+        Assert.StartsWith("/Conta/Login?ReturnUrl=", Navegador.Destino(inicio), StringComparison.Ordinal);
+        Assert.Contains("ReturnUrl=%2FHome%2FIndex%3Fx%3D1", Navegador.Destino(protegida), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -38,7 +29,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
     {
         using var navegador = cenario.Painel.NovoNavegador();
 
-        var html = Decodificar(await navegador.PaginaAsync("/Conta/Login"));
+        var html = Navegador.Decodificar(await navegador.PaginaAsync("/Conta/Login"));
 
         Assert.Contains("<html lang=\"pt-BR\"", html, StringComparison.Ordinal);
         Assert.Contains("href=\"#conteudo\"", html, StringComparison.Ordinal);
@@ -57,7 +48,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
         var resposta = await navegador.EntrarAsync(ApiHost.EmailAdmin, "senha-incorreta");
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
-        Assert.Contains("E-mail ou senha inválidos.", Decodificar(await resposta.Content.ReadAsStringAsync()), StringComparison.Ordinal);
+        Assert.Contains("E-mail ou senha inválidos.", Navegador.Decodificar(await resposta.Content.ReadAsStringAsync()), StringComparison.Ordinal);
         Assert.Equal("", CookieDeSessao(resposta));
         Assert.Equal(HttpStatusCode.Redirect, (await navegador.GetAsync("/")).StatusCode);
     }
@@ -69,7 +60,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
 
         var resposta = await navegador.EntrarAsync("ninguem@teste.local", "qualquer-senha");
 
-        Assert.Contains("E-mail ou senha inválidos.", Decodificar(await resposta.Content.ReadAsStringAsync()), StringComparison.Ordinal);
+        Assert.Contains("E-mail ou senha inválidos.", Navegador.Decodificar(await resposta.Content.ReadAsStringAsync()), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -79,7 +70,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
 
         var resposta = await navegador.EntrarAsync("", "");
 
-        var html = Decodificar(await resposta.Content.ReadAsStringAsync());
+        var html = Navegador.Decodificar(await resposta.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         Assert.Contains("Informe o e-mail.", html, StringComparison.Ordinal);
         Assert.Contains("Informe a senha.", html, StringComparison.Ordinal);
@@ -93,14 +84,14 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
         var resposta = await navegador.EntrarAsync(ApiHost.EmailAdmin, ApiHost.SenhaAdmin);
 
         Assert.Equal(HttpStatusCode.Redirect, resposta.StatusCode);
-        Assert.Equal("/", Local(resposta));
+        Assert.Equal("/", Navegador.Destino(resposta));
         var cookie = CookieDeSessao(resposta);
         Assert.NotEqual("", cookie);
         Assert.Contains("httponly", cookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("samesite=strict", cookie, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("eyJ", cookie, StringComparison.Ordinal); // o JWT não aparece em claro no cookie
 
-        var inicio = Decodificar(await navegador.PaginaAsync("/"));
+        var inicio = Navegador.Decodificar(await navegador.PaginaAsync("/"));
         Assert.Contains("Olá, Administrador", inicio, StringComparison.Ordinal);
         Assert.Contains("(Administrador)", inicio, StringComparison.Ordinal);
         Assert.Contains(">Sair</button>", inicio, StringComparison.Ordinal);
@@ -116,7 +107,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
         using var navegador = await cenario.EntrarComoAsync(perfil);
         var todos = new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos" };
 
-        var inicio = Decodificar(await navegador.PaginaAsync("/"));
+        var inicio = Navegador.Decodificar(await navegador.PaginaAsync("/"));
 
         foreach (var titulo in todos)
         {
@@ -132,7 +123,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
     {
         using var navegador = await cenario.EntrarComoAsync(perfil);
 
-        var inicio = Decodificar(await navegador.PaginaAsync("/"));
+        var inicio = Navegador.Decodificar(await navegador.PaginaAsync("/"));
 
         Assert.Contains("aplicativo mobile", inicio, StringComparison.Ordinal);
         Assert.DoesNotContain("nav-link", inicio, StringComparison.Ordinal);
@@ -145,7 +136,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
 
         var resposta = await navegador.EntrarAsync(ApiHost.EmailAdmin, ApiHost.SenhaAdmin, returnUrl: "/health");
 
-        Assert.Equal("/health", Local(resposta));
+        Assert.Equal("/health", Navegador.Destino(resposta));
     }
 
     [Theory]
@@ -157,7 +148,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
 
         var resposta = await navegador.EntrarAsync(ApiHost.EmailAdmin, ApiHost.SenhaAdmin, returnUrl: retorno);
 
-        Assert.Equal("/", Local(resposta));
+        Assert.Equal("/", Navegador.Destino(resposta));
     }
 
     [Fact]
@@ -172,9 +163,9 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
 
         Assert.Equal(HttpStatusCode.BadRequest, semToken.StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, comToken.StatusCode);
-        Assert.Equal("/Conta/Login", Local(comToken));
+        Assert.Equal("/Conta/Login", Navegador.Destino(comToken));
         Assert.Equal(HttpStatusCode.Redirect, depois.StatusCode);
-        Assert.StartsWith("/Conta/Login", Local(depois), StringComparison.Ordinal);
+        Assert.StartsWith("/Conta/Login", Navegador.Destino(depois), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -185,7 +176,7 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
         var resposta = await navegador.GetAsync("/Conta/Login");
 
         Assert.Equal(HttpStatusCode.Redirect, resposta.StatusCode);
-        Assert.Equal("/", Local(resposta));
+        Assert.Equal("/", Navegador.Destino(resposta));
     }
 
     [Fact]
