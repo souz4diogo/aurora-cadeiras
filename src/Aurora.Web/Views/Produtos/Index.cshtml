@@ -1,0 +1,71 @@
+@model ProdutosListaViewModel
+@{
+    ViewData["Title"] = "Produtos";
+    var podeEditar = User.IsInRole(Perfis.Administrador) || User.IsInRole(Perfis.GerenteProducao);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Produtos</h1>
+    @if (podeEditar)
+    {
+        <a class="btn btn-primary" asp-action="Novo">Novo produto</a>
+    }
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar produtos">
+    <div class="col-12 col-md-5">
+        <label for="busca" class="form-label">Código ou nome</label>
+        <input id="busca" name="busca" class="form-control" value="@Model.Busca" />
+    </div>
+    <div class="col-12 col-md-3">
+        <partial name="_FiltroDeSituacao" model="Model.Ativo" />
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum produto encontrado.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Lista de produtos</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Linha</th>
+                    <th scope="col" class="numero">Preço de venda</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var produto in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row">@produto.Codigo</th>
+                        <td>@produto.Nome</td>
+                        <td>@produto.LinhaProduto</td>
+                        <td class="numero">@Formatacao.Moeda(produto.PrecoVenda)</td>
+                        <td><partial name="_Situacao" model="produto.Ativo" /></td>
+                        <td class="text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Detalhes" asp-route-id="@produto.Id">Detalhes<span class="visually-hidden"> de @produto.Nome</span></a>
+                            @if (podeEditar)
+                            {
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Editar" asp-route-id="@produto.Id">Editar<span class="visually-hidden"> @produto.Nome</span></a>
+                                <partial name="_AlternarSituacao" model="new AlternarSituacaoViewModel(produto.Id, produto.Nome, produto.Ativo)" />
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

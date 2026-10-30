@@ -8,6 +8,9 @@ public sealed class MateriasPrimasApi(HttpClient http) : ApiClientBase(http), IM
         HttpGetAsync<Pagina<MateriaPrimaResposta>>(
             "api/v1/materias-primas" + Consulta(("busca", busca), ("ativo", ativo), ("page", pagina), ("pageSize", TamanhoDePagina.Padrao)), ct);
 
+    public Task<IReadOnlyList<MateriaPrimaResposta>> ListarAtivasAsync(CancellationToken ct = default) =>
+        TodasAsPaginasAsync<MateriaPrimaResposta>("api/v1/materias-primas", [("ativo", true)], ct);
+
     public Task<MateriaPrimaResposta> ObterAsync(int id, CancellationToken ct = default) =>
         HttpGetAsync<MateriaPrimaResposta>($"api/v1/materias-primas/{id}", ct);
 

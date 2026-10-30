@@ -8,6 +8,9 @@ namespace Aurora.Web.Api.Comum;
 /// <summary>Base dos clientes tipados da API: serialização, montagem de consulta e conversão de erros em <see cref="ApiException"/>.</summary>
 public abstract class ApiClientBase(HttpClient http)
 {
+    private const int TamanhoDaPaginaDeEscolha = 100;
+    private const int MaximoDePaginas = 20;
+
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     protected Task<T> HttpGetAsync<T>(string url, CancellationToken ct) => EnviarAsync<T>(HttpMethod.Get, url, null, ct);
@@ -18,6 +21,28 @@ public abstract class ApiClientBase(HttpClient http)
 
     protected Task<T> HttpPatchAsync<T>(string url, object corpo, CancellationToken ct) =>
         EnviarAsync<T>(HttpMethod.Patch, url, corpo, ct);
+
+    /// <summary>
+    /// Lê todas as páginas de uma lista da API (100 por vez, até <see cref="MaximoDePaginas"/>) para preencher
+    /// listas de escolha em formulários.
+    /// </summary>
+    protected async Task<IReadOnlyList<T>> TodasAsPaginasAsync<T>(
+        string rota, (string Nome, object? Valor)[] filtros, CancellationToken ct)
+    {
+        var itens = new List<T>();
+        for (var pagina = 1; pagina <= MaximoDePaginas; pagina++)
+        {
+            var parametros = filtros.Concat([("page", (object?)pagina), ("pageSize", TamanhoDaPaginaDeEscolha)]).ToArray();
+            var resposta = await HttpGetAsync<Pagina<T>>(rota + Consulta(parametros), ct);
+            itens.AddRange(resposta.Items);
+            if (!resposta.TemProxima)
+            {
+                break;
+            }
+        }
+
+        return itens;
+    }
 
     /// <summary>Monta "?a=1&amp;b=x" ignorando os parâmetros nulos ou vazios e usando sempre a cultura invariante.</summary>
     protected static string Consulta(params (string Nome, object? Valor)[] parametros)

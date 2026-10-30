@@ -71,5 +71,13 @@ public sealed partial class Navegador(HttpClient cliente) : IDisposable
         return correspondencia.Groups[1].Value;
     }
 
+    /// <summary>Id do primeiro produto com link de detalhes na lista.</summary>
+    public static string IdDaPrimeiraDetalhe(string html)
+    {
+        var correspondencia = Regex.Match(html, @"/Produtos/Detalhes/(\d+)");
+        Assert.True(correspondencia.Success, "A lista não tem link de detalhes de produto.");
+        return correspondencia.Groups[1].Value;
+    }
+
     public void Dispose() => cliente.Dispose();
 }

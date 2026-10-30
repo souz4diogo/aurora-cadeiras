@@ -1,0 +1,90 @@
+@model ProdutoDetalhesViewModel
+@{
+    var produto = Model.Produto;
+    ViewData["Title"] = produto.Nome;
+    var podeEditar = User.IsInRole(Perfis.Administrador) || User.IsInRole(Perfis.GerenteProducao);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">@produto.Nome</h1>
+    <div class="d-flex gap-2">
+        @if (podeEditar)
+        {
+            <a class="btn btn-outline-primary" asp-action="Editar" asp-route-id="@produto.Id">Editar dados</a>
+        }
+        <a class="btn btn-link" asp-action="Index">Voltar à lista</a>
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Código</dt>
+    <dd class="col-sm-9">@produto.Codigo</dd>
+    <dt class="col-sm-3">Linha</dt>
+    <dd class="col-sm-9">@produto.LinhaProduto</dd>
+    <dt class="col-sm-3">Preço de venda</dt>
+    <dd class="col-sm-9">@Formatacao.Moeda(produto.PrecoVenda)</dd>
+    <dt class="col-sm-3">Situação</dt>
+    <dd class="col-sm-9"><partial name="_Situacao" model="produto.Ativo" /></dd>
+</dl>
+
+<section aria-labelledby="titulo-roteiro" class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 id="titulo-roteiro" class="h5 mb-0">Roteiro de produção</h2>
+        @if (podeEditar)
+        {
+            <a class="btn btn-sm btn-outline-primary" asp-action="Roteiro" asp-route-id="@produto.Id">Editar roteiro</a>
+        }
+    </div>
+    @if (Model.Roteiro.Etapas.Count == 0)
+    {
+        <p class="alert alert-warning" role="status">Este produto ainda não tem roteiro. Sem ele, não é possível gerar ordens de produção.</p>
+    }
+    else
+    {
+        <ol class="list-group list-group-numbered">
+            @foreach (var etapa in Model.Roteiro.Etapas)
+            {
+                <li class="list-group-item">@etapa.Estacao</li>
+            }
+        </ol>
+    }
+</section>
+
+<section aria-labelledby="titulo-ficha">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 id="titulo-ficha" class="h5 mb-0">Ficha técnica</h2>
+        @if (podeEditar)
+        {
+            <a class="btn btn-sm btn-outline-primary" asp-action="FichaTecnica" asp-route-id="@produto.Id">Editar ficha técnica</a>
+        }
+    </div>
+    @if (Model.Ficha.Itens.Count == 0)
+    {
+        <p class="alert alert-warning" role="status">Este produto ainda não tem ficha técnica. Sem ela, nenhuma matéria-prima é baixada na produção.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <caption class="visually-hidden">Materiais consumidos por unidade produzida, por estação</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Estação</th>
+                        <th scope="col">Matéria-prima</th>
+                        <th scope="col" class="numero">Quantidade por unidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Ficha.Itens)
+                    {
+                        <tr>
+                            <td>@item.Estacao</td>
+                            <th scope="row">@item.MateriaPrimaCodigo - @item.MateriaPrimaNome</th>
+                            <td class="numero">@Formatacao.Quantidade(item.Quantidade) @item.Unidade</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

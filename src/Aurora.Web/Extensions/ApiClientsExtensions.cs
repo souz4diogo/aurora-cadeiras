@@ -1,8 +1,10 @@
 using Aurora.Web.Api.Autenticacao;
 using Aurora.Web.Api.Clientes;
 using Aurora.Web.Api.Comum;
+using Aurora.Web.Api.Estacoes;
 using Aurora.Web.Api.Fornecedores;
 using Aurora.Web.Api.MateriasPrimas;
+using Aurora.Web.Api.Produtos;
 
 namespace Aurora.Web.Extensions;
 
@@ -25,6 +27,8 @@ public static class ApiClientsExtensions
         services.AddModuloDaApi<IClientesApi, ClientesApi>(configuracao);
         services.AddModuloDaApi<IFornecedoresApi, FornecedoresApi>(configuracao);
         services.AddModuloDaApi<IMateriasPrimasApi, MateriasPrimasApi>(configuracao);
+        services.AddModuloDaApi<IProdutosApi, ProdutosApi>(configuracao);
+        services.AddModuloDaApi<IEstacoesApi, EstacoesApi>(configuracao);
         return services;
     }
 
