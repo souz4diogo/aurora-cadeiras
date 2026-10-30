@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Aurora.Infrastructure.Seguranca;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,29 +17,29 @@ public static class AuthExtensions
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<JwtOptions>>((bearer, jwt) =>
             {
-                var o = jwt.Value;
                 bearer.MapInboundClaims = false;
                 bearer.RequireHttpsMetadata = true;
-                bearer.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = o.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = o.Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(o.Key)),
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromSeconds(30),
-                    NameClaimType = "name",
-                    RoleClaimType = "role",
-                };
+                bearer.TokenValidationParameters = CriarParametrosDeValidacao(jwt.Value);
             });
 
         // Seguro por padrão: toda rota exige autenticação, salvo [AllowAnonymous]
         services.AddAuthorizationBuilder()
-            .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .Build());
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
         return services;
     }
+
+    private static TokenValidationParameters CriarParametrosDeValidacao(JwtOptions jwt) => new()
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwt.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwt.Audience,
+        ValidateIssuerSigningKey = true,
+        ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30),
+        NameClaimType = NomesDeClaims.Nome,
+        RoleClaimType = NomesDeClaims.Perfil,
+    };
 }

@@ -69,6 +69,8 @@ checagem de RN04 e o `CHECK EstoqueAtual >= 0` estourava (erro 547). A procedure
 | A08 | Swagger só liga com `Swagger:Habilitado=true` (padrão `false`); o JSON fica anônimo quando ligado | Doc 06 §1: desligado em produção ou protegido |
 | A09 | O `UsuarioId` da sessão só é definido quando há usuário autenticado; durante o login (anônimo) a auditoria de `Usuario` registra `UsuarioId` nulo | O doc pede o contexto por requisição autenticada |
 | A10 | Os pacotes transitivos `System.Security.Cryptography.Pkcs` (vulnerabilidade NU1902/NU1903) são fixados na 10.0.14 em vez de suprimir o aviso | Avisos são erros no build (CLAUDE.md) |
+| A11 | O token de acesso (30 min) **não é revogado** ao inativar o usuário ou trocar o perfil; vale até expirar. Só os refresh tokens são revogados (A05). Não há consulta ao banco por requisição | Trade-off do JWT sem estado. Se a janela precisar fechar, checar `Ativo` em `OnTokenValidated` (custa uma consulta por requisição) ou reduzir `Jwt:ExpiracaoEmMinutos` |
+| A12 | O JWT só aceita o algoritmo `HS256` (`ValidAlgorithms`) | Torna explícita a defesa contra troca de algoritmo, além da chave simétrica |
 
 **Pendente da 1b:** a matriz completa de permissões (docs/06 §3) só será testada rota a rota conforme os módulos forem criados; hoje cobre `/usuarios`, `/perfis` e `/auth/*`.
 
