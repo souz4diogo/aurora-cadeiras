@@ -19,7 +19,6 @@
 | `10-plano-implementacao.md` | Fases e prompts para o Claude Code | - |
 | `11-negocio-e-viabilidade.md` | Caracterização, Canvas, SWOT, viabilidade, responsabilidade social | **1, 2, 3** |
 | `12-inovacao-ia-3d-ar.md` | Extensão opcional: site público, 3D/AR, orçamento por foto (IA) | 4, 5, 8 (inovação) |
-| `CLAUDE.md` | Contexto do projeto para o Claude Code (já copiado para a raiz do repositório) | - |
 | `DECISOES.md` | Registro de decisões, interpretações e desvios da especificação | - |
 
 ## Estado do projeto
@@ -47,7 +46,7 @@
 ## Ordem recomendada
 
 1. Revisar e aprovar `00-escopo.md`.
-2. Copiar `CLAUDE.md` para a raiz e seguir `10-plano-implementacao.md`.
+2. Conferir o `CLAUDE.md` da raiz do repositório e seguir `10-plano-implementacao.md`.
 3. Guardar as evidências de cada fase em `docs/evidencias/`.
 4. Escrever os capítulos do PIM com as próprias palavras, usando as especificações como base (não copiar os textos).
 5. Conferir tudo com `03-checklist-manual.md` e postar.
