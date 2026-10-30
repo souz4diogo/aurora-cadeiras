@@ -30,4 +30,16 @@ public static class SwaggerExtensions
         });
         return services;
     }
+
+    /// <summary>Publica o Swagger apenas quando Swagger:Habilitado for verdadeiro.</summary>
+    public static WebApplication UseAuroraSwagger(this WebApplication app)
+    {
+        if (app.Configuration.GetValue<bool>("Swagger:Habilitado"))
+        {
+            app.MapSwagger().AllowAnonymous();
+            app.UseSwaggerUI(opcoes => opcoes.SwaggerEndpoint("/swagger/v1/swagger.json", "Aurora Cadeiras API v1"));
+        }
+
+        return app;
+    }
 }

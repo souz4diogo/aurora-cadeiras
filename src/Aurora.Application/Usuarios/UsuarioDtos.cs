@@ -18,9 +18,21 @@ public sealed record UsuarioDto(
 
 public sealed record PerfilDto(byte Id, string Nome);
 
-public sealed record CriarUsuarioRequest(string Nome, string Email, byte PerfilId, int? ClienteId);
+/// <summary>Campos que a criação e a atualização de usuário têm em comum.</summary>
+public interface IDadosDoUsuario
+{
+    string Nome { get; }
 
-public sealed record AtualizarUsuarioRequest(string Nome, string Email, byte PerfilId, int? ClienteId);
+    string Email { get; }
+
+    byte PerfilId { get; }
+
+    int? ClienteId { get; }
+}
+
+public sealed record CriarUsuarioRequest(string Nome, string Email, byte PerfilId, int? ClienteId) : IDadosDoUsuario;
+
+public sealed record AtualizarUsuarioRequest(string Nome, string Email, byte PerfilId, int? ClienteId) : IDadosDoUsuario;
 
 public sealed record AlterarAtivoRequest(bool Ativo);
 
