@@ -1,6 +1,7 @@
 ﻿using Aurora.Application.Autenticacao;
 using Aurora.Application.Clientes;
 using Aurora.Application.Estacoes;
+using Aurora.Application.Estoque;
 using Aurora.Application.FichasTecnicas;
 using Aurora.Application.Fornecedores;
 using Aurora.Application.MateriasPrimas;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<FichaTecnicaService>();
         services.AddScoped<RoteiroService>();
         services.AddScoped<PedidoService>();
+        services.AddScoped<EstoqueService>();
         services.AddScoped<MateriaPrimaService>();
         return services;
     }

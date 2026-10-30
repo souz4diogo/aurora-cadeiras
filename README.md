@@ -14,7 +14,9 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | 1a Banco (25 tabelas, procedures, triggers, segurança, seed) | Concluída, 37 testes de integração |
 | 1b API base e autenticação (JWT, refresh, usuários, perfis, Swagger, health) | Concluída, 77 testes |
 | 1c Cadastros básicos (produtos e matérias-primas), runner DbUp, Docker e CI | Concluída, 211 testes no total |
-| 2 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
+| 2a API da fase 2 (clientes, fornecedores, ficha técnica, roteiro, estações, pedidos, movimentos e ajuste de estoque) | Concluída, 431 testes no total |
+| 2b Painel web (layout, login e telas de cadastros e pedidos) | Próxima |
+| 3 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
 
 ## Estrutura
 

@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IFichaTecnicaRepository, FichaTecnicaRepository>();
         services.AddScoped<IRoteiroRepository, RoteiroRepository>();
         services.AddScoped<IPedidoRepository, PedidoRepository>();
+        services.AddScoped<IEstoqueRepository, EstoqueRepository>();
         services.AddScoped<IMateriaPrimaRepository, MateriaPrimaRepository>();
 
         services.AddSingleton<IRelogio, RelogioDoSistema>();
