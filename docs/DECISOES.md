@@ -26,7 +26,9 @@ nenhuma assinatura, apenas validar com `az bicep build`.
   sites oficiais (as ofertas mudam): Azure for Students (crédito sem cartão, se o e-mail da
   UNIP for aceito), conta gratuita Azure e oferta gratuita do Azure SQL Database.
 
-**Ainda pendente:** confirmar com os professores (SGBD, nuvem) e se o sistema deve ser entregue
+**SQL Server confirmado pelo grupo em 2026-10-30.**
+
+**Ainda pendente:** confirmar com os professores a nuvem e se o sistema deve ser entregue
 rodando ou só documentado. Se a resposta divergir, registrar uma nova entrada abaixo.
 
 ---

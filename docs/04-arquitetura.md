@@ -22,7 +22,7 @@ confirmação com os professores.
 | D04 | Web | **ASP.NET Core MVC (Razor)** consumindo a API | Integração real entre módulos; didático | Blazor |
 | D05 | Mobile | ⚠️ **A definir:** Flutter (Dart) ou React Native; Android primeiro | Flutter é o que a disciplina ensinou; React Native é o que o grupo domina; aguardando o professor (`08-mobile.md` §1.1) | .NET MAUI |
 | D06 | Acesso a dados | **EF Core** para CRUD + **procedures** para regras críticas | Atomicidade do estoque no banco | Somente EF Core |
-| D07 | Banco | ⚠️ **SQL Server** (Azure SQL na nuvem) | Procedures, triggers e T-SQL | PostgreSQL/MariaDB |
+| D07 | Banco | **SQL Server** (confirmado; Azure SQL na nuvem) | Procedures, triggers e T-SQL | PostgreSQL/MariaDB |
 | D08 | Versionamento do banco | Scripts SQL numerados + **DbUp** | Banco como fonte da verdade | EF Migrations |
 | D09 | Validação | **FluentValidation** | Regras fora dos controllers | DataAnnotations |
 | D10 | Testes | **xUnit** + Moq + Testcontainers | Padrão do ecossistema | NUnit |

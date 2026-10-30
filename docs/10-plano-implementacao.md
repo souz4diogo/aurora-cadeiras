@@ -13,7 +13,7 @@ cada uma com prompt pronto, critério de pronto e **evidências** para o texto d
 ## 0. Antes de começar
 
 1. Confirme que o `CLAUDE.md` está na **raiz** do repositório (`Pim_Final/CLAUDE.md`); o Claude Code o lê automaticamente.
-2. Confirme as decisões ⚠️ de `04-arquitetura.md` §1 (versão do .NET, SGBD, nuvem) e a **tecnologia do mobile** (`08-mobile.md` §1.1: Flutter ou React Native, aguardando o professor). **A Fase 4b só começa depois dessa decisão.**
+2. Confirme as decisões ⚠️ de `04-arquitetura.md` §1 (versão do .NET e nuvem; o SGBD já está confirmado: SQL Server) e a **tecnologia do mobile** (`08-mobile.md` §1.1: Flutter ou React Native, aguardando o professor). **A Fase 4b só começa depois dessa decisão.**
 3. Instale: SDK .NET, SQL Server (Developer/Express ou Docker), Docker Desktop, Android Studio (emulador) e Node 22+ (para o chen-draw). Quando o mobile for decidido, instale também a SDK dele (Flutter SDK, ou Expo/Node para React Native).
 4. Crie a pasta `docs/evidencias/`.
 
