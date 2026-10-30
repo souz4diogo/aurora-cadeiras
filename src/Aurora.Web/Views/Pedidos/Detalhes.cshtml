@@ -1,0 +1,70 @@
+@model PedidoResposta
+@{
+    ViewData["Title"] = "Pedido " + Model.Numero;
+    var podeEscrever = User.IsInRole(Perfis.Administrador) || User.IsInRole(Perfis.Vendedor);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Pedido @Model.Numero <partial name="_StatusDoPedido" model="Model.Status" /></h1>
+    <div class="d-flex gap-2">
+        @if (podeEscrever && Model.PodeEditar)
+        {
+            <a class="btn btn-outline-primary" asp-action="Editar" asp-route-id="@Model.Id">Editar pedido</a>
+        }
+        @if (podeEscrever && Model.PodeCancelar)
+        {
+            <a class="btn btn-outline-danger" asp-action="Cancelar" asp-route-id="@Model.Id">Cancelar pedido</a>
+        }
+        <a class="btn btn-link" asp-action="Index">Voltar à lista</a>
+    </div>
+</div>
+
+@if (Model.Atrasado)
+{
+    <p class="alert alert-warning" role="status">Este pedido está atrasado: o prazo de entrega venceu em @Formatacao.Data(Model.PrazoEntrega).</p>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Cliente</dt>
+    <dd class="col-sm-9">@Model.ClienteNome</dd>
+    <dt class="col-sm-3">Data do pedido</dt>
+    <dd class="col-sm-9">@Formatacao.DataHora(Model.DataPedido)</dd>
+    <dt class="col-sm-3">Prazo de entrega</dt>
+    <dd class="col-sm-9">@Formatacao.Data(Model.PrazoEntrega)</dd>
+    @if (!string.IsNullOrWhiteSpace(Model.Observacao))
+    {
+        <dt class="col-sm-3">Observação</dt>
+        <dd class="col-sm-9">@Model.Observacao</dd>
+    }
+</dl>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <caption class="visually-hidden">Itens do pedido</caption>
+        <thead>
+            <tr>
+                <th scope="col">Produto</th>
+                <th scope="col" class="numero">Quantidade</th>
+                <th scope="col" class="numero">Preço unitário</th>
+                <th scope="col" class="numero">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Itens)
+            {
+                <tr>
+                    <th scope="row">@item.ProdutoCodigo - @item.ProdutoNome</th>
+                    <td class="numero">@item.Quantidade</td>
+                    <td class="numero">@Formatacao.Moeda(item.PrecoUnitario)</td>
+                    <td class="numero">@Formatacao.Moeda(item.Subtotal)</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th scope="row" colspan="3" class="numero">Valor total</th>
+                <td class="numero"><strong>@Formatacao.Moeda(Model.ValorTotal)</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

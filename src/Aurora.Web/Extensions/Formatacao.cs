@@ -7,6 +7,20 @@ public static class Formatacao
 {
     public static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
+    /// <summary>
+    /// Falha na inicialização se a cultura pt-BR não estiver disponível de verdade. Em imagens enxutas (Alpine sem
+    /// os dados completos do ICU) o .NET cria a cultura sem os dados e passa a formatar como inglês: "R$1,290.00".
+    /// </summary>
+    public static void GarantirCulturaPtBr()
+    {
+        if (1234.5m.ToString("N1", PtBr) != "1.234,5")
+        {
+            throw new InvalidOperationException(
+                "A cultura pt-BR não está disponível neste ambiente (faltam os dados do ICU). " +
+                "Na imagem Alpine, instale o pacote icu-data-full.");
+        }
+    }
+
     public static string Moeda(decimal valor) => valor.ToString("C2", PtBr);
 
     /// <summary>Quantidades de estoque: até 3 casas, sem zeros à direita desnecessários.</summary>
@@ -14,6 +28,13 @@ public static class Formatacao
 
     /// <summary>Tira os zeros à direita que o banco devolve (2,500 vira 2,5) para o campo do formulário ficar legível.</summary>
     public static decimal SemZerosAMais(decimal valor) => valor / 1.000000000000000000000000000000000m;
+
+    /// <summary>Nome do status do pedido como o usuário lê ("EmProducao" vira "Em produção").</summary>
+    public static string StatusDoPedido(string status) => status switch
+    {
+        "EmProducao" => "Em produção",
+        _ => status,
+    };
 
     public static string Data(DateOnly data) => data.ToString("dd/MM/yyyy", PtBr);
 

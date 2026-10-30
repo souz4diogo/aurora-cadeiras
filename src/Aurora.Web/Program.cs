@@ -3,6 +3,8 @@ using Aurora.Web.Filters;
 using Aurora.Web.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 
+Formatacao.GarantirCulturaPtBr();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(opcoes => opcoes.AddServerHeader = false);

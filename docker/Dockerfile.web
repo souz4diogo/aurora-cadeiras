@@ -7,7 +7,8 @@ COPY src/ src/
 RUN dotnet publish src/Aurora.Web/Aurora.Web.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
-RUN apk add --no-cache icu-libs
+# O painel exibe e lê números e datas em pt-BR: sem o pacote de dados completo, o Alpine só tem o inglês
+RUN apk add --no-cache icu-libs icu-data-full
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_HTTP_PORTS=8080
 WORKDIR /app

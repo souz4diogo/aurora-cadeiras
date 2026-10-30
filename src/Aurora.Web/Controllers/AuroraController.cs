@@ -8,8 +8,12 @@ namespace Aurora.Web.Controllers;
 public abstract class AuroraController : Controller
 {
     public const string ChaveDeSucesso = "Sucesso";
+    public const string ChaveDeAviso = "Aviso";
 
     protected void AvisarSucesso(string mensagem) => TempData[ChaveDeSucesso] = mensagem;
+
+    /// <summary>Aviso de atenção (ex.: o pedido não pode mais ser editado), exibido na próxima página.</summary>
+    protected void AvisarAtencao(string mensagem) => TempData[ChaveDeAviso] = mensagem;
 
     /// <summary>
     /// Executa a ação; se a API recusar por validação ou regra de negócio (400, 409, 422), mostra a mensagem no

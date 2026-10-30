@@ -8,6 +8,9 @@ public sealed class ClientesApi(HttpClient http) : ApiClientBase(http), ICliente
         HttpGetAsync<Pagina<ClienteResposta>>(
             "api/v1/clientes" + Consulta(("busca", busca), ("ativo", ativo), ("page", pagina), ("pageSize", TamanhoDePagina.Padrao)), ct);
 
+    public Task<IReadOnlyList<ClienteResposta>> ListarAtivosAsync(CancellationToken ct = default) =>
+        TodasAsPaginasAsync<ClienteResposta>("api/v1/clientes", [("ativo", true)], ct);
+
     public Task<ClienteResposta> ObterAsync(int id, CancellationToken ct = default) =>
         HttpGetAsync<ClienteResposta>($"api/v1/clientes/{id}", ct);
 

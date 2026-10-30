@@ -31,6 +31,10 @@ public sealed class CampoTagHelper(IHtmlGenerator gerador) : TagHelper
     [HtmlAttributeName("autocomplete")]
     public string? Autocomplete { get; set; }
 
+    /// <summary>Formato do valor exibido (ex.: <c>{0:yyyy-MM-dd}</c>). Em campos de data (<c>tipo="date"</c>) o padrão é o formato ISO que o navegador exige.</summary>
+    [HtmlAttributeName("formato")]
+    public string? Formato { get; set; }
+
     [HtmlAttributeName("somente-leitura")]
     public bool SomenteLeitura { get; set; }
 
@@ -71,7 +75,8 @@ public sealed class CampoTagHelper(IHtmlGenerator gerador) : TagHelper
         }
 
         var rotulo = gerador.GenerateLabel(ViewContext, For.ModelExplorer, For.Name, labelText: null, new { @class = "form-label" });
-        var campo = gerador.GenerateTextBox(ViewContext, For.ModelExplorer, For.Name, For.Model, format: null, atributos);
+        var formato = Formato ?? (Tipo == "date" ? "{0:yyyy-MM-dd}" : null);
+        var campo = gerador.GenerateTextBox(ViewContext, For.ModelExplorer, For.Name, For.Model, formato, atributos);
         var erro = gerador.GenerateValidationMessage(
             ViewContext, For.ModelExplorer, For.Name, message: null, tag: "span", new { id = idDoErro, @class = "text-danger" });
 
