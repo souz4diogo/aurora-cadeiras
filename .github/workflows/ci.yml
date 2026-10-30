@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Menor privilégio: o CI só lê o repositório
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-e-testes:
+    name: Build, testes e vulnerabilidades
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Aurora.sln
+
+      # Avisos são erros (Directory.Build.props: TreatWarningsAsErrors)
+      - name: Build
+        run: dotnet build Aurora.sln --configuration Release --no-restore
+
+      # Os testes de banco e de API sobem um SQL Server em container (Testcontainers; o runner já tem Docker)
+      - name: Testes com cobertura
+        run: >
+          dotnet test Aurora.sln --configuration Release --no-build
+          --collect:"XPlat Code Coverage" --results-directory ./TestResults
+          --logger "trx;LogFileName=resultado.trx"
+
+      - name: Publicar resultados dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-dos-testes
+          path: TestResults/
+          retention-days: 14
+
+      - name: Pacotes NuGet vulneráveis
+        run: |
+          dotnet list Aurora.sln package --vulnerable --include-transitive 2>&1 | tee vulneraveis.txt
+          if grep -q "has the following vulnerable packages" vulneraveis.txt; then
+            echo "::error::Há pacotes NuGet com vulnerabilidades conhecidas."
+            exit 1
+          fi
+
+  segredos:
+    name: Varredura de segredos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  imagens:
+    name: Imagens Docker e varredura
+    runs-on: ubuntu-latest
+    needs: build-e-testes
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        imagem: [api, web, dbup]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build da imagem ${{ matrix.imagem }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.${{ matrix.imagem }}
+          load: true
+          push: false
+          tags: aurora-${{ matrix.imagem }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.imagem }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.imagem }}
+
+      # Falha o CI se a imagem tiver vulnerabilidade grave com correção disponível
+      - name: Varredura Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: aurora-${{ matrix.imagem }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"

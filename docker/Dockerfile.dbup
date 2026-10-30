@@ -1,0 +1,17 @@
+# Runner de scripts do banco (DbUp). Contexto na raiz: docker build -f docker/Dockerfile.dbup .
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /repo
+COPY Directory.Build.props .editorconfig ./
+COPY src/Aurora.DbUp/ src/Aurora.DbUp/
+RUN dotnet publish src/Aurora.DbUp/Aurora.DbUp.csproj -c Release -o /app
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS final
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    SCRIPTS_PATH=/app/database
+WORKDIR /app
+COPY --from=build /app .
+COPY database/*.sql database/
+USER app
+ENTRYPOINT ["dotnet", "Aurora.DbUp.dll"]
