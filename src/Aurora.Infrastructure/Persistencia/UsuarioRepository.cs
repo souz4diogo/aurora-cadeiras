@@ -16,7 +16,7 @@ public sealed class UsuarioRepository(AuroraDbContext db) : IUsuarioRepository
         db.Usuarios.AnyAsync(u => u.Email == email && (ignorarId == null || u.Id != ignorarId), ct);
 
     public Task<bool> ClienteExisteAsync(int clienteId, CancellationToken ct = default) =>
-        db.Database.SqlQuery<int>($"SELECT ClienteId AS Value FROM dbo.Cliente WHERE ClienteId = {clienteId}").AnyAsync(ct);
+        db.Clientes.AnyAsync(c => c.Id == clienteId, ct);
 
     public async Task<(IReadOnlyList<Usuario> Itens, int Total)> ListarAsync(
         string? busca, int pagina, int tamanho, CancellationToken ct = default)

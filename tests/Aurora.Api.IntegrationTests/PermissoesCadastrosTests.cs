@@ -1,11 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
+using Aurora.Application.Clientes;
+using Aurora.Application.Fornecedores;
 using Aurora.Application.MateriasPrimas;
 using Aurora.Application.Produtos;
 
 namespace Aurora.Api.IntegrationTests;
 
-/// <summary>Matriz de permissões (docs/06 §3) de produtos e matérias-primas: 200/201, 401 e 403 por perfil.</summary>
+/// <summary>Matriz de permissões (docs/06 §3) dos cadastros: 200/201, 401 e 403 por perfil.</summary>
 [Collection("api")]
 public class PermissoesCadastrosTests(ApiFactory api)
 {
@@ -21,6 +23,14 @@ public class PermissoesCadastrosTests(ApiFactory api)
         ["Administrador", "GerenteProducao", "Operador", "Almoxarife"]);
 
     public static TheoryData<string, bool> EscritaDeMateriasPrimas => Matriz(["Administrador", "Almoxarife"]);
+
+    public static TheoryData<string, bool> LeituraDeClientes => Matriz(["Administrador", "GerenteProducao", "Vendedor"]);
+
+    public static TheoryData<string, bool> EscritaDeClientes => Matriz(["Administrador", "Vendedor"]);
+
+    public static TheoryData<string, bool> LeituraDeFornecedores => Matriz(["Administrador", "GerenteProducao", "Almoxarife"]);
+
+    public static TheoryData<string, bool> EscritaDeFornecedores => Matriz(["Administrador", "Almoxarife"]);
 
     private static TheoryData<string, bool> Matriz(string[] permitidos)
     {
@@ -81,6 +91,56 @@ public class PermissoesCadastrosTests(ApiFactory api)
     }
 
     [Theory]
+    [MemberData(nameof(LeituraDeClientes))]
+    public async Task Leitura_de_clientes(string perfil, bool permitido)
+    {
+        using var cliente = await api.ComoAsync(perfil);
+
+        var resposta = await cliente.GetAsync("/api/v1/clientes");
+
+        await AssertAcessoAsync(resposta, permitido, HttpStatusCode.OK);
+    }
+
+    [Theory]
+    [MemberData(nameof(EscritaDeClientes))]
+    public async Task Escrita_de_clientes(string perfil, bool permitido)
+    {
+        using var cliente = await api.ComoAsync(perfil);
+
+        var resposta = await cliente.PostAsJsonAsync(
+            "/api/v1/clientes", new ClienteRequest("Cliente", DadosDeTeste.Digitos(11), null, null, null, null));
+
+        await AssertAcessoAsync(resposta, permitido, HttpStatusCode.Created);
+    }
+
+    [Theory]
+    [MemberData(nameof(LeituraDeFornecedores))]
+    public async Task Leitura_de_fornecedores(string perfil, bool permitido)
+    {
+        using var cliente = await api.ComoAsync(perfil);
+
+        var resposta = await cliente.GetAsync("/api/v1/fornecedores");
+
+        await AssertAcessoAsync(resposta, permitido, HttpStatusCode.OK);
+    }
+
+    [Theory]
+    [MemberData(nameof(EscritaDeFornecedores))]
+    public async Task Escrita_de_fornecedores(string perfil, bool permitido)
+    {
+        using var cliente = await api.ComoAsync(perfil);
+
+        var resposta = await cliente.PostAsJsonAsync(
+            "/api/v1/fornecedores", new FornecedorRequest("Fornecedor", DadosDeTeste.Digitos(14), null, null, false));
+
+        await AssertAcessoAsync(resposta, permitido, HttpStatusCode.Created);
+    }
+
+    [Theory]
+    [InlineData("/api/v1/clientes")]
+    [InlineData("/api/v1/clientes/1")]
+    [InlineData("/api/v1/fornecedores")]
+    [InlineData("/api/v1/fornecedores/1")]
     [InlineData("/api/v1/produtos")]
     [InlineData("/api/v1/produtos/1")]
     [InlineData("/api/v1/materias-primas")]

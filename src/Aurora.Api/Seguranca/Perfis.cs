@@ -26,6 +26,15 @@ public static class Perfis
     /// <summary>Administrador e Almoxarife (escrita em matérias-primas e fornecedores).</summary>
     public const string AdministradorOuAlmoxarife = Administrador + "," + Almoxarife;
 
+    /// <summary>Administrador e Vendedor (escrita em clientes).</summary>
+    public const string AdministradorOuVendedor = Administrador + "," + Vendedor;
+
+    /// <summary>Quem consulta clientes: Administrador, Gerente e Vendedor.</summary>
+    public const string ConsultaDeClientes = Administrador + "," + GerenteProducao + "," + Vendedor;
+
+    /// <summary>Quem consulta fornecedores: Administrador, Gerente e Almoxarife.</summary>
+    public const string ConsultaDeFornecedores = Administrador + "," + GerenteProducao + "," + Almoxarife;
+
     /// <summary>Quem consulta matérias-primas: Administrador, Gerente, Operador e Almoxarife.</summary>
     public const string ConsultaDeMateriaPrima = Administrador + "," + GerenteProducao + "," + Operador + "," + Almoxarife;
 }

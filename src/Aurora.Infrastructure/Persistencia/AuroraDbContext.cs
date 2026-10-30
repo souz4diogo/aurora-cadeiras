@@ -12,6 +12,10 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<Produto> Produtos => Set<Produto>();
 
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+
+    public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
+
     public DbSet<MateriaPrima> MateriasPrimas => Set<MateriaPrima>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -42,6 +46,34 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
             e.Property(x => x.RevogadoEm).HasColumnType("datetime2(0)");
             e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
             e.HasIndex(x => x.TokenHash).IsUnique();
+        });
+
+        modelBuilder.Entity<Cliente>(e =>
+        {
+            e.ToTable("Cliente", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("ClienteId");
+            e.Property(x => x.Nome).HasColumnType("nvarchar(150)").IsRequired();
+            e.Property(x => x.CpfCnpj).HasColumnType("varchar(14)").IsRequired();
+            e.Property(x => x.Email).HasColumnType("varchar(150)");
+            e.Property(x => x.Telefone).HasColumnType("varchar(20)");
+            e.Property(x => x.Cidade).HasColumnType("nvarchar(80)");
+            e.Property(x => x.Uf).HasColumnType("char(2)");
+            e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
+            e.HasIndex(x => x.CpfCnpj).IsUnique();
+        });
+
+        modelBuilder.Entity<Fornecedor>(e =>
+        {
+            e.ToTable("Fornecedor", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("FornecedorId");
+            e.Property(x => x.RazaoSocial).HasColumnType("nvarchar(150)").IsRequired();
+            e.Property(x => x.Cnpj).HasColumnType("char(14)").IsRequired();
+            e.Property(x => x.Email).HasColumnType("varchar(150)");
+            e.Property(x => x.Telefone).HasColumnType("varchar(20)");
+            e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
+            e.HasIndex(x => x.Cnpj).IsUnique();
         });
 
         modelBuilder.Entity<Produto>(e =>

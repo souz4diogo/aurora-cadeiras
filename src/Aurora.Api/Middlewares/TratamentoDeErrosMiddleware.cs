@@ -40,6 +40,9 @@ public sealed partial class TratamentoDeErrosMiddleware(RequestDelegate proximo,
         ["PRODUTO_NAO_ENCONTRADO"] = "Produto não encontrado",
         ["MATERIA_PRIMA_NAO_ENCONTRADA"] = "Matéria-prima não encontrada",
         ["FORNECEDOR_INEXISTENTE"] = "Fornecedor inexistente",
+        ["CLIENTE_NAO_ENCONTRADO"] = "Cliente não encontrado",
+        ["FORNECEDOR_NAO_ENCONTRADO"] = "Fornecedor não encontrado",
+        ["DOCUMENTO_DUPLICADO"] = "Documento já cadastrado",
         ["VALIDACAO"] = "Dados inválidos",
     };
 

@@ -13,7 +13,7 @@ public sealed class MateriaPrimaRepository(AuroraDbContext db) : IMateriaPrimaRe
         db.MateriasPrimas.AnyAsync(m => m.Codigo == codigo && (ignorarId == null || m.Id != ignorarId), ct);
 
     public Task<bool> FornecedorExisteAsync(int fornecedorId, CancellationToken ct = default) =>
-        db.Database.SqlQuery<int>($"SELECT FornecedorId AS Value FROM dbo.Fornecedor WHERE FornecedorId = {fornecedorId}").AnyAsync(ct);
+        db.Fornecedores.AnyAsync(f => f.Id == fornecedorId, ct);
 
     public async Task<(IReadOnlyList<MateriaPrima> Itens, int Total)> ListarAsync(
         string? busca, bool? ativo, int pagina, int tamanho, CancellationToken ct = default)

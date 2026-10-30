@@ -1,4 +1,6 @@
 ﻿using Aurora.Application.Autenticacao;
+using Aurora.Application.Clientes;
+using Aurora.Application.Fornecedores;
 using Aurora.Application.MateriasPrimas;
 using Aurora.Application.Produtos;
 using Aurora.Application.Usuarios;
@@ -15,6 +17,8 @@ public static class DependencyInjection
         services.AddScoped<AuthService>();
         services.AddScoped<UsuarioService>();
         services.AddScoped<ProdutoService>();
+        services.AddScoped<ClienteService>();
+        services.AddScoped<FornecedorService>();
         services.AddScoped<MateriaPrimaService>();
         return services;
     }
