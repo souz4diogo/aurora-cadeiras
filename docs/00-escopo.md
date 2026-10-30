@@ -15,7 +15,7 @@
 | # | Premissa | Alternativa |
 |---|---|---|
 | 1 | ⚠️ Empresa **fictícia**: "Aurora Cadeiras Indústria Moveleira Ltda" (nome é sugestão) | Qualquer outro nome |
-| 2 | ⚠️ SGBD: **SQL Server** | MySQL/MariaDB, PostgreSQL |
+| 2 | SGBD: **SQL Server** (confirmado) | MySQL/MariaDB, PostgreSQL |
 | 3 | ⚠️ Mobile: **a definir**, Flutter (aprendido na disciplina) ou React Native; aguardando o professor (ver `08-mobile.md` §1.1) | .NET MAUI |
 | 4 | ⚠️ Nuvem: **Azure** (combina com .NET) | AWS, Google Cloud |
 | 5 | ⚠️ Autoria: a definir (individual ou grupo) | - |
@@ -224,7 +224,7 @@ login → meus pedidos → detalhe e status da produção.
 
 ## 14. Decisões pendentes
 
-- [ ] Confirmar SGBD, nuvem e **tecnologia do mobile** (seção 1).
+- [ ] Confirmar nuvem e **tecnologia do mobile** (seção 1). SGBD confirmado: SQL Server.
 - [ ] Individual ou grupo; nomes e RAs para a capa.
 - [ ] Nível de implementação esperado pelo professor (só projeto ou código rodando).
 - [ ] Nome definitivo da empresa fictícia.

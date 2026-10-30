@@ -37,7 +37,8 @@
 
 - [ ] Nomes, RAs, líder, cidade do polo e orientador
 - [ ] Prazo de postagem e de entrega impressa
-- [ ] Confirmar SGBD (SQL Server) e nuvem (Azure, só como projeto, custo zero) com os professores; decisão em `DECISOES.md`
+- [x] SGBD: **SQL Server** confirmado
+- [ ] Confirmar nuvem (Azure, só como projeto, custo zero) com os professores; decisão em `DECISOES.md`
 - [ ] **Perguntar ao professor de mobile** se pode ser React Native em vez de Flutter (sem resposta, usar Flutter)
 - [ ] Confirmar se o sistema deve ser entregue rodando ou só documentado
 - [ ] Confirmar se o Chen vale como modelo lógico ou se o professor quer o relacional
