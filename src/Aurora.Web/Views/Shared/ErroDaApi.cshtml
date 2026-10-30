@@ -1,0 +1,8 @@
+@model Aurora.Web.Api.Comum.ApiException
+@{
+    ViewData["Title"] = "Não foi possível concluir";
+}
+
+<h1 class="h3">Não foi possível concluir</h1>
+<p>@(Model?.Detalhe ?? "A API recusou a operação.")</p>
+<a class="btn btn-primary" asp-controller="Home" asp-action="Index">Voltar ao início</a>

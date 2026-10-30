@@ -1,29 +1,38 @@
+using Aurora.Web.Extensions;
+using Aurora.Web.Filters;
+using Aurora.Web.Middlewares;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.WebHost.ConfigureKestrel(opcoes => opcoes.AddServerHeader = false);
+
+builder.Services.AddAuroraAutenticacaoWeb(builder.Configuration);
+builder.Services.AddAuroraApi(builder.Configuration);
+builder.Services.AddHealthChecks();
+builder.Services.AddControllersWithViews(opcoes =>
+{
+    opcoes.Filters.Add<ApiExceptionFilter>();
+    opcoes.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseMiddleware<CabecalhosDeSegurancaMiddleware>();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+app.MapHealthChecks("/health").AllowAnonymous();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

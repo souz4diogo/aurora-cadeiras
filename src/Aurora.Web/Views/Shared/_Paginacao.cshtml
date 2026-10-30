@@ -1,0 +1,44 @@
+@model PaginacaoViewModel
+@{
+    // Mantém os filtros da consulta atual e troca só o número da página
+    string Link(int pagina)
+    {
+        var valores = new RouteValueDictionary();
+        foreach (var parametro in Context.Request.Query.Where(q => q.Key != "page"))
+        {
+            valores[parametro.Key] = parametro.Value.ToString();
+        }
+
+        valores["page"] = pagina;
+        return Url.Action(null, null, valores) ?? "#";
+    }
+}
+@if (Model.TotalDePaginas > 1)
+{
+    <nav aria-label="Paginação" class="mt-3">
+        <ul class="pagination mb-1">
+            <li class="page-item @(Model.Pagina <= 1 ? "disabled" : "")">
+                @if (Model.Pagina > 1)
+                {
+                    <a class="page-link" href="@Link(Model.Pagina - 1)" rel="prev">Anterior</a>
+                }
+                else
+                {
+                    <span class="page-link">Anterior</span>
+                }
+            </li>
+            <li class="page-item active" aria-current="page"><span class="page-link">Página @Model.Pagina de @Model.TotalDePaginas</span></li>
+            <li class="page-item @(Model.Pagina >= Model.TotalDePaginas ? "disabled" : "")">
+                @if (Model.Pagina < Model.TotalDePaginas)
+                {
+                    <a class="page-link" href="@Link(Model.Pagina + 1)" rel="next">Próxima</a>
+                }
+                else
+                {
+                    <span class="page-link">Próxima</span>
+                }
+            </li>
+        </ul>
+        <p class="text-muted small">@Model.Total registros</p>
+    </nav>
+}

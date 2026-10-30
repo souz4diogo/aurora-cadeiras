@@ -1,0 +1,7 @@
+@* Região anunciada por leitores de tela: a mensagem de sucesso aparece e é lida sem mover o foco *@
+<div aria-live="polite" role="status">
+    @if (TempData[Aurora.Web.Controllers.AuroraController.ChaveDeSucesso] is string sucesso)
+    {
+        <div class="alert alert-success" data-alerta="sucesso">@sucesso</div>
+    }
+</div>

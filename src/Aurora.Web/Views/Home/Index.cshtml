@@ -1,8 +1,32 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Início";
+    var atalhos = MenuPrincipal.Para(User);
+    var perfil = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1 class="h3">Olá, @User.Identity?.Name</h1>
+<p class="text-muted">Perfil: @perfil. Escolha uma área para começar.</p>
+
+@if (atalhos.Count == 0)
+{
+    <div class="alert alert-info" role="status">
+        Este perfil usa o aplicativo mobile da fábrica. Não há telas do painel liberadas para ele.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var atalho in atalhos)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">@atalho.Titulo</h2>
+                        <p class="card-text">@atalho.Descricao</p>
+                        <a class="stretched-link" asp-controller="@atalho.Controller" asp-action="Index">Abrir @atalho.Titulo</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
