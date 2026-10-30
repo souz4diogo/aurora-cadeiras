@@ -76,6 +76,29 @@ public class ForwardedHeadersTests(ApiFactory api)
     }
 
     [Fact]
+    public async Task Com_dois_proxies_confiaveis_o_cliente_real_e_a_entrada_anterior_ao_primeiro_proxy()
+    {
+        // Front Door + ingress: o cabeçalho chega como "cliente, proxy1" e só as entradas dos proxies valem
+        using var cliente = ClienteCom(Configuracao(("ForwardedHeaders:Habilitado", "true"), ("ForwardedHeaders:LimiteDeSaltos", "2")));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, await TentarLoginAsync(cliente, "203.0.113.10, 10.0.0.1"));
+        Assert.Equal(HttpStatusCode.Unauthorized, await TentarLoginAsync(cliente, "203.0.113.10, 10.0.0.1"));
+        Assert.Equal(HttpStatusCode.TooManyRequests, await TentarLoginAsync(cliente, "203.0.113.10, 10.0.0.1"));
+        Assert.Equal(HttpStatusCode.Unauthorized, await TentarLoginAsync(cliente, "203.0.113.20, 10.0.0.1"));
+    }
+
+    [Fact]
+    public async Task Com_um_so_salto_confiavel_o_que_vem_antes_do_proxy_e_ignorado()
+    {
+        // Só o ingress é confiável: "203.0.113.x" foi escrito pelo cliente e não pode escolher o próprio balde do limite
+        using var cliente = ClienteCom(Configuracao(("ForwardedHeaders:Habilitado", "true")));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, await TentarLoginAsync(cliente, "203.0.113.1, 10.0.0.1"));
+        Assert.Equal(HttpStatusCode.Unauthorized, await TentarLoginAsync(cliente, "203.0.113.2, 10.0.0.1"));
+        Assert.Equal(HttpStatusCode.TooManyRequests, await TentarLoginAsync(cliente, "203.0.113.3, 10.0.0.1"));
+    }
+
+    [Fact]
     public async Task Sem_habilitar_o_cabecalho_e_ignorado_e_nao_serve_para_burlar_o_limite()
     {
         using var cliente = ClienteCom(Configuracao());

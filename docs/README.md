@@ -27,7 +27,7 @@
 |---|---|
 | Escopo e requisitos | Rascunho pronto, aguardando revisão do grupo |
 | Especificações técnicas (04 a 09) | Prontas para implementação |
-| Implementação do sistema | **Em andamento:** fases 0, 1a (banco), 1b (API base e autenticação) e 1c (produtos, matérias-primas, Docker e CI) concluídas, com 211 testes passando; a API da fase 2 (2a: cadastros, pedidos e estoque) e o painel web (2b: cadastros, produtos com ficha técnica e roteiro, pedidos) também estão prontos, somando 532 testes. Próxima: 3 (produção e estoque) |
+| Implementação do sistema | **Em andamento:** fases 0, 1a (banco), 1b (API base e autenticação) e 1c (produtos, matérias-primas, Docker e CI) concluídas, com 211 testes passando; a API da fase 2 (2a: cadastros, pedidos e estoque) e o painel web (2b: cadastros, produtos com ficha técnica e roteiro, pedidos) também estão prontos, somando 553 testes. Próxima: 3 (produção e estoque) |
 | Decisões e desvios da especificação | Registrados em `DECISOES.md` |
 | Texto do PIM (capítulos, Introdução, Conclusão, Resumo, Abstract) | A fazer, **depois** da implementação |
 | Documento final em Word com ABNT | A fazer, por último |

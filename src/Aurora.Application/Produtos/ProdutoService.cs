@@ -26,7 +26,7 @@ public class ProdutoService(
     public async Task<ProdutoDto> CriarAsync(ProdutoRequest request, CancellationToken ct = default)
     {
         await validador.ValidateAndThrowAsync(request, ct);
-        var codigo = NormalizarCodigo(request.Codigo);
+        var codigo = Texto.NormalizarCodigo(request.Codigo);
         await GarantirCodigoDisponivelAsync(codigo, null, ct);
 
         var produto = new Produto(codigo, request.Nome.Trim(), (LinhaProduto)request.LinhaProdutoId, request.PrecoVenda);
@@ -39,7 +39,7 @@ public class ProdutoService(
     {
         await validador.ValidateAndThrowAsync(request, ct);
         var produto = await ObterOuFalharAsync(id, ct);
-        var codigo = NormalizarCodigo(request.Codigo);
+        var codigo = Texto.NormalizarCodigo(request.Codigo);
         await GarantirCodigoDisponivelAsync(codigo, id, ct);
 
         produto.Atualizar(codigo, request.Nome.Trim(), (LinhaProduto)request.LinhaProdutoId, request.PrecoVenda);
@@ -54,8 +54,6 @@ public class ProdutoService(
         await unitOfWork.SalvarAsync(ct);
         return ProdutoDto.De(produto);
     }
-
-    private static string NormalizarCodigo(string codigo) => codigo.Trim().ToUpperInvariant();
 
     private async Task<Produto> ObterOuFalharAsync(int id, CancellationToken ct) =>
         await produtos.ObterPorIdAsync(id, ct)

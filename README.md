@@ -15,7 +15,7 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | 1b API base e autenticação (JWT, refresh, usuários, perfis, Swagger, health) | Concluída, 77 testes |
 | 1c Cadastros básicos (produtos e matérias-primas), runner DbUp, Docker e CI | Concluída, 211 testes no total |
 | 2a API da fase 2 (clientes, fornecedores, ficha técnica, roteiro, estações, pedidos, movimentos e ajuste de estoque) | Concluída |
-| 2b Painel web (login por cookie, layout acessível, cadastros, produtos com ficha técnica e roteiro, pedidos) | Concluída, 532 testes no total |
+| 2b Painel web (login por cookie, layout acessível, cadastros, produtos com ficha técnica e roteiro, pedidos) | Concluída, 553 testes no total |
 | 3 | Próxima (produção, estoque e alertas) |
 | 4 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
 

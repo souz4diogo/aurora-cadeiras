@@ -185,6 +185,7 @@ Comando de referência: `az deployment group create -g rg-aurora-<env> -f infra/
 | `Jwt__Key` | Key Vault | segredo aleatório de 256 bits |
 | `Jwt__Issuer`, `Jwt__Audience` | Configuração do app | `aurora-api` |
 | `ForwardedHeaders__Habilitado` | Configuração do app (ligar atrás do ingress) | `true` |
+| `ForwardedHeaders__LimiteDeSaltos` | Configuração do app (quantos proxies confiáveis antes da API: 1 só com o ingress, 2 com Front Door + ingress) | `2` |
 | `ForwardedHeaders__ProxiesConfiaveis__0`, `ForwardedHeaders__RedesConfiaveis__0` | Configuração do app (opcional; sem lista confia no proxy imediato) | `10.0.0.0/16` |
 | `Api__BaseUrl` | Configuração da Web | `https://api-hom.aurora...` |
 | `ASPNETCORE_ENVIRONMENT` | Container App | `Production` |

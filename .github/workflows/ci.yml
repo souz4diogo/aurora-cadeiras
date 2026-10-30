@@ -41,7 +41,7 @@ jobs:
         run: >
           dotnet test Aurora.sln --configuration Release --no-build
           --collect:"XPlat Code Coverage" --results-directory ./TestResults
-          --logger "trx;LogFileName=resultado.trx"
+          --logger "trx;LogFilePrefix=resultado"
 
       - name: Publicar resultados dos testes
         if: always()

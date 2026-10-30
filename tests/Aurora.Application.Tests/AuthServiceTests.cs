@@ -159,7 +159,23 @@ public class AuthServiceTests
 
         Assert.Equal("REFRESH_INVALIDO", erro.Codigo);
         _refreshTokens.Verify(r => r.RevogarTodosDoUsuarioAsync(7, Agora, default), Times.Once);
-        _refreshTokens.Verify(r => r.Adicionar(It.IsAny<RefreshToken>()), Times.Never);
+        // O par do perdedor chegou a ser gravado, mas é revogado junto com todas as sessões e nunca volta ao cliente
+        _refreshTokens.Verify(r => r.Adicionar(It.IsAny<RefreshToken>()), Times.Once);
+        _uow.Verify(u => u.SalvarAsync(default), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Refresh_cuja_gravacao_do_par_novo_falha_nao_revoga_o_token_antigo()
+    {
+        var token = new RefreshToken(7, "hash:atual", Agora.AddDays(3));
+        _refreshTokens.Setup(r => r.ObterPorHashAsync("hash:atual", default)).ReturnsAsync(token);
+        _usuarios.Setup(r => r.ObterPorIdAsync(7, default)).ReturnsAsync(NovoUsuario());
+        _uow.Setup(u => u.SalvarAsync(default)).ThrowsAsync(new InvalidOperationException("banco indisponível"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Servico().RefreshAsync(new RefreshRequest("atual")));
+
+        // O usuário segue com a sessão que tinha: o token antigo só é reivindicado depois da gravação
+        _refreshTokens.Verify(r => r.TentarRevogarAsync(It.IsAny<long>(), It.IsAny<DateTime>(), default), Times.Never);
     }
 
     [Fact]

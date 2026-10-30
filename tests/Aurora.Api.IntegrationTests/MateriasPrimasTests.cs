@@ -130,6 +130,52 @@ public class MateriasPrimasTests(ApiFactory api)
     }
 
     [Fact]
+    public async Task Unidade_pode_ser_corrigida_antes_do_primeiro_uso_mas_nao_depois_de_um_movimento_de_estoque()
+    {
+        using var almoxarife = await api.ComoAsync("Almoxarife");
+        var materia = await CriarAsync(almoxarife);
+        MateriaPrimaRequest Com(string unidade) =>
+            new(materia.Codigo, materia.Nome, unidade, materia.EstoqueMinimo, materia.CustoUnitario, null);
+
+        var antes = await almoxarife.PutAsJsonAsync($"/api/v1/materias-primas/{materia.Id}", Com("m2"));
+        (await almoxarife.PostAsJsonAsync("/api/v1/estoque/ajustes", new Aurora.Application.Estoque.AjusteDeEstoqueRequest(materia.Id, 5m, "Contagem")))
+            .AssertStatus(HttpStatusCode.OK);
+        var troca = await almoxarife.PutAsJsonAsync($"/api/v1/materias-primas/{materia.Id}", Com("l"));
+        var mesma = await almoxarife.PutAsJsonAsync($"/api/v1/materias-primas/{materia.Id}", Com("m2"));
+
+        antes.AssertStatus(HttpStatusCode.OK);
+        troca.AssertStatus(HttpStatusCode.Conflict);
+        Assert.Equal("UNIDADE_EM_USO", await troca.CodigoAsync());
+        mesma.AssertStatus(HttpStatusCode.OK);
+        var atual = await almoxarife.GetFromJsonAsync<MateriaPrimaDto>($"/api/v1/materias-primas/{materia.Id}");
+        Assert.Equal("m2", atual!.Unidade);
+    }
+
+    [Fact]
+    public async Task Unidade_tambem_nao_muda_quando_a_materia_prima_consta_numa_ficha_tecnica()
+    {
+        using var admin = await api.ComoAdministradorAsync();
+        var materia = await CriarAsync(admin);
+        var codigoDoProduto = ("U" + Guid.NewGuid().ToString("N"))[..12].ToUpperInvariant();
+        var produto = (await (await admin.PostAsJsonAsync(
+                "/api/v1/produtos", new Aurora.Application.Produtos.ProdutoRequest(codigoDoProduto, "Produto da ficha", 1, 10m)))
+            .Content.ReadFromJsonAsync<Aurora.Application.Produtos.ProdutoDto>())!;
+        (await admin.PutAsJsonAsync($"/api/v1/produtos/{produto.Id}/roteiro", new Aurora.Application.Roteiros.RoteiroRequest(new byte[] { 1 })))
+            .AssertStatus(HttpStatusCode.OK);
+        (await admin.PutAsJsonAsync(
+                $"/api/v1/produtos/{produto.Id}/ficha-tecnica",
+                new Aurora.Application.FichasTecnicas.FichaTecnicaRequest([new(materia.Id, 1, 2m)])))
+            .AssertStatus(HttpStatusCode.OK);
+
+        var resposta = await admin.PutAsJsonAsync(
+            $"/api/v1/materias-primas/{materia.Id}",
+            new MateriaPrimaRequest(materia.Codigo, materia.Nome, "l", materia.EstoqueMinimo, materia.CustoUnitario, null));
+
+        resposta.AssertStatus(HttpStatusCode.Conflict);
+        Assert.Equal("UNIDADE_EM_USO", await resposta.CodigoAsync());
+    }
+
+    [Fact]
     public async Task Inativar_altera_o_filtro_de_ativas()
     {
         using var admin = await api.ComoAdministradorAsync();

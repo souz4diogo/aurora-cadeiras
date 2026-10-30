@@ -11,7 +11,7 @@ public static class RegrasDeValidacao
     public static IRuleBuilderOptions<T, string> CodigoDeCadastro<T>(this IRuleBuilder<T, string> regra) =>
         regra
             .NotEmpty()
-            .Must(codigo => codigo.Trim().Length <= TamanhoMaximoDoCodigo)
+            .Must(codigo => (codigo?.Trim().Length ?? 0) <= TamanhoMaximoDoCodigo)
             .WithMessage($"O código aceita no máximo {TamanhoMaximoDoCodigo} caracteres.")
             .Matches("^\\s*[A-Za-z0-9-]+\\s*$")
             .WithMessage("O código aceita apenas letras, números e hífen.");

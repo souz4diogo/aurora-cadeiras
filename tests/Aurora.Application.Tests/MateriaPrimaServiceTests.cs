@@ -80,6 +80,43 @@ public class MateriaPrimaServiceTests
     }
 
     [Fact]
+    public async Task Trocar_a_unidade_de_materia_prima_em_uso_devolve_conflito_e_nao_salva()
+    {
+        _materiasPrimas.Setup(r => r.ObterPorIdAsync(3, default)).ReturnsAsync(NovaMateriaPrima());
+        _materiasPrimas.Setup(r => r.EmUsoAsync(It.IsAny<int>(), default)).ReturnsAsync(true);
+
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(
+            () => Servico().AtualizarAsync(3, new MateriaPrimaRequest("MP-001", "Madeira", "m2", 2m, 4500m, null)));
+
+        Assert.Equal("UNIDADE_EM_USO", erro.Codigo);
+        Assert.Equal(TipoErro.Conflito, erro.Tipo);
+        _uow.Verify(u => u.SalvarAsync(default), Times.Never);
+    }
+
+    [Fact]
+    public async Task Manter_a_mesma_unidade_vale_mesmo_em_uso_e_nem_consulta_o_uso()
+    {
+        _materiasPrimas.Setup(r => r.ObterPorIdAsync(3, default)).ReturnsAsync(NovaMateriaPrima());
+        _materiasPrimas.Setup(r => r.EmUsoAsync(It.IsAny<int>(), default)).ReturnsAsync(true);
+
+        var resposta = await Servico().AtualizarAsync(3, new MateriaPrimaRequest("MP-001", "Madeira de lei", "m3", 2m, 4500m, null));
+
+        Assert.Equal("m3", resposta.Unidade);
+        _materiasPrimas.Verify(r => r.EmUsoAsync(It.IsAny<int>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task Antes_do_primeiro_uso_a_unidade_pode_ser_corrigida()
+    {
+        _materiasPrimas.Setup(r => r.ObterPorIdAsync(3, default)).ReturnsAsync(NovaMateriaPrima());
+        _materiasPrimas.Setup(r => r.EmUsoAsync(It.IsAny<int>(), default)).ReturnsAsync(false);
+
+        var resposta = await Servico().AtualizarAsync(3, new MateriaPrimaRequest("MP-001", "Madeira", "m2", 2m, 4500m, null));
+
+        Assert.Equal("m2", resposta.Unidade);
+    }
+
+    [Fact]
     public async Task Obter_inexistente_devolve_nao_encontrado()
     {
         var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(() => Servico().ObterAsync(404));

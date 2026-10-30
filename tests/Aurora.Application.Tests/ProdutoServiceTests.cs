@@ -58,6 +58,15 @@ public class ProdutoServiceTests
     }
 
     [Fact]
+    public void Codigo_nulo_e_uma_falha_de_validacao_e_nao_uma_excecao()
+    {
+        var resultado = new ProdutoRequestValidator().Validate(new ProdutoRequest(null!, "Cadeira", 1, 10m));
+
+        Assert.False(resultado.IsValid);
+        Assert.Contains(resultado.Errors, e => e.PropertyName == nameof(ProdutoRequest.Codigo));
+    }
+
+    [Fact]
     public async Task Criar_rejeita_preco_com_mais_de_duas_casas_decimais()
     {
         await Assert.ThrowsAsync<ValidationException>(
