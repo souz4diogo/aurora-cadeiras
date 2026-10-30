@@ -1,0 +1,21 @@
+# Build com o contexto na raiz do repositório: docker build -f docker/Dockerfile.api .
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /repo
+COPY Directory.Build.props .editorconfig ./
+COPY src/ src/
+RUN dotnet publish src/Aurora.Api/Aurora.Api.csproj -c Release -o /app
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
+# O projeto usa globalização completa (pt-BR), que no Alpine depende do ICU
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    ASPNETCORE_HTTP_PORTS=8080
+WORKDIR /app
+COPY --from=build /app .
+# Usuário não-root já existente na imagem base
+USER app
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD wget -qO- http://localhost:8080/health || exit 1
+ENTRYPOINT ["dotnet", "Aurora.Api.dll"]

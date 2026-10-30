@@ -73,6 +73,11 @@ checagem de RN04 e o `CHECK EstoqueAtual >= 0` estourava (erro 547). A procedure
 | A10 | Os pacotes transitivos `System.Security.Cryptography.Pkcs` (vulnerabilidade NU1902/NU1903) são fixados na 10.0.14 em vez de suprimir o aviso | Avisos são erros no build (CLAUDE.md) |
 | A11 | O token de acesso (30 min) **não é revogado** ao inativar o usuário ou trocar o perfil; vale até expirar. Só os refresh tokens são revogados (A05). Não há consulta ao banco por requisição | Trade-off do JWT sem estado. Se a janela precisar fechar, checar `Ativo` em `OnTokenValidated` (custa uma consulta por requisição) ou reduzir `Jwt:ExpiracaoEmMinutos` |
 | A12 | O JWT só aceita o algoritmo `HS256` (`ValidAlgorithms`) | Torna explícita a defesa contra troca de algoritmo, além da chave simétrica |
+| A13 | Cadastros: `PUT` de matéria-prima **não aceita saldo** (`EstoqueAtual`); o saldo só muda por movimento de estoque. `POST` cria com saldo 0 | `MovimentoEstoque` é o livro-razão (CLAUDE.md); o saldo inicial entra por ajuste (`sp_AjustarEstoque`, fase 2) |
+| A14 | Código de produto e de matéria-prima é normalizado para maiúsculas e único; duplicado devolve 409 `CODIGO_DUPLICADO`, fornecedor inexistente devolve 422 `FORNECEDOR_INEXISTENTE` | Alinha com `UQ_*_Codigo` e com os códigos 4xx de docs/06 |
+| A15 | Imagens Docker em Alpine (`aspnet:10.0-alpine`) com `icu-libs`, usuário não-root `app`, `HEALTHCHECK` via `wget`. O compose local usa `sa`; hom/prod usam o login restrito | Imagem menor e `wget` disponível para o healthcheck; o `sa` fica restrito ao ambiente local descartável |
+| A16 | O runner de scripts é o projeto `src/Aurora.DbUp` (DbUp), lido de `database/` por `SCRIPTS_PATH` e configurado por `ConnectionStrings__Aurora` | Mesmo mecanismo nos testes, no Docker e no CD; scripts já aplicados são ignorados |
+| A17 | CI (`ci.yml`) cobre build, testes com cobertura, pacotes vulneráveis, segredos (gitleaks) e imagens com Trivy; CodeQL em `codeql.yml`. **Ainda não executado no GitHub**; publicação no ACR e meta de cobertura ≥ 70% ficam para a fase 6 | Sem assinatura Azure (custo zero); o gate de cobertura só faz sentido com os módulos prontos |
 
 **Pendente da 1b:** a matriz completa de permissões (docs/06 §3) só será testada rota a rota conforme os módulos forem criados; hoje cobre `/usuarios`, `/perfis` e `/auth/*`.
 

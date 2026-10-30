@@ -13,7 +13,7 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | 0 Esqueleto da solução | Concluída |
 | 1a Banco (25 tabelas, procedures, triggers, segurança, seed) | Concluída, 37 testes de integração |
 | 1b API base e autenticação (JWT, refresh, usuários, perfis, Swagger, health) | Concluída, 77 testes |
-| 1c Cadastros básicos, Docker e CI | Próxima |
+| 1c Cadastros básicos (produtos e matérias-primas), runner DbUp, Docker e CI | Concluída, 204 testes no total |
 | 2 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
 
 ## Estrutura
@@ -25,9 +25,12 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | `src/Aurora.Infrastructure` | EF Core, procedures, JWT, QR code, relatórios |
 | `src/Aurora.Api` | Web API REST (composição das dependências) |
 | `src/Aurora.Web` | Painel administrativo ASP.NET Core MVC |
+| `src/Aurora.DbUp` | Runner que aplica os scripts de `database/` (usado pelo Docker e por qualquer ambiente) |
 | `tests/` | Domain, Application, Api (integração), Database (procedures e triggers) e Tests.Common (SQL Server de teste) |
 | `database/` | Scripts SQL numerados `001` a `006` (schema, views, procedures, triggers, segurança, seed) |
-| `docker/`, `infra/`, `.github/workflows/` | Containers, Bicep e CI/CD (fases seguintes) |
+| `docker/` | Dockerfiles (api, web, dbup) e `docker-compose.yml` |
+| `.github/workflows/` | CI (`ci.yml`) e análise estática (`codeql.yml`) |
+| `infra/` | Bicep (fase 6) |
 | `mobile/aurora_mobile` | App mobile, fora da solução .NET (tecnologia a definir) |
 
 ## Comandos
@@ -40,9 +43,29 @@ dotnet test        # testes de banco e de API sobem um SQL Server em container (
 Para rodar os testes contra um SQL Server já instalado (sem Docker), defina `AURORA_TEST_SQL` com a
 connection string do servidor; os bancos `aurora_test_*` são criados e apagados automaticamente.
 
+## Subindo tudo com Docker
+
+```bash
+cp docker/.env.example docker/.env      # preencha SA_PASSWORD, JWT_KEY e SEED_ADMIN_PASSWORD
+docker compose -f docker/docker-compose.yml up --build
+```
+
+Sobem, nesta ordem: `sql` (SQL Server 2022), `dbup` (aplica `database/*.sql` e termina), `api` (porta 8080) e
+`web` (porta 8081). Teste com `curl localhost:8080/health/ready`. O arquivo `docker/.env` é ignorado pelo Git.
+Para ligar o Swagger localmente, defina `SWAGGER_HABILITADO=true` no `.env`.
+
+> No compose a API conecta como `sa`, só para o ambiente local. Em homologação e produção a conexão vem do
+> Key Vault, com o login restrito `role_aurora_app` criado conforme `database/005-seguranca.sql`.
+
+Para aplicar os scripts em um banco já existente, sem Docker:
+
+```bash
+ConnectionStrings__Aurora="<connection string>" dotnet run --project src/Aurora.DbUp
+```
+
 ## Rodando a API localmente
 
-1. Crie o banco e aplique os scripts de `database/` na ordem (`001` a `006`); o runner DbUp chega na fase 1c.
+1. Crie o banco e aplique os scripts de `database/` com o runner acima (ou na ordem `001` a `006`).
 2. Configure os segredos fora do repositório:
 
 ```bash
