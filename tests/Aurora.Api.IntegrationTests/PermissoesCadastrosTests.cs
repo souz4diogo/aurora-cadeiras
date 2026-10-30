@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using Aurora.Application.Clientes;
 using Aurora.Application.Fornecedores;
+using Aurora.Application.FichasTecnicas;
 using Aurora.Application.MateriasPrimas;
 using Aurora.Application.Produtos;
+using Aurora.Application.Roteiros;
 
 namespace Aurora.Api.IntegrationTests;
 
@@ -137,6 +139,38 @@ public class PermissoesCadastrosTests(ApiFactory api)
     }
 
     [Theory]
+    [MemberData(nameof(LeituraDeProdutos))]
+    public async Task Leitura_de_estacoes_ficha_tecnica_e_roteiro(string perfil, bool permitido)
+    {
+        using var admin = await api.ComoAdministradorAsync();
+        var produto = await RoteiroTests.CriarProdutoAsync(admin);
+        using var cliente = await api.ComoAsync(perfil);
+
+        foreach (var rota in new[] { "/api/v1/estacoes", $"/api/v1/produtos/{produto.Id}/ficha-tecnica", $"/api/v1/produtos/{produto.Id}/roteiro" })
+        {
+            await AssertAcessoAsync(await cliente.GetAsync(rota), permitido, HttpStatusCode.OK);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(EscritaDeProdutos))]
+    public async Task Escrita_de_ficha_tecnica_e_roteiro(string perfil, bool permitido)
+    {
+        using var admin = await api.ComoAdministradorAsync();
+        var produto = await RoteiroTests.CriarProdutoAsync(admin);
+        using var cliente = await api.ComoAsync(perfil);
+
+        var roteiro = await cliente.PutAsJsonAsync($"/api/v1/produtos/{produto.Id}/roteiro", new RoteiroRequest(new byte[] { 1, 5 }));
+        var ficha = await cliente.PutAsJsonAsync($"/api/v1/produtos/{produto.Id}/ficha-tecnica", new FichaTecnicaRequest([]));
+
+        await AssertAcessoAsync(roteiro, permitido, HttpStatusCode.OK);
+        await AssertAcessoAsync(ficha, permitido, HttpStatusCode.OK);
+    }
+
+    [Theory]
+    [InlineData("/api/v1/estacoes")]
+    [InlineData("/api/v1/produtos/1/ficha-tecnica")]
+    [InlineData("/api/v1/produtos/1/roteiro")]
     [InlineData("/api/v1/clientes")]
     [InlineData("/api/v1/clientes/1")]
     [InlineData("/api/v1/fornecedores")]

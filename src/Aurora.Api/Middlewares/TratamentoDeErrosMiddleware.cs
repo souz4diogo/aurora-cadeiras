@@ -43,6 +43,10 @@ public sealed partial class TratamentoDeErrosMiddleware(RequestDelegate proximo,
         ["CLIENTE_NAO_ENCONTRADO"] = "Cliente não encontrado",
         ["FORNECEDOR_NAO_ENCONTRADO"] = "Fornecedor não encontrado",
         ["DOCUMENTO_DUPLICADO"] = "Documento já cadastrado",
+        ["ESTACAO_INVALIDA"] = "Estação inválida",
+        ["ESTACAO_FORA_DO_ROTEIRO"] = "Estação fora do roteiro do produto",
+        ["MATERIA_PRIMA_INEXISTENTE"] = "Matéria-prima inexistente",
+        ["ROTEIRO_INCOMPATIVEL_COM_FICHA"] = "Roteiro incompatível com a ficha técnica",
         ["VALIDACAO"] = "Dados inválidos",
     };
 

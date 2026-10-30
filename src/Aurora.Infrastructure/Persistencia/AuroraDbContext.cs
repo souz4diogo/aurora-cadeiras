@@ -16,6 +16,12 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
 
+    public DbSet<EstacaoProducao> Estacoes => Set<EstacaoProducao>();
+
+    public DbSet<FichaTecnicaItem> FichasTecnicas => Set<FichaTecnicaItem>();
+
+    public DbSet<RoteiroProduto> Roteiros => Set<RoteiroProduto>();
+
     public DbSet<MateriaPrima> MateriasPrimas => Set<MateriaPrima>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -74,6 +80,30 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
             e.Property(x => x.Telefone).HasColumnType("varchar(20)");
             e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
             e.HasIndex(x => x.Cnpj).IsUnique();
+        });
+
+        modelBuilder.Entity<EstacaoProducao>(e =>
+        {
+            e.ToTable("EstacaoProducao", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("EstacaoId").ValueGeneratedNever();
+            e.Property(x => x.Nome).HasColumnType("varchar(40)").IsRequired();
+        });
+
+        modelBuilder.Entity<FichaTecnicaItem>(e =>
+        {
+            e.ToTable("FichaTecnicaItem", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("FichaTecnicaItemId");
+            e.Property(x => x.Quantidade).HasColumnType("decimal(12,3)");
+            e.HasIndex(x => new { x.ProdutoId, x.MateriaPrimaId, x.EstacaoId }).IsUnique();
+        });
+
+        modelBuilder.Entity<RoteiroProduto>(e =>
+        {
+            e.ToTable("RoteiroProduto", "dbo");
+            e.HasKey(x => new { x.ProdutoId, x.EstacaoId });
+            e.HasIndex(x => new { x.ProdutoId, x.Sequencia }).IsUnique();
         });
 
         modelBuilder.Entity<Produto>(e =>

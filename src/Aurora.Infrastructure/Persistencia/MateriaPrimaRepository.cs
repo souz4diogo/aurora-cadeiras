@@ -9,6 +9,9 @@ public sealed class MateriaPrimaRepository(AuroraDbContext db) : IMateriaPrimaRe
     public Task<MateriaPrima?> ObterPorIdAsync(int id, CancellationToken ct = default) =>
         db.MateriasPrimas.FirstOrDefaultAsync(m => m.Id == id, ct);
 
+    public async Task<IReadOnlyList<MateriaPrima>> ObterPorIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
+        await db.MateriasPrimas.AsNoTracking().Where(m => ids.Contains(m.Id)).ToListAsync(ct);
+
     public Task<bool> CodigoExisteAsync(string codigo, int? ignorarId, CancellationToken ct = default) =>
         db.MateriasPrimas.AnyAsync(m => m.Codigo == codigo && (ignorarId == null || m.Id != ignorarId), ct);
 
