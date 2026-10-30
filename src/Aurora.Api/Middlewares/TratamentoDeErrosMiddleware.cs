@@ -36,6 +36,10 @@ public sealed partial class TratamentoDeErrosMiddleware(RequestDelegate proximo,
         ["EMAIL_DUPLICADO"] = "E-mail já cadastrado",
         ["USUARIO_NAO_ENCONTRADO"] = "Usuário não encontrado",
         ["CLIENTE_INEXISTENTE"] = "Cliente inexistente",
+        ["CODIGO_DUPLICADO"] = "Código já cadastrado",
+        ["PRODUTO_NAO_ENCONTRADO"] = "Produto não encontrado",
+        ["MATERIA_PRIMA_NAO_ENCONTRADA"] = "Matéria-prima não encontrada",
+        ["FORNECEDOR_INEXISTENTE"] = "Fornecedor inexistente",
         ["VALIDACAO"] = "Dados inválidos",
     };
 

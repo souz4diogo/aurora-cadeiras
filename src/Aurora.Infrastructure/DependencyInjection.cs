@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IProdutoRepository, ProdutoRepository>();
+        services.AddScoped<IMateriaPrimaRepository, MateriaPrimaRepository>();
 
         services.AddSingleton<IRelogio, RelogioDoSistema>();
         services.AddSingleton<ITokenService, JwtTokenService>();

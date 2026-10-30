@@ -34,7 +34,5 @@ public sealed record CriarUsuarioRequest(string Nome, string Email, byte PerfilI
 
 public sealed record AtualizarUsuarioRequest(string Nome, string Email, byte PerfilId, int? ClienteId) : IDadosDoUsuario;
 
-public sealed record AlterarAtivoRequest(bool Ativo);
-
 /// <summary>A senha provisória só aparece nesta resposta; o banco guarda apenas o hash.</summary>
 public sealed record UsuarioComSenhaProvisoriaDto(UsuarioDto Usuario, string SenhaProvisoria);

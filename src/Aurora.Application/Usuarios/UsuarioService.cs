@@ -17,15 +17,12 @@ public class UsuarioService(
     IValidator<CriarUsuarioRequest> validadorCriar,
     IValidator<AtualizarUsuarioRequest> validadorAtualizar)
 {
-    public const int TamanhoMaximoDePagina = 100;
-
     public static IReadOnlyList<PerfilDto> ListarPerfis() =>
         Enum.GetValues<PerfilUsuario>().Select(p => new PerfilDto((byte)p, p.ToString())).ToList();
 
     public async Task<Pagina<UsuarioDto>> ListarAsync(string? busca, int pagina, int tamanho, CancellationToken ct = default)
     {
-        pagina = Math.Max(pagina, 1);
-        tamanho = Math.Clamp(tamanho, 1, TamanhoMaximoDePagina);
+        (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
         var (itens, total) = await usuarios.ListarAsync(busca?.Trim(), pagina, tamanho, ct);
         return new Pagina<UsuarioDto>(itens.Select(UsuarioDto.De).ToList(), total, pagina, tamanho);
     }
