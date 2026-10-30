@@ -137,12 +137,29 @@ public class AuthServiceTests
         var token = new RefreshToken(7, "hash:atual", Agora.AddDays(3));
         _refreshTokens.Setup(r => r.ObterPorHashAsync("hash:atual", default)).ReturnsAsync(token);
         _usuarios.Setup(r => r.ObterPorIdAsync(7, default)).ReturnsAsync(NovoUsuario());
+        _refreshTokens.Setup(r => r.TentarRevogarAsync(token.Id, Agora, default)).ReturnsAsync(true);
 
         var resposta = await Servico().RefreshAsync(new RefreshRequest("atual"));
 
-        Assert.Equal(Agora, token.RevogadoEm);
         Assert.Equal("refresh-novo", resposta.RefreshToken);
+        _refreshTokens.Verify(r => r.TentarRevogarAsync(token.Id, Agora, default), Times.Once);
         _refreshTokens.Verify(r => r.Adicionar(It.IsAny<RefreshToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Refresh_que_perde_a_corrida_pelo_mesmo_token_e_tratado_como_reuso()
+    {
+        var token = new RefreshToken(7, "hash:atual", Agora.AddDays(3));
+        _refreshTokens.Setup(r => r.ObterPorHashAsync("hash:atual", default)).ReturnsAsync(token);
+        _usuarios.Setup(r => r.ObterPorIdAsync(7, default)).ReturnsAsync(NovoUsuario());
+        _refreshTokens.Setup(r => r.TentarRevogarAsync(token.Id, Agora, default)).ReturnsAsync(false);
+
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(
+            () => Servico().RefreshAsync(new RefreshRequest("atual")));
+
+        Assert.Equal("REFRESH_INVALIDO", erro.Codigo);
+        _refreshTokens.Verify(r => r.RevogarTodosDoUsuarioAsync(7, Agora, default), Times.Once);
+        _refreshTokens.Verify(r => r.Adicionar(It.IsAny<RefreshToken>()), Times.Never);
     }
 
     [Fact]

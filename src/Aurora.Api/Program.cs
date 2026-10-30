@@ -21,9 +21,11 @@ builder.Services.AddAuroraHealth();
 builder.Services.AddControllers();
 builder.Services.AddAuroraProblemDetails();
 builder.Services.AddAuroraCors();
+builder.Services.AddAuroraForwardedHeaders();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<TratamentoDeErrosMiddleware>();
 app.UseMiddleware<CabecalhosDeSegurancaMiddleware>();
 app.UseStatusCodePages();

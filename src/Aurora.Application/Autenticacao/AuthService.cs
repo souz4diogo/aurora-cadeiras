@@ -81,7 +81,14 @@ public class AuthService(
             throw RefreshInvalido();
         }
 
-        token.Revogar(agora);
+        // Atômico: se outra requisição usou este mesmo token primeiro, esta é tratada como reuso
+        if (!await refreshTokens.TentarRevogarAsync(token.Id, agora, ct))
+        {
+            await refreshTokens.RevogarTodosDoUsuarioAsync(token.UsuarioId, agora, ct);
+            await unitOfWork.SalvarAsync(ct);
+            throw RefreshInvalido();
+        }
+
         var resposta = EmitirParDeTokens(usuario, agora);
         await unitOfWork.SalvarAsync(ct);
         return resposta;
