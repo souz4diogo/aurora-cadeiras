@@ -29,6 +29,9 @@ public static class Perfis
     /// <summary>Administrador e Vendedor (escrita em clientes).</summary>
     public const string AdministradorOuVendedor = Administrador + "," + Vendedor;
 
+    /// <summary>Quem consulta pedidos de venda: Administrador, Gerente, Vendedor (só os próprios) e Almoxarife.</summary>
+    public const string ConsultaDePedidos = Administrador + "," + GerenteProducao + "," + Vendedor + "," + Almoxarife;
+
     /// <summary>Quem consulta clientes: Administrador, Gerente e Vendedor.</summary>
     public const string ConsultaDeClientes = Administrador + "," + GerenteProducao + "," + Vendedor;
 

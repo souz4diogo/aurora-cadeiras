@@ -22,6 +22,8 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<RoteiroProduto> Roteiros => Set<RoteiroProduto>();
 
+    public DbSet<Pedido> Pedidos => Set<Pedido>();
+
     public DbSet<MateriaPrima> MateriasPrimas => Set<MateriaPrima>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -104,6 +106,33 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
             e.ToTable("RoteiroProduto", "dbo");
             e.HasKey(x => new { x.ProdutoId, x.EstacaoId });
             e.HasIndex(x => new { x.ProdutoId, x.Sequencia }).IsUnique();
+        });
+
+        modelBuilder.Entity<Pedido>(e =>
+        {
+            // O trigger de auditoria impede o uso de OUTPUT nos comandos do EF
+            e.ToTable("Pedido", "dbo", t => t.HasTrigger("trg_Auditoria_Pedido"));
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("PedidoId");
+            e.Property(x => x.Numero).HasColumnType("varchar(15)").ValueGeneratedOnAdd();
+            e.Property(x => x.DataPedido).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
+            e.Property(x => x.PrazoEntrega).HasColumnType("date");
+            e.Property(x => x.Status).HasColumnType("varchar(15)").HasConversion<string>();
+            e.Property(x => x.Observacao).HasColumnType("nvarchar(300)");
+            e.Property(x => x.ValorTotal).HasColumnType("decimal(14,2)");
+            e.HasIndex(x => x.Numero).IsUnique();
+            e.HasMany(x => x.Itens).WithOne().HasForeignKey(i => i.PedidoId).OnDelete(DeleteBehavior.Cascade);
+            e.Navigation(x => x.Itens).UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<PedidoItem>(e =>
+        {
+            e.ToTable("PedidoItem", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("PedidoItemId");
+            e.Property(x => x.PrecoUnitario).HasColumnType("decimal(12,2)");
+            e.Ignore(x => x.Subtotal);
+            e.HasIndex(x => new { x.PedidoId, x.ProdutoId }).IsUnique();
         });
 
         modelBuilder.Entity<Produto>(e =>
