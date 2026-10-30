@@ -1,8 +1,5 @@
 # CLAUDE.md - Contexto do Projeto Aurora Cadeiras (PIM IV)
 
-> **Este arquivo deve ficar na RAIZ do repositório** (`Pim_Final/CLAUDE.md`).
-> Hoje ele está em `docs/` junto com os demais documentos; copie para a raiz.
-
 ## O que é este projeto
 
 Sistema de automação da fábrica de cadeiras **fictícia** "Aurora Cadeiras", feito como
