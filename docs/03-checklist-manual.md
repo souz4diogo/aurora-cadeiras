@@ -144,7 +144,7 @@ segurança e qualidade**: conferir se cada termo aparece justificado no texto.
 
 ## G. Lacunas do manual a esclarecer com os professores
 
-- Tecnologia do mobile (Flutter, que a turma aprendeu, ou React Native), SGBD e provedor de nuvem (o manual não define).
+- SGBD e provedor de nuvem (o manual não define). Mobile resolvido: React Native autorizado pelo professor.
 - Se o sistema precisa ser entregue **rodando** ou apenas **projetado e documentado**.
 - Se a **análise de requisitos** deve aparecer no corpo (Etapa 2) ou como Apêndice.
 - Se o professor aceita **Notação de Chen** como "modelo lógico" ou exige o relacional.

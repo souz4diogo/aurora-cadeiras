@@ -2,8 +2,8 @@
 
 **Disciplina:** Desenvolvimento Mobile
 **Projeto:** `mobile/aurora_mobile`
-**Tecnologia:** ⚠️ **a definir**: Flutter (Dart), que a turma aprendeu na disciplina, ou React Native.
-Aguardando resposta do professor de mobile (ver §1.1).
+**Tecnologia:** ✅ **React Native (Expo + TypeScript)**, autorizado pelo professor de mobile (ver §1.1).
+**Exigência do professor:** o app deve ter ao menos uma **tela de cadastro** e usar **banco de dados local no celular** (SQLite via `expo-sqlite`).
 **Relacionados:** `06-api-rest.md`, `05-banco-de-dados.md` (ApontamentoProducao), `00-escopo.md` §10
 
 > Tudo neste documento, **exceto a tabela da §1.2**, vale para qualquer tecnologia: telas,
@@ -41,9 +41,16 @@ Um único aplicativo, com **navegação por perfil** depois do login.
 | **Flutter (Dart)** | É o que o professor ensinou; menor risco na avaliação | O grupo tem menos experiência |
 | **React Native (Expo + TypeScript)** | O grupo já domina | Pode não ser aceito pelo professor; exige defender o código na apresentação |
 
-**Ação:** perguntar ao professor de mobile: *"O PIM IV permite fazer o app em React Native em
-vez de Flutter?"* Registrar a resposta e a data em `docs/DECISOES.md`. **Se não houver
-resposta a tempo, usar Flutter.** Não iniciar a implementação do app antes da decisão.
+**Decisão (30/10/2026):** o professor de mobile autorizou o **React Native** em vez de Flutter,
+desde que o app tenha uma tela de cadastro e use banco de dados no celular. Registrar em
+`docs/DECISOES.md`. A coluna Flutter da §1.2 fica só como referência e pode ser apagada.
+
+**Como o app cumpre a exigência do professor:**
+
+| Exigência | Onde no app |
+|---|---|
+| Tela de cadastro | Registro de **perda/refugo**, **inspeção de qualidade** e, se o grupo quiser um cadastro clássico, **cadastro de cliente** pelo Vendedor (a API já tem `POST /clientes`) |
+| Banco local | SQLite com `expo-sqlite`: fila de apontamentos, cache de etapas e perdas (ver §5 e §6). Todo cadastro é gravado primeiro no SQLite e depois sincronizado |
 
 ### 1.2 Equivalência de pacotes por tecnologia
 

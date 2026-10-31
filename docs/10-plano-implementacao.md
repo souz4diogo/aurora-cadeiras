@@ -13,8 +13,8 @@ cada uma com prompt pronto, critério de pronto e **evidências** para o texto d
 ## 0. Antes de começar
 
 1. Confirme que o `CLAUDE.md` está na **raiz** do repositório (`Pim_Final/CLAUDE.md`); o Claude Code o lê automaticamente.
-2. Confirme as decisões ⚠️ de `04-arquitetura.md` §1 (versão do .NET e nuvem; o SGBD já está confirmado: SQL Server) e a **tecnologia do mobile** (`08-mobile.md` §1.1: Flutter ou React Native, aguardando o professor). **A Fase 4b só começa depois dessa decisão.**
-3. Instale: SDK .NET, SQL Server (Developer/Express ou Docker), Docker Desktop, Android Studio (emulador) e Node 22+ (para o chen-draw). Quando o mobile for decidido, instale também a SDK dele (Flutter SDK, ou Expo/Node para React Native).
+2. Confirme as decisões ⚠️ de `04-arquitetura.md` §1 (versão do .NET e nuvem; o SGBD já está confirmado: SQL Server) e a tecnologia do mobile (**React Native, autorizado pelo professor**, `08-mobile.md` §1.1).
+3. Instale: SDK .NET, SQL Server (Developer/Express ou Docker), Docker Desktop, Android Studio (emulador) e Node 22+ (para o chen-draw). Para o mobile, use Expo/Node (React Native).
 4. Crie a pasta `docs/evidencias/`.
 
 ### Quem executa o quê
@@ -148,8 +148,9 @@ clientRequestId e rejeição parcial no lote.
 ### 4b. App
 **Prompt:**
 ```
-Leia docs/08-mobile.md inteiro. A tecnologia escolhida é: <FLUTTER ou REACT NATIVE
-(Expo + TypeScript)>; use os pacotes da coluna correspondente da tabela da seção 1.2.
+Leia docs/08-mobile.md inteiro. A tecnologia é React Native (Expo + TypeScript), autorizada
+pelo professor; use os pacotes da coluna React Native da tabela da seção 1.2. O app deve
+ter tela de cadastro e banco local SQLite (expo-sqlite).
 Crie o app em mobile/aurora_mobile. Implemente login com armazenamento seguro e
 interceptor de renovação do token, escolha de estação, lista de etapas, leitura de QR,
 detalhe da etapa (iniciar/finalizar), fila local em SQLite, serviço de sincronização

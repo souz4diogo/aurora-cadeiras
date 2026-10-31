@@ -9,7 +9,7 @@ Extensão **opcional** do projeto. Entra depois das histórias *Must* (ver `02-b
 | I01 | Dois front-ends: **Aurora.Site** (público) e **Aurora.Web** (ERP interno) | Públicos e riscos diferentes. O site é aberto; o ERP exige login |
 | I02 | Site público em **ASP.NET Core Razor Pages**, projeto separado | Continua na disciplina de Web com .NET e é fácil de publicar |
 | I03 | Visualizador 3D/AR no **site** com `<model-viewer>` (arquivos `.glb`) | AR no navegador do celular, sem programar AR nativo |
-| I04 | AR nativo no app mobile: **fora do escopo** (evolução futura) | Custo alto e depende da tecnologia mobile ainda em aberto |
+| I04 | AR nativo no app mobile: **fora do escopo** (evolução futura) | Custo alto; o AR no site já cobre a ideia |
 | I05 | IA só **lê a foto** e sugere o modelo do catálogo. O preço sai da ficha técnica | Resultado confiável e fácil de defender |
 | I06 | Chave da IA só no backend (Key Vault), com limite de uso e aviso LGPD | Segurança e controle de custo |
 | I07 | Orçamento por foto só para **Vendedor** (ERP e app), não é público | Evita abuso e custo |

@@ -20,7 +20,7 @@ confirmação com os professores.
 | D02 | Estilo arquitetural | **Arquitetura em camadas** (Domain, Application, Infrastructure, apresentação) | Separação de responsabilidades; testável | Monólito sem camadas |
 | D03 | API | **ASP.NET Core Web API (REST)** com JWT | Contrato único para web e mobile | gRPC |
 | D04 | Web | **ASP.NET Core MVC (Razor)** consumindo a API | Integração real entre módulos; didático | Blazor |
-| D05 | Mobile | ⚠️ **A definir:** Flutter (Dart) ou React Native; Android primeiro | Flutter é o que a disciplina ensinou; React Native é o que o grupo domina; aguardando o professor (`08-mobile.md` §1.1) | .NET MAUI |
+| D05 | Mobile | ✅ React Native (Expo + TypeScript); Android primeiro | Autorizado pelo professor em 30/10/2026; o grupo já domina (`08-mobile.md` §1.1) | Flutter, .NET MAUI |
 | D06 | Acesso a dados | **EF Core** para CRUD + **procedures** para regras críticas | Atomicidade do estoque no banco | Somente EF Core |
 | D07 | Banco | **SQL Server** (confirmado; Azure SQL na nuvem) | Procedures, triggers e T-SQL | PostgreSQL/MariaDB |
 | D08 | Versionamento do banco | Scripts SQL numerados + **DbUp** | Banco como fonte da verdade | EF Migrations |
@@ -37,7 +37,7 @@ confirmação com os professores.
 flowchart LR
     subgraph Clientes
         Web["Aurora.Web<br/>ASP.NET Core MVC"]
-        Mobile["aurora_mobile<br/>App mobile (Flutter ou React Native)"]
+        Mobile["aurora_mobile<br/>App mobile (React Native)"]
     end
     Web -->|HTTPS / JSON| Api["Aurora.Api<br/>Web API REST + JWT"]
     Mobile -->|HTTPS / JSON| Api
@@ -74,7 +74,7 @@ Pim_Final/
 │  ├─ Aurora.Api/                 Controllers, Middlewares, Program.cs, Swagger
 │  └─ Aurora.Web/                 Controllers MVC, Views, wwwroot, clientes tipados da API
 ├─ mobile/
-│  └─ aurora_mobile/              App mobile, tecnologia a definir (ver 08-mobile.md); fora da solução .NET
+│  └─ aurora_mobile/              App mobile React Native (ver 08-mobile.md); fora da solução .NET
 ├─ tests/
 │  ├─ Aurora.Domain.Tests/
 │  ├─ Aurora.Application.Tests/

@@ -16,7 +16,7 @@
 |---|---|---|
 | 1 | ⚠️ Empresa **fictícia**: "Aurora Cadeiras Indústria Moveleira Ltda" (nome é sugestão) | Qualquer outro nome |
 | 2 | SGBD: **SQL Server** (confirmado) | MySQL/MariaDB, PostgreSQL |
-| 3 | ⚠️ Mobile: **a definir**, Flutter (aprendido na disciplina) ou React Native; aguardando o professor (ver `08-mobile.md` §1.1) | .NET MAUI |
+| 3 | ✅ Mobile: React Native (Expo + TypeScript), autorizado pelo professor, com tela de cadastro e SQLite local (ver `08-mobile.md` §1.1) | .NET MAUI |
 | 4 | ⚠️ Nuvem: **Azure** (combina com .NET) | AWS, Google Cloud |
 | 5 | ⚠️ Autoria: a definir (individual ou grupo) | - |
 
@@ -195,7 +195,7 @@ login → meus pedidos → detalhe e status da produção.
 |---|---|
 | Web (administrativo) | ASP.NET Core (MVC/Razor ou Blazor) |
 | API | ASP.NET Core Web API (REST) + JWT |
-| Mobile | Flutter (Dart) ou React Native, a definir |
+| Mobile | React Native (Expo + TypeScript), SQLite local |
 | Banco de dados | SQL Server (procedures, triggers, índices) |
 | Nuvem | Azure (App Service/containers, banco gerenciado, monitoramento) |
 | DevOps | Docker + pipeline CI/CD (GitHub Actions) |
@@ -224,7 +224,7 @@ login → meus pedidos → detalhe e status da produção.
 
 ## 14. Decisões pendentes
 
-- [ ] Confirmar nuvem e **tecnologia do mobile** (seção 1). SGBD confirmado: SQL Server.
+- [ ] Confirmar nuvem (seção 1). SGBD confirmado: SQL Server. Mobile resolvido: React Native.
 - [ ] Individual ou grupo; nomes e RAs para a capa.
 - [ ] Nível de implementação esperado pelo professor (só projeto ou código rodando).
 - [ ] Nome definitivo da empresa fictícia.
