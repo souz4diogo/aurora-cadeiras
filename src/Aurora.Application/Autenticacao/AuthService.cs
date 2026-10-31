@@ -81,6 +81,12 @@ public class AuthService(
             throw RefreshInvalido();
         }
 
+        // O par novo é gravado ANTES de reivindicar o token antigo. Se a gravação falhar, o usuário continua com a
+        // sessão que tinha; e quem perde a corrida pelo mesmo token encontra o par do vencedor já gravado quando
+        // revoga todas as sessões (a reação ao reuso não deixa o token novo de fora).
+        var resposta = EmitirParDeTokens(usuario, agora);
+        await unitOfWork.SalvarAsync(ct);
+
         // Atômico: se outra requisição usou este mesmo token primeiro, esta é tratada como reuso
         if (!await refreshTokens.TentarRevogarAsync(token.Id, agora, ct))
         {
@@ -89,8 +95,6 @@ public class AuthService(
             throw RefreshInvalido();
         }
 
-        var resposta = EmitirParDeTokens(usuario, agora);
-        await unitOfWork.SalvarAsync(ct);
         return resposta;
     }
 

@@ -1,0 +1,53 @@
+@model RoteiroEditorViewModel
+@{
+    ViewData["Title"] = "Roteiro de " + Model.ProdutoNome;
+}
+
+<h1 class="h3 mb-2">Roteiro de produção</h1>
+<p class="text-muted">@Model.ProdutoNome</p>
+
+<form asp-action="Roteiro" asp-route-id="@Model.ProdutoId" method="post" novalidate>
+    <input type="hidden" asp-for="ProdutoNome" />
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <p id="ajuda-roteiro">
+        Marque as estações pelas quais o produto passa e informe a posição de cada uma (1 é a primeira).
+        Estações sem posição ficam no fim, na ordem da fábrica.
+    </p>
+
+    <div class="table-responsive">
+        <table class="table align-middle" aria-describedby="ajuda-roteiro">
+            <caption class="visually-hidden">Estações do roteiro</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Estação</th>
+                    <th scope="col">Faz parte</th>
+                    <th scope="col">Posição</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < Model.Estacoes.Count; i++)
+                {
+                    <tr>
+                        <th scope="row">
+                            @Model.Estacoes[i].Nome
+                            <input type="hidden" asp-for="Estacoes[i].EstacaoId" />
+                            <input type="hidden" asp-for="Estacoes[i].Nome" />
+                        </th>
+                        <td>
+                            <input asp-for="Estacoes[i].Incluir" class="form-check-input" aria-label="Incluir @Model.Estacoes[i].Nome no roteiro" />
+                        </td>
+                        <td>
+                            <input asp-for="Estacoes[i].Posicao" type="text" inputmode="numeric" maxlength="2" class="form-control"
+                                   aria-label="Posição de @Model.Estacoes[i].Nome" aria-describedby="Estacoes_@(i)__Posicao-erro" />
+                            <span asp-validation-for="Estacoes[i].Posicao" id="Estacoes_@(i)__Posicao-erro" class="text-danger"></span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar roteiro</button>
+    <a class="btn btn-link" asp-action="Detalhes" asp-route-id="@Model.ProdutoId">Cancelar</a>
+</form>

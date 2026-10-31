@@ -1,0 +1,73 @@
+@model ClientesListaViewModel
+@{
+    ViewData["Title"] = "Clientes";
+    var podeEditar = User.IsInRole(Perfis.Administrador) || User.IsInRole(Perfis.Vendedor);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Clientes</h1>
+    @if (podeEditar)
+    {
+        <a class="btn btn-primary" asp-action="Novo">Novo cliente</a>
+    }
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar clientes">
+    <div class="col-12 col-md-5">
+        <label for="busca" class="form-label">Nome ou CPF/CNPJ</label>
+        <input id="busca" name="busca" class="form-control" value="@Model.Busca" />
+    </div>
+    <div class="col-12 col-md-3">
+        <partial name="_FiltroDeSituacao" model="Model.Ativo" />
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum cliente encontrado.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Lista de clientes</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">CPF/CNPJ</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Cidade/UF</th>
+                    <th scope="col">Situação</th>
+                    @if (podeEditar)
+                    {
+                        <th scope="col">Ações</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row">@cliente.Nome</th>
+                        <td>@Formatacao.Documento(cliente.CpfCnpj)</td>
+                        <td>@cliente.Email</td>
+                        <td>@(string.Join("/", new[] { cliente.Cidade, cliente.Uf }.Where(p => !string.IsNullOrEmpty(p))))</td>
+                        <td><partial name="_Situacao" model="cliente.Ativo" /></td>
+                        @if (podeEditar)
+                        {
+                            <td class="text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Editar" asp-route-id="@cliente.Id">Editar<span class="visually-hidden"> @cliente.Nome</span></a>
+                                <partial name="_AlternarSituacao" model="new AlternarSituacaoViewModel(cliente.Id, cliente.Nome, cliente.Ativo)" />
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

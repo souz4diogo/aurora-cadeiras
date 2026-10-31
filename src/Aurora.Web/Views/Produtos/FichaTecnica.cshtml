@@ -1,0 +1,104 @@
+@model FichaTecnicaEditorViewModel
+@{
+    ViewData["Title"] = "Ficha técnica de " + Model.ProdutoNome;
+
+    // Quantidade como o usuário digitou, para não perder o texto quando o formulário volta com erro
+    string Tentado(string nome, string padrao) =>
+        ViewContext.ModelState.TryGetValue(nome, out var entrada) && entrada?.AttemptedValue is not null ? entrada.AttemptedValue : padrao;
+
+    async Task Linha(string indice, FichaTecnicaLinhaViewModel? item)
+    {
+        var quantidade = item is null ? "" : Tentado($"Itens[{indice}].Quantidade", Formatacao.SemZerosAMais(item.Quantidade).ToString(Formatacao.PtBr));
+        <tr data-linha>
+            <td>
+                <label class="visually-hidden" for="Itens_@(indice)__MateriaPrimaId" data-rotulo="Matéria-prima da linha">Matéria-prima da linha</label>
+                <select id="Itens_@(indice)__MateriaPrimaId" name="Itens[@indice].MateriaPrimaId" class="form-select">
+                    <option value="">Escolha a matéria-prima</option>
+                    @foreach (var opcao in Model.Materias)
+                    {
+                        <option value="@opcao.Value" selected="@(item?.MateriaPrimaId?.ToString(System.Globalization.CultureInfo.InvariantCulture) == opcao.Value)">@opcao.Text</option>
+                    }
+                </select>
+                @Html.ValidationMessage($"Itens[{indice}].MateriaPrimaId", null, new { @class = "text-danger" })
+            </td>
+            <td>
+                <label class="visually-hidden" for="Itens_@(indice)__EstacaoId">Estação da linha</label>
+                <select id="Itens_@(indice)__EstacaoId" name="Itens[@indice].EstacaoId" class="form-select">
+                    <option value="">Escolha a estação</option>
+                    @foreach (var opcao in Model.Estacoes)
+                    {
+                        <option value="@opcao.Value" selected="@(item?.EstacaoId?.ToString(System.Globalization.CultureInfo.InvariantCulture) == opcao.Value)">@opcao.Text</option>
+                    }
+                </select>
+                @Html.ValidationMessage($"Itens[{indice}].EstacaoId", null, new { @class = "text-danger" })
+            </td>
+            <td>
+                <label class="visually-hidden" for="Itens_@(indice)__Quantidade">Quantidade da linha</label>
+                <input id="Itens_@(indice)__Quantidade" name="Itens[@indice].Quantidade" type="text" inputmode="decimal" class="form-control numero" value="@quantidade" />
+                @Html.ValidationMessage($"Itens[{indice}].Quantidade", null, new { @class = "text-danger" })
+            </td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger" data-remover-linha>Remover<span class="visually-hidden"> esta linha</span></button>
+            </td>
+        </tr>
+    }
+}
+
+<h1 class="h3 mb-2">Ficha técnica</h1>
+<p class="text-muted">@Model.ProdutoNome</p>
+
+@if (Model.Estacoes.Count == 0)
+{
+    <div class="alert alert-warning" role="status">
+        Este produto ainda não tem roteiro, e a ficha técnica só consome material em estações do roteiro.
+        <a asp-action="Roteiro" asp-route-id="@Model.ProdutoId">Defina o roteiro primeiro.</a>
+    </div>
+}
+else
+{
+    <form asp-action="FichaTecnica" asp-route-id="@Model.ProdutoId" method="post" novalidate>
+        <input type="hidden" asp-for="ProdutoNome" />
+        <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+        <p id="ajuda-ficha">
+            Informe quanto de cada matéria-prima uma unidade do produto consome em cada estação.
+            O consumo é baixado do estoque quando a etapa da estação é iniciada.
+        </p>
+
+        <div class="table-responsive">
+            <table class="table align-middle" aria-describedby="ajuda-ficha">
+                <caption class="visually-hidden">Itens da ficha técnica</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Matéria-prima</th>
+                        <th scope="col">Estação</th>
+                        <th scope="col">Quantidade por unidade</th>
+                        <th scope="col"><span class="visually-hidden">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody data-linhas data-prefixo="Itens">
+                    @for (var i = 0; i < Model.Itens.Count; i++)
+                    {
+                        await Linha(i.ToString(System.Globalization.CultureInfo.InvariantCulture), Model.Itens[i]);
+                    }
+                </tbody>
+                <template data-modelo>
+                    @{ await Linha("__INDICE__", null); }
+                </template>
+            </table>
+        </div>
+
+        <div id="anuncio-linhas" class="visually-hidden" aria-live="polite" role="status"></div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <button type="button" class="btn btn-outline-primary" data-adicionar-linha>Adicionar material</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar ficha técnica</button>
+        <a class="btn btn-link" asp-action="Detalhes" asp-route-id="@Model.ProdutoId">Cancelar</a>
+    </form>
+}
+
+@section Scripts {
+    <script src="~/js/linhas-dinamicas.js" asp-append-version="true"></script>
+}

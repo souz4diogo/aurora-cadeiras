@@ -25,7 +25,9 @@ public static class ForwardedHeadersExtensions
             }
 
             opcoes.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            opcoes.ForwardLimit = 1; // só o último salto, que foi o proxy confiável quem acrescentou
+            // Quantos proxies confiáveis ficam entre o cliente e a API (Front Door + ingress = 2). Só as entradas
+            // acrescentadas por eles valem; o que o cliente mandou antes disso não é considerado.
+            opcoes.ForwardLimit = secao.GetValue("LimiteDeSaltos", 1);
 
             // Os padrões confiam apenas em loopback; substituímos pela configuração do ambiente
             opcoes.KnownProxies.Clear();

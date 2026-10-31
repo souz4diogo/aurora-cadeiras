@@ -14,7 +14,10 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | 1a Banco (25 tabelas, procedures, triggers, segurança, seed) | Concluída, 37 testes de integração |
 | 1b API base e autenticação (JWT, refresh, usuários, perfis, Swagger, health) | Concluída, 77 testes |
 | 1c Cadastros básicos (produtos e matérias-primas), runner DbUp, Docker e CI | Concluída, 211 testes no total |
-| 2 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
+| 2a API da fase 2 (clientes, fornecedores, ficha técnica, roteiro, estações, pedidos, movimentos e ajuste de estoque) | Concluída |
+| 2b Painel web (login por cookie, layout acessível, cadastros, produtos com ficha técnica e roteiro, pedidos) | Concluída, 553 testes no total |
+| 3 | Próxima (produção, estoque e alertas) |
+| 4 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
 
 ## Estrutura
 
@@ -24,7 +27,7 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | `src/Aurora.Application` | Casos de uso, DTOs, validadores, interfaces |
 | `src/Aurora.Infrastructure` | EF Core, procedures, JWT, QR code, relatórios |
 | `src/Aurora.Api` | Web API REST (composição das dependências) |
-| `src/Aurora.Web` | Painel administrativo ASP.NET Core MVC |
+| `src/Aurora.Web` | Painel administrativo ASP.NET Core MVC (cliente tipado da API em `Api/`, sessão em cookie, telas por módulo) |
 | `src/Aurora.DbUp` | Runner que aplica os scripts de `database/` (usado pelo Docker e por qualquer ambiente) |
 | `tests/` | Domain, Application, Api (integração), Database (procedures e triggers) e Tests.Common (SQL Server de teste) |
 | `database/` | Scripts SQL numerados `001` a `006` (schema, views, procedures, triggers, segurança, seed) |
@@ -80,6 +83,13 @@ dotnet run
 
 A connection string de desenvolvimento (`appsettings.Development.json`) usa a autenticação do Windows em
 `localhost`, sem senha. Em hom/prod ela vem de `ConnectionStrings__Aurora` (Key Vault).
+
+## Painel web
+
+Com o ambiente de pé (`docker compose`), abra http://localhost:8081 e entre com `admin@aurora.local` e a senha
+definida em `SEED_ADMIN_PASSWORD`. O painel só fala com a API (`Api__BaseUrl`); a sessão fica num cookie e o menu
+mostra só as áreas do perfil. Sem Docker, rode a API e depois `dotnet run --project src/Aurora.Web` (a URL da API
+de desenvolvimento está em `appsettings.Development.json`).
 
 ## Decisões
 

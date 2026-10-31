@@ -1,0 +1,33 @@
+@model Aurora.Web.Models.Conta.LoginViewModel
+@{
+    ViewData["Title"] = "Entrar";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+        <h1 class="h3 mb-3">Entrar no painel</h1>
+
+        @if (Model.SessaoExpirada)
+        {
+            <div class="alert alert-warning" role="status">Sua sessão expirou. Entre novamente para continuar.</div>
+        }
+
+        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+            <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" type="email" autocomplete="username" autofocus aria-describedby="Email-erro" />
+                <span asp-validation-for="Email" id="Email-erro" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Senha" class="form-label"></label>
+                <input asp-for="Senha" class="form-control" autocomplete="current-password" aria-describedby="Senha-erro" />
+                <span asp-validation-for="Senha" id="Senha-erro" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+    </div>
+</div>

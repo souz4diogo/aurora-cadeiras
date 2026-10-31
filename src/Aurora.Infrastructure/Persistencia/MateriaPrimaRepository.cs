@@ -9,11 +9,18 @@ public sealed class MateriaPrimaRepository(AuroraDbContext db) : IMateriaPrimaRe
     public Task<MateriaPrima?> ObterPorIdAsync(int id, CancellationToken ct = default) =>
         db.MateriasPrimas.FirstOrDefaultAsync(m => m.Id == id, ct);
 
+    public async Task<IReadOnlyList<MateriaPrima>> ObterPorIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
+        await db.MateriasPrimas.AsNoTracking().Where(m => ids.Contains(m.Id)).ToListAsync(ct);
+
+    public async Task<bool> EmUsoAsync(int id, CancellationToken ct = default) =>
+        await db.Movimentos.AnyAsync(m => m.MateriaPrimaId == id, ct)
+        || await db.FichasTecnicas.AnyAsync(f => f.MateriaPrimaId == id, ct);
+
     public Task<bool> CodigoExisteAsync(string codigo, int? ignorarId, CancellationToken ct = default) =>
         db.MateriasPrimas.AnyAsync(m => m.Codigo == codigo && (ignorarId == null || m.Id != ignorarId), ct);
 
     public Task<bool> FornecedorExisteAsync(int fornecedorId, CancellationToken ct = default) =>
-        db.Database.SqlQuery<int>($"SELECT FornecedorId AS Value FROM dbo.Fornecedor WHERE FornecedorId = {fornecedorId}").AnyAsync(ct);
+        db.Fornecedores.AnyAsync(f => f.Id == fornecedorId, ct);
 
     public async Task<(IReadOnlyList<MateriaPrima> Itens, int Total)> ListarAsync(
         string? busca, bool? ativo, int pagina, int tamanho, CancellationToken ct = default)

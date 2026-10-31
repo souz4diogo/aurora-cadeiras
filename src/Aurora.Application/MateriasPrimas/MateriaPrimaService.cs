@@ -26,7 +26,7 @@ public class MateriaPrimaService(
     public async Task<MateriaPrimaDto> CriarAsync(MateriaPrimaRequest request, CancellationToken ct = default)
     {
         await validador.ValidateAndThrowAsync(request, ct);
-        var codigo = NormalizarCodigo(request.Codigo);
+        var codigo = Texto.NormalizarCodigo(request.Codigo);
         await GarantirCodigoDisponivelAsync(codigo, null, ct);
         await GarantirFornecedorAsync(request.FornecedorPreferencialId, ct);
 
@@ -46,14 +46,17 @@ public class MateriaPrimaService(
     {
         await validador.ValidateAndThrowAsync(request, ct);
         var materiaPrima = await ObterOuFalharAsync(id, ct);
-        var codigo = NormalizarCodigo(request.Codigo);
+        var codigo = Texto.NormalizarCodigo(request.Codigo);
         await GarantirCodigoDisponivelAsync(codigo, id, ct);
         await GarantirFornecedorAsync(request.FornecedorPreferencialId, ct);
+
+        var unidade = UnidadesDeMedida.DeCodigo(request.Unidade);
+        await GarantirUnidadeSemUsoAsync(materiaPrima, unidade, ct);
 
         materiaPrima.Atualizar(
             codigo,
             request.Nome.Trim(),
-            UnidadesDeMedida.DeCodigo(request.Unidade),
+            unidade,
             request.EstoqueMinimo,
             request.CustoUnitario,
             request.FornecedorPreferencialId);
@@ -69,8 +72,6 @@ public class MateriaPrimaService(
         return MateriaPrimaDto.De(materiaPrima);
     }
 
-    private static string NormalizarCodigo(string codigo) => codigo.Trim().ToUpperInvariant();
-
     private async Task<MateriaPrima> ObterOuFalharAsync(int id, CancellationToken ct) =>
         await materiasPrimas.ObterPorIdAsync(id, ct)
         ?? throw new RegraDeNegocioException(
@@ -81,6 +82,20 @@ public class MateriaPrimaService(
         if (await materiasPrimas.CodigoExisteAsync(codigo, ignorarId, ct))
         {
             throw new RegraDeNegocioException("CODIGO_DUPLICADO", "Já existe uma matéria-prima com este código.");
+        }
+    }
+
+    /// <summary>
+    /// A unidade dá o sentido ao saldo e às quantidades da ficha técnica; trocá-la depois de haver movimento ou ficha
+    /// reinterpretaria esses números sem nenhum registro no livro-razão.
+    /// </summary>
+    private async Task GarantirUnidadeSemUsoAsync(MateriaPrima materiaPrima, UnidadeDeMedida nova, CancellationToken ct)
+    {
+        if (nova != materiaPrima.Unidade && await materiasPrimas.EmUsoAsync(materiaPrima.Id, ct))
+        {
+            throw new RegraDeNegocioException(
+                "UNIDADE_EM_USO",
+                "Não é possível trocar a unidade de uma matéria-prima que já tem movimentos de estoque ou consta em ficha técnica.");
         }
     }
 

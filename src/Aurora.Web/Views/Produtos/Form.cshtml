@@ -1,0 +1,32 @@
+@model ProdutoFormViewModel
+@{
+    var edicao = Model.Id is not null;
+    ViewData["Title"] = edicao ? "Editar produto" : "Novo produto";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form asp-action="@(edicao ? "Editar" : "Novo")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-3"><aurora-campo for="Codigo" tamanho-maximo="20" autocomplete="off" dica="Letras, números e hífen." /></div>
+        <div class="col-12 col-lg-5"><aurora-campo for="Nome" tamanho-maximo="120" autocomplete="off" /></div>
+        <div class="col-12 col-lg-4">
+            <div class="mb-3">
+                <label asp-for="LinhaProdutoId" class="form-label"></label>
+                <select asp-for="LinhaProdutoId" asp-items="Model.Linhas" class="form-select" aria-describedby="LinhaProdutoId-erro"></select>
+                <span asp-validation-for="LinhaProdutoId" id="LinhaProdutoId-erro" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4"><aurora-campo for="PrecoVenda" modo="decimal" dica="Use vírgula nos centavos, por exemplo 1290,00." /></div>
+    </div>
+
+    @if (!edicao)
+    {
+        <p class="text-muted">Depois de salvar, você define o roteiro e a ficha técnica do produto.</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>

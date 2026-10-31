@@ -1,4 +1,20 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+// Comportamento comum a todas as telas (sem scripts embutidos: a política de conteúdo só aceita arquivos do próprio site).
+(function () {
+  'use strict';
 
-// Write your JavaScript code.
+  document.addEventListener('DOMContentLoaded', function () {
+    // Campos com erro de validação do servidor ficam marcados para leitores de tela
+    document.querySelectorAll('.input-validation-error').forEach(function (campo) {
+      campo.setAttribute('aria-invalid', 'true');
+    });
+
+    // Se a página voltou com erros, leva o foco ao resumo (que é anunciado como alerta) ou ao primeiro campo com erro
+    var resumo = document.querySelector('.validation-summary-errors');
+    var primeiroCampo = document.querySelector('.input-validation-error');
+    if (resumo) {
+      resumo.focus();
+    } else if (primeiroCampo) {
+      primeiroCampo.focus();
+    }
+  });
+})();

@@ -9,6 +9,9 @@ public sealed class ProdutoRepository(AuroraDbContext db) : IProdutoRepository
     public Task<Produto?> ObterPorIdAsync(int id, CancellationToken ct = default) =>
         db.Produtos.FirstOrDefaultAsync(p => p.Id == id, ct);
 
+    public async Task<IReadOnlyList<Produto>> ObterPorIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
+        await db.Produtos.AsNoTracking().Where(p => ids.Contains(p.Id)).ToListAsync(ct);
+
     public Task<bool> CodigoExisteAsync(string codigo, int? ignorarId, CancellationToken ct = default) =>
         db.Produtos.AnyAsync(p => p.Codigo == codigo && (ignorarId == null || p.Id != ignorarId), ct);
 

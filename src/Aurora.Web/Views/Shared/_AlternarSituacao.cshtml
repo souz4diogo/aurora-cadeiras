@@ -1,0 +1,8 @@
+@* Botão de ativar/inativar de uma linha da lista (POST com token anti-CSRF); o nome do registro fica no texto oculto para leitores de tela *@
+@model Aurora.Web.Models.Navegacao.AlternarSituacaoViewModel
+<form asp-action="AlterarAtivo" asp-route-id="@Model.Id" method="post" class="d-inline">
+    <input type="hidden" name="ativo" value="@((!Model.Ativo).ToString().ToLowerInvariant())" />
+    <button type="submit" class="btn btn-sm btn-outline-secondary">
+        @(Model.Ativo ? "Inativar" : "Ativar")<span class="visually-hidden"> @Model.Nome</span>
+    </button>
+</form>

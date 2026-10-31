@@ -156,6 +156,25 @@ public class ProdutosTests(ApiFactory api)
         Assert.Equal(2, paginado.PageSize);
     }
 
+    [Theory]
+    [InlineData("/api/v1/produtos")]
+    [InlineData("/api/v1/materias-primas")]
+    [InlineData("/api/v1/clientes")]
+    [InlineData("/api/v1/fornecedores")]
+    [InlineData("/api/v1/pedidos")]
+    [InlineData("/api/v1/estoque/movimentos")]
+    public async Task Pagina_gigante_nao_estoura_o_deslocamento_e_devolve_lista_vazia(string rota)
+    {
+        using var admin = await api.ComoAdministradorAsync();
+
+        var resposta = await admin.GetAsync($"{rota}?page=2147483647&pageSize=100");
+
+        resposta.AssertStatus(HttpStatusCode.OK);
+        var pagina = (await resposta.Content.ReadFromJsonAsync<Pagina<System.Text.Json.JsonElement>>())!;
+        Assert.Empty(pagina.Items);
+        Assert.Equal(Paginacao.PaginaMaxima, pagina.Page);
+    }
+
     [Fact]
     public async Task Tamanho_de_pagina_e_limitado_a_100()
     {

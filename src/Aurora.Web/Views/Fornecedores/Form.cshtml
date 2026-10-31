@@ -1,0 +1,29 @@
+@model FornecedorFormViewModel
+@{
+    var edicao = Model.Id is not null;
+    ViewData["Title"] = edicao ? "Editar fornecedor" : "Novo fornecedor";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form asp-action="@(edicao ? "Editar" : "Novo")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8"><aurora-campo for="RazaoSocial" tamanho-maximo="150" autocomplete="off" /></div>
+        <div class="col-12 col-lg-4"><aurora-campo for="Cnpj" modo="numeric" dica="Pode digitar com ou sem pontos, barra e traço." /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Email" tipo="email" tamanho-maximo="150" autocomplete="off" /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Telefone" tipo="tel" tamanho-maximo="20" autocomplete="off" /></div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="ComunidadeTradicional" class="form-check-input" aria-describedby="ComunidadeTradicional-dica" />
+        <label asp-for="ComunidadeTradicional" class="form-check-label"></label>
+        <div id="ComunidadeTradicional-dica" class="form-text">
+            Marque quando o fornecedor for uma associação ou cooperativa de comunidade tradicional (entra no relatório de responsabilidade social).
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>
