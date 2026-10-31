@@ -34,7 +34,7 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | `docker/` | Dockerfiles (api, web, dbup) e `docker-compose.yml` |
 | `.github/workflows/` | CI (`ci.yml`) e análise estática (`codeql.yml`) |
 | `infra/` | Bicep (fase 6) |
-| `mobile/aurora_mobile` | App mobile, fora da solução .NET (tecnologia a definir) |
+| `mobile/aurora_mobile` | App mobile React Native (Expo + TypeScript), fora da solução .NET |
 
 ## Comandos
 

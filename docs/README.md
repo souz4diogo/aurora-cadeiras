@@ -39,7 +39,7 @@
 - [ ] Prazo de postagem e de entrega impressa
 - [x] SGBD: **SQL Server** confirmado
 - [ ] Confirmar nuvem (Azure, só como projeto, custo zero) com os professores; decisão em `DECISOES.md`
-- [ ] **Perguntar ao professor de mobile** se pode ser React Native em vez de Flutter (sem resposta, usar Flutter)
+- [x] Professor de mobile autorizou React Native (exige tela de cadastro e banco local SQLite)
 - [ ] Confirmar se o sistema deve ser entregue rodando ou só documentado
 - [ ] Confirmar se o Chen vale como modelo lógico ou se o professor quer o relacional
 - [ ] Renderizar organograma, fluxos, Canvas e cálculo de viabilidade do `11-negocio-e-viabilidade.md` e trocar as premissas pelas do grupo

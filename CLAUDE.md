@@ -32,9 +32,9 @@ sem avisar.
 
 .NET LTS (10; usar 8 se a disciplina usar) · ASP.NET Core Web API · ASP.NET Core MVC (Razor) ·
 EF Core + procedures · SQL Server · DbUp · xUnit · Docker · GitHub Actions · Azure (Bicep) ·
-Mobile: Flutter (Dart) **ou** React Native, ainda a definir.
-SGBD confirmado (SQL Server). ⚠️ Nuvem e **mobile** aguardam confirmação (ver `docs/04-arquitetura.md` §1 e
-`docs/08-mobile.md` §1.1). **Não inicie o app mobile antes de a tecnologia ser confirmada.**
+Mobile: React Native (Expo + TypeScript), autorizado pelo professor; o app precisa de uma tela de
+cadastro e de banco local SQLite (`expo-sqlite`). SGBD confirmado (SQL Server). ⚠️ A nuvem aguarda
+confirmação (ver `docs/04-arquitetura.md` §1 e `docs/08-mobile.md` §1.1).
 
 ## Estrutura do repositório
 
