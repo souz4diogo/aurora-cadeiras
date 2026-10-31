@@ -1,40 +1,45 @@
-@model PedidoResposta
+@model PedidoDetalhesViewModel
 @{
-    ViewData["Title"] = "Pedido " + Model.Numero;
+    var pedido = Model.Pedido;
+    ViewData["Title"] = "Pedido " + pedido.Numero;
     var podeEscrever = User.IsInRole(Perfis.Administrador) || User.IsInRole(Perfis.Vendedor);
 }
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h3 mb-0">Pedido @Model.Numero <partial name="_StatusDoPedido" model="Model.Status" /></h1>
-    <div class="d-flex gap-2">
-        @if (podeEscrever && Model.PodeEditar)
+    <h1 class="h3 mb-0">Pedido @pedido.Numero <partial name="_StatusDoPedido" model="pedido.Status" /></h1>
+    <div class="d-flex flex-wrap gap-2">
+        @if (podeEscrever && pedido.PodeConfirmar)
         {
-            <a class="btn btn-outline-primary" asp-action="Editar" asp-route-id="@Model.Id">Editar pedido</a>
+            <a class="btn btn-primary" asp-action="Confirmar" asp-route-id="@pedido.Id">Confirmar pedido</a>
         }
-        @if (podeEscrever && Model.PodeCancelar)
+        @if (podeEscrever && pedido.PodeEditar)
         {
-            <a class="btn btn-outline-danger" asp-action="Cancelar" asp-route-id="@Model.Id">Cancelar pedido</a>
+            <a class="btn btn-outline-primary" asp-action="Editar" asp-route-id="@pedido.Id">Editar pedido</a>
+        }
+        @if (podeEscrever && pedido.PodeCancelar)
+        {
+            <a class="btn btn-outline-danger" asp-action="Cancelar" asp-route-id="@pedido.Id">Cancelar pedido</a>
         }
         <a class="btn btn-link" asp-action="Index">Voltar à lista</a>
     </div>
 </div>
 
-@if (Model.Atrasado)
+@if (pedido.Atrasado)
 {
-    <p class="alert alert-warning" role="status">Este pedido está atrasado: o prazo de entrega venceu em @Formatacao.Data(Model.PrazoEntrega).</p>
+    <p class="alert alert-warning" role="status">Este pedido está atrasado: o prazo de entrega venceu em @Formatacao.Data(pedido.PrazoEntrega).</p>
 }
 
 <dl class="row">
     <dt class="col-sm-3">Cliente</dt>
-    <dd class="col-sm-9">@Model.ClienteNome</dd>
+    <dd class="col-sm-9">@pedido.ClienteNome</dd>
     <dt class="col-sm-3">Data do pedido</dt>
-    <dd class="col-sm-9">@Formatacao.DataHora(Model.DataPedido)</dd>
+    <dd class="col-sm-9">@Formatacao.DataHora(pedido.DataPedido)</dd>
     <dt class="col-sm-3">Prazo de entrega</dt>
-    <dd class="col-sm-9">@Formatacao.Data(Model.PrazoEntrega)</dd>
-    @if (!string.IsNullOrWhiteSpace(Model.Observacao))
+    <dd class="col-sm-9">@Formatacao.Data(pedido.PrazoEntrega)</dd>
+    @if (!string.IsNullOrWhiteSpace(pedido.Observacao))
     {
         <dt class="col-sm-3">Observação</dt>
-        <dd class="col-sm-9">@Model.Observacao</dd>
+        <dd class="col-sm-9">@pedido.Observacao</dd>
     }
 </dl>
 
@@ -50,7 +55,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Itens)
+            @foreach (var item in pedido.Itens)
             {
                 <tr>
                     <th scope="row">@item.ProdutoCodigo - @item.ProdutoNome</th>
@@ -63,8 +68,47 @@
         <tfoot>
             <tr>
                 <th scope="row" colspan="3" class="numero">Valor total</th>
-                <td class="numero"><strong>@Formatacao.Moeda(Model.ValorTotal)</strong></td>
+                <td class="numero"><strong>@Formatacao.Moeda(pedido.ValorTotal)</strong></td>
             </tr>
         </tfoot>
     </table>
 </div>
+
+@if (Model.Ordens is not null && Model.Ordens.Count > 0)
+{
+    <section aria-labelledby="titulo-producao" class="mt-4">
+        <h2 id="titulo-producao" class="h5">Produção</h2>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <caption class="visually-hidden">Ordens de produção do pedido</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Ordem</th>
+                        <th scope="col">Produto</th>
+                        <th scope="col" class="numero">Quantidade</th>
+                        <th scope="col">Situação</th>
+                        <th scope="col">Etapa atual</th>
+                        <th scope="col" class="numero">Progresso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ordem in Model.Ordens)
+                    {
+                        <tr>
+                            <th scope="row"><a asp-controller="Producao" asp-action="Detalhes" asp-route-id="@ordem.Id">@ordem.Numero</a></th>
+                            <td>@ordem.ProdutoCodigo - @ordem.ProdutoNome</td>
+                            <td class="numero">@ordem.Quantidade</td>
+                            <td><partial name="_StatusDaOrdem" model="ordem.Status" /></td>
+                            <td>@(ordem.EtapaAtual?.EstacaoNome ?? "—")</td>
+                            <td class="numero">@ordem.EtapasConcluidas de @ordem.TotalDeEtapas etapas</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+else if (Model.Ordens is not null && pedido.Status is "Pronto")
+{
+    <p class="alert alert-info" role="status">O estoque de produto acabado atende este pedido: nenhuma ordem de produção foi necessária.</p>
+}

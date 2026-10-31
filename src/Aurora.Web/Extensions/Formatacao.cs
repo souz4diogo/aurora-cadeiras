@@ -36,6 +36,40 @@ public static class Formatacao
         _ => status,
     };
 
+    public static string StatusDaOrdem(string status) => status switch
+    {
+        "EmAndamento" => "Em andamento",
+        "Concluida" => "Concluída",
+        _ => status,
+    };
+
+    public static string StatusDaEtapa(string status) => StatusDaOrdem(status);
+
+    public static string TipoDeMovimento(string tipo) => tipo switch
+    {
+        "Saida" => "Saída",
+        _ => tipo,
+    };
+
+    public static string OrigemDoMovimento(string origem) => origem switch
+    {
+        "Producao" => "Produção",
+        "ProducaoConcluida" => "Produção concluída",
+        "Expedicao" => "Expedição",
+        _ => origem,
+    };
+
+    /// <summary>Quantidade de movimento com o sinal explícito: "+10", "-2,5".</summary>
+    public static string QuantidadeComSinal(decimal valor) => valor.ToString("+#,##0.###;-#,##0.###;0", PtBr);
+
+    /// <summary>Duração em minutos como se lê no chão de fábrica: "45 min", "2 h 10 min", "1 d 3 h".</summary>
+    public static string Duracao(int minutos) => minutos switch
+    {
+        < 60 => $"{minutos} min",
+        < 24 * 60 => minutos % 60 == 0 ? $"{minutos / 60} h" : $"{minutos / 60} h {minutos % 60} min",
+        _ => minutos % (24 * 60) / 60 == 0 ? $"{minutos / (24 * 60)} d" : $"{minutos / (24 * 60)} d {minutos % (24 * 60) / 60} h",
+    };
+
     public static string Data(DateOnly data) => data.ToString("dd/MM/yyyy", PtBr);
 
     public static string DataHora(DateTime dataHoraUtc) => dataHoraUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", PtBr);

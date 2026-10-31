@@ -69,6 +69,17 @@ public class PedidoService(
         return await MontarDtoAsync(pedido, ct);
     }
 
+    /// <summary>
+    /// Confirma o pedido (RN01): reserva o produto acabado disponível (RN02) e gera as OPs do que falta produzir.
+    /// Tudo acontece numa transação da procedure; se algo falhar, o pedido continua Aberto.
+    /// </summary>
+    public async Task<PedidoDto> ConfirmarAsync(int id, CancellationToken ct = default)
+    {
+        var pedido = await ObterOuFalharAsync(id, ct);
+        await pedidos.ConfirmarAsync(pedido.Id, ct);
+        return await MontarDtoAsync(pedido, ct);
+    }
+
     public async Task<PedidoDto> CancelarAsync(int id, CancellationToken ct = default)
     {
         var pedido = await ObterOuFalharAsync(id, ct);

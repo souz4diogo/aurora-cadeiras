@@ -13,6 +13,8 @@ public static class MenuPrincipal
         new("Produtos", "Produtos, ficha técnica e roteiro", "Produtos", Perfis.AdministradorOuGerente),
         new("Matérias-primas", "Materiais, saldo e estoque mínimo", "MateriasPrimas", Perfis.AdministradorOuAlmoxarife),
         new("Pedidos", "Pedidos de venda", "Pedidos", Perfis.Administrador + "," + Perfis.GerenteProducao + "," + Perfis.Vendedor),
+        new("Produção", "Quadro de produção e ordens de produção", "Producao", Perfis.AdministradorOuGerente),
+        new("Estoque", "Saldos, movimentos e alertas de estoque", "Estoque", Perfis.ConsultaDeEstoque),
     ];
 
     public static IReadOnlyList<ItemDeMenu> Para(ClaimsPrincipal usuario) =>

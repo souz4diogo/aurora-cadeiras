@@ -15,8 +15,8 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | 1b API base e autenticação (JWT, refresh, usuários, perfis, Swagger, health) | Concluída, 77 testes |
 | 1c Cadastros básicos (produtos e matérias-primas), runner DbUp, Docker e CI | Concluída, 211 testes no total |
 | 2a API da fase 2 (clientes, fornecedores, ficha técnica, roteiro, estações, pedidos, movimentos e ajuste de estoque) | Concluída |
-| 2b Painel web (login por cookie, layout acessível, cadastros, produtos com ficha técnica e roteiro, pedidos) | Concluída, 553 testes no total |
-| 3 | Próxima (produção, estoque e alertas) |
+| 2b Painel web (login por cookie, layout acessível, cadastros, produtos com ficha técnica e roteiro, pedidos) | Concluída |
+| 3 Produção e estoque (confirmar pedido, OPs e etapas com baixa de estoque, perdas, alertas, quadro de produção, etiqueta com QR code, saldos e movimentos) | Concluída, 761 testes no total |
 | 4 a 6 | A fazer (ver `docs/10-plano-implementacao.md`) |
 
 ## Estrutura
@@ -30,7 +30,7 @@ A especificação está em [`docs/`](docs/README.md); o contexto para o Claude C
 | `src/Aurora.Web` | Painel administrativo ASP.NET Core MVC (cliente tipado da API em `Api/`, sessão em cookie, telas por módulo) |
 | `src/Aurora.DbUp` | Runner que aplica os scripts de `database/` (usado pelo Docker e por qualquer ambiente) |
 | `tests/` | Domain, Application, Api (integração), Database (procedures e triggers) e Tests.Common (SQL Server de teste) |
-| `database/` | Scripts SQL numerados `001` a `006` (schema, views, procedures, triggers, segurança, seed) |
+| `database/` | Scripts SQL numerados `001` a `007` (schema, views, procedures, triggers, segurança, seed e a correção da idempotência concorrente) |
 | `docker/` | Dockerfiles (api, web, dbup) e `docker-compose.yml` |
 | `.github/workflows/` | CI (`ci.yml`) e análise estática (`codeql.yml`) |
 | `infra/` | Bicep (fase 6) |

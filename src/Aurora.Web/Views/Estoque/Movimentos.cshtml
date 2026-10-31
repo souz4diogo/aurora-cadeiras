@@ -1,0 +1,95 @@
+@model MovimentosViewModel
+@{
+    ViewData["Title"] = "Movimentos de estoque";
+    var filtro = Model.Filtro;
+    string[] tipos = ["Entrada", "Saida", "Ajuste"];
+    string[] origens = ["Compra", "Producao", "ProducaoConcluida", "Expedicao", "Ajuste"];
+}
+
+<h1 class="h3 mb-3">Estoque</h1>
+
+<partial name="_Abas" model="@("Movimentos")" />
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar movimentos">
+    <div class="col-12 col-md-4">
+        <label for="materiaPrimaId" class="form-label">Matéria-prima</label>
+        <select id="materiaPrimaId" name="materiaPrimaId" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var materia in Model.MateriasPrimas)
+            {
+                <option value="@materia.Value" selected="@(filtro.MateriaPrimaId?.ToString(System.Globalization.CultureInfo.InvariantCulture) == materia.Value)">@materia.Text</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="tipo" class="form-label">Tipo</label>
+        <select id="tipo" name="tipo" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var tipo in tipos)
+            {
+                <option value="@tipo" selected="@(filtro.Tipo == tipo)">@Formatacao.TipoDeMovimento(tipo)</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="origem" class="form-label">Origem</label>
+        <select id="origem" name="origem" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var origem in origens)
+            {
+                <option value="@origem" selected="@(filtro.Origem == origem)">@Formatacao.OrigemDoMovimento(origem)</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="de" class="form-label">De</label>
+        <input id="de" name="de" type="date" class="form-control" value="@filtro.De?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="ate" class="form-label">até</label>
+        <input id="ate" name="ate" type="date" class="form-control" value="@filtro.Ate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum movimento encontrado.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Extrato de movimentos de estoque, do mais recente ao mais antigo</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Data e hora</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Origem</th>
+                    <th scope="col" class="numero">Quantidade</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var movimento in Model.Pagina.Items)
+                {
+                    <tr>
+                        <td>@Formatacao.DataHora(movimento.DataHora)</td>
+                        <th scope="row">@movimento.ItemCodigo - @movimento.ItemNome</th>
+                        <td>@Formatacao.TipoDeMovimento(movimento.Tipo)</td>
+                        <td>@Formatacao.OrigemDoMovimento(movimento.Origem)</td>
+                        <td class="numero">@Formatacao.QuantidadeComSinal(movimento.Quantidade)</td>
+                        <td>@(movimento.UsuarioNome ?? "—")</td>
+                        <td>@(movimento.Motivo ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

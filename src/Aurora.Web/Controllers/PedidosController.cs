@@ -1,6 +1,7 @@
 using System.Globalization;
 using Aurora.Web.Api.Clientes;
 using Aurora.Web.Api.Pedidos;
+using Aurora.Web.Api.Producao;
 using Aurora.Web.Api.Produtos;
 using Aurora.Web.Extensions;
 using Aurora.Web.Models.Pedidos;
@@ -12,8 +13,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace Aurora.Web.Controllers;
 
 [Authorize(Roles = Perfis.ConsultaDePedidos)]
-public class PedidosController(IPedidosApi pedidos, IClientesApi clientes, IProdutosApi produtos) : AuroraController
+public class PedidosController(IPedidosApi pedidos, IClientesApi clientes, IProdutosApi produtos, IProducaoApi producao)
+    : AuroraController
 {
+    /// <summary>O Almoxarife consulta pedidos mas não OPs (docs/06 §3): para ele a seção de produção não aparece.</summary>
+    private bool PodeConsultarProducao => Perfis.ConsultaDeProducao.Split(',').Any(User.IsInRole);
+
     [HttpGet]
     public async Task<IActionResult> Index(
         string? status, int? clienteId, DateOnly? de, DateOnly? ate, bool? atrasados, int page = 1, CancellationToken ct = default)
@@ -31,7 +36,42 @@ public class PedidosController(IPedidosApi pedidos, IClientesApi clientes, IProd
     }
 
     [HttpGet]
-    public async Task<IActionResult> Detalhes(int id, CancellationToken ct) => View(await pedidos.ObterAsync(id, ct));
+    public async Task<IActionResult> Detalhes(int id, CancellationToken ct)
+    {
+        var pedido = await pedidos.ObterAsync(id, ct);
+        var ordens = PodeConsultarProducao ? await producao.ListarOrdensDoPedidoAsync(id, ct) : null;
+        return View(new PedidoDetalhesViewModel(pedido, ordens));
+    }
+
+    /// <summary>Tela de confirmação: confirmar reserva estoque e gera ordens de produção, então pede uma segunda confirmação.</summary>
+    [HttpGet]
+    [Authorize(Roles = Perfis.AdministradorOuVendedor)]
+    public async Task<IActionResult> Confirmar(int id, CancellationToken ct)
+    {
+        var pedido = await pedidos.ObterAsync(id, ct);
+        if (!pedido.PodeConfirmar)
+        {
+            AvisarAtencao($"O pedido {pedido.Numero} está {Formatacao.StatusDoPedido(pedido.Status).ToLowerInvariant()} e não pode ser confirmado.");
+            return RedirectToAction(nameof(Detalhes), new { id });
+        }
+
+        return View(pedido);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Perfis.AdministradorOuVendedor)]
+    [ActionName("Confirmar")]
+    public async Task<IActionResult> ConfirmarPedido(int id, CancellationToken ct) =>
+        await TentarAsync(
+            async () =>
+            {
+                var confirmado = await pedidos.ConfirmarAsync(id, ct);
+                AvisarSucesso(confirmado.Status == "Pronto"
+                    ? $"Pedido {confirmado.Numero} confirmado: o estoque de produto acabado atende tudo e já está reservado."
+                    : $"Pedido {confirmado.Numero} confirmado. As ordens de produção foram geradas.");
+                return RedirectToAction(nameof(Detalhes), new { id });
+            },
+            async () => View(await pedidos.ObterAsync(id, ct)));
 
     [HttpGet]
     [Authorize(Roles = Perfis.AdministradorOuVendedor)]

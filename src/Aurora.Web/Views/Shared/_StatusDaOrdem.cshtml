@@ -1,0 +1,13 @@
+@* Situação da OP ou da etapa em texto dentro de uma etiqueta colorida: a cor reforça, mas nunca é a única informação *@
+@model string
+@{
+    var classe = Model switch
+    {
+        "Planejada" or "Pendente" => "text-bg-secondary",
+        "EmAndamento" => "text-bg-info",
+        "Concluida" => "text-bg-success",
+        "Cancelada" => "text-bg-danger",
+        _ => "text-bg-light",
+    };
+}
+<span class="badge @classe">@Formatacao.StatusDaOrdem(Model)</span>

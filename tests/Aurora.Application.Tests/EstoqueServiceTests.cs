@@ -12,8 +12,28 @@ public class EstoqueServiceTests
 {
     private readonly Mock<IEstoqueRepository> _estoque = new();
     private readonly Mock<IMateriaPrimaRepository> _materiasPrimas = new();
+    private readonly Mock<IUnitOfWork> _uow = new();
+    private readonly Mock<ICurrentUser> _usuarioAtual = new();
+    private readonly Mock<IRelogio> _relogio = new();
 
-    private EstoqueService Servico() => new(_estoque.Object, _materiasPrimas.Object, new AjusteDeEstoqueRequestValidator());
+    public EstoqueServiceTests()
+    {
+        _usuarioAtual.SetupGet(u => u.UsuarioId).Returns(7);
+        _relogio.SetupGet(r => r.AgoraUtc).Returns(new DateTime(2026, 10, 30, 12, 0, 0, DateTimeKind.Utc));
+    }
+
+    private EstoqueService Servico() => new(
+        _estoque.Object, _materiasPrimas.Object, _uow.Object, _usuarioAtual.Object, _relogio.Object, new AjusteDeEstoqueRequestValidator());
+
+    private static AlertaEstoque NovoAlerta()
+    {
+        var alerta = (AlertaEstoque)Activator.CreateInstance(typeof(AlertaEstoque), nonPublic: true)!;
+        typeof(AlertaEstoque).GetProperty(nameof(AlertaEstoque.Id))!.SetValue(alerta, 3);
+        return alerta;
+    }
+
+    private static AlertaDeEstoqueDto DtoDoAlerta(int id) => new(
+        id, 4, "MP-004", "Tecido", "m", 1m, 5m, new DateTime(2026, 10, 29, 8, 0, 0, DateTimeKind.Utc), null, null);
 
     private static MateriaPrima MateriaPrimaComSaldo(decimal saldo)
     {
@@ -83,6 +103,59 @@ public class EstoqueServiceTests
     {
         await Assert.ThrowsAsync<ValidationException>(
             () => Servico().AjustarAsync(new AjusteDeEstoqueRequest(1, 1m, new string('m', 201))));
+    }
+
+    [Fact]
+    public async Task Marcar_alerta_como_lido_grava_quem_leu_e_quando()
+    {
+        var alerta = NovoAlerta();
+        _estoque.Setup(r => r.ObterAlertaAsync(3, default)).ReturnsAsync(alerta);
+        _estoque.Setup(r => r.ObterAlertaDetalhadoAsync(3, default)).ReturnsAsync(DtoDoAlerta(3));
+
+        var resposta = await Servico().MarcarAlertaComoLidoAsync(3);
+
+        Assert.Equal(3, resposta.Id);
+        Assert.Equal(7, alerta.LidoPorId);
+        Assert.Equal(new DateTime(2026, 10, 30, 12, 0, 0, DateTimeKind.Utc), alerta.LidoEm);
+        _uow.Verify(u => u.SalvarAsync(default), Times.Once);
+    }
+
+    [Fact]
+    public async Task Marcar_alerta_ja_lido_mantem_o_primeiro_registro()
+    {
+        var alerta = NovoAlerta();
+        var primeiraLeitura = new DateTime(2026, 10, 29, 9, 0, 0, DateTimeKind.Utc);
+        alerta.MarcarComoLido(usuarioId: 2, primeiraLeitura);
+        _estoque.Setup(r => r.ObterAlertaAsync(3, default)).ReturnsAsync(alerta);
+        _estoque.Setup(r => r.ObterAlertaDetalhadoAsync(3, default)).ReturnsAsync(DtoDoAlerta(3));
+
+        await Servico().MarcarAlertaComoLidoAsync(3);
+
+        Assert.Equal(2, alerta.LidoPorId);
+        Assert.Equal(primeiraLeitura, alerta.LidoEm);
+    }
+
+    [Fact]
+    public async Task Marcar_alerta_inexistente_devolve_nao_encontrado()
+    {
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(() => Servico().MarcarAlertaComoLidoAsync(99));
+
+        Assert.Equal("ALERTA_NAO_ENCONTRADO", erro.Codigo);
+        Assert.Equal(TipoErro.NaoEncontrado, erro.Tipo);
+        _uow.Verify(u => u.SalvarAsync(default), Times.Never);
+    }
+
+    [Fact]
+    public async Task Listar_saldos_normaliza_pagina_e_busca()
+    {
+        _estoque.Setup(r => r.ListarSaldosDeMateriaPrimaAsync("tecido", true, 1, 100, default))
+            .ReturnsAsync(([new SaldoDeMateriaPrimaDto(4, "MP-004", "Tecido", "m", 1m, 5m, true, null, null)], 1));
+
+        var pagina = await Servico().ListarSaldosDeMateriaPrimaAsync(" tecido ", true, 0, 5000);
+
+        Assert.Equal(100, pagina.PageSize);
+        Assert.Single(pagina.Items);
+        Assert.True(pagina.Items[0].Critico);
     }
 
     [Fact]

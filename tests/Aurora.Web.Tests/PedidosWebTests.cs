@@ -9,7 +9,7 @@ namespace Aurora.Web.Tests;
 [Collection("painel")]
 public partial class PedidosWebTests(CenarioDoPainel cenario)
 {
-    private static string Prazo(int dias = 30) => DateTime.UtcNow.AddDays(dias).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    internal static string Prazo(int dias = 30) => DateTime.UtcNow.AddDays(dias).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     [GeneratedRegex(@"<option value=""(\d+)"" data-preco=""[\d.]+""[^>]*>(CE-100|CJ-100) - ")]
     private static partial Regex OpcaoDeProdutoDoSeed();
@@ -20,7 +20,7 @@ public partial class PedidosWebTests(CenarioDoPainel cenario)
     [GeneratedRegex(@"/Pedidos/Detalhes/(\d+)")]
     private static partial Regex LinkDoPedido();
 
-    private static List<KeyValuePair<string, string>> Campos(string cliente, string prazo, params (string Produto, string Quantidade)[] itens)
+    internal static List<KeyValuePair<string, string>> Campos(string cliente, string prazo, params (string Produto, string Quantidade)[] itens)
     {
         var campos = new List<KeyValuePair<string, string>>
         {
@@ -39,7 +39,7 @@ public partial class PedidosWebTests(CenarioDoPainel cenario)
     }
 
     /// <summary>Cria um cliente pelo painel e devolve o id.</summary>
-    private static async Task<string> NovoClienteAsync(Navegador navegador)
+    internal static async Task<string> NovoClienteAsync(Navegador navegador)
     {
         var cpf = DadosDeTeste.Digitos(11);
         await navegador.EnviarAsync(
@@ -60,7 +60,7 @@ public partial class PedidosWebTests(CenarioDoPainel cenario)
     }
 
     /// <summary>Cria um pedido de 2 CE-100 + 1 CJ-100 e devolve (id, número).</summary>
-    private static async Task<(string Id, string Numero)> NovoPedidoAsync(Navegador vendedor)
+    internal static async Task<(string Id, string Numero)> NovoPedidoAsync(Navegador vendedor)
     {
         var cliente = await NovoClienteAsync(vendedor);
         var (ce100, cj100) = await ProdutosDoSeedAsync(vendedor);

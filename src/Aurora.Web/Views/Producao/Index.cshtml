@@ -1,0 +1,70 @@
+@model QuadroDeProducaoResposta
+@{
+    ViewData["Title"] = "Quadro de produção";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Quadro de produção</h1>
+    <a class="btn btn-outline-primary" asp-action="Ordens">Lista de ordens de produção</a>
+</div>
+
+<p class="text-muted">
+    @Model.TotalDeOrdensAbertas
+    @(Model.TotalDeOrdensAbertas == 1 ? "ordem em aberto" : "ordens em aberto").
+    Cada coluna é a estação em que a ordem está agora; as que vencem antes aparecem primeiro.
+</p>
+
+@if (Model.Truncado)
+{
+    <p class="alert alert-warning" role="status">
+        Há mais ordens em aberto do que o quadro comporta. Aparecem as de previsão mais próxima; use a lista de ordens para ver todas.
+    </p>
+}
+
+<div class="quadro">
+    @foreach (var coluna in Model.Colunas)
+    {
+        <section class="quadro-coluna" aria-labelledby="coluna-@coluna.EstacaoId">
+            <h2 id="coluna-@coluna.EstacaoId" class="h6 d-flex justify-content-between">
+                <span>@coluna.EstacaoNome</span>
+                <span class="badge text-bg-light" aria-label="@coluna.Ordens.Count em @coluna.EstacaoNome">@coluna.Ordens.Count</span>
+            </h2>
+            @if (coluna.Ordens.Count == 0)
+            {
+                <p class="text-muted small mb-0">Nenhuma ordem nesta estação.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var ordem in coluna.Ordens)
+                    {
+                        var etapa = ordem.EtapaAtual!;
+                        <li class="quadro-cartao @(ordem.Atrasada ? "quadro-cartao-atrasado" : "")">
+                            <a asp-action="Detalhes" asp-route-id="@ordem.Id" class="fw-semibold">@ordem.Numero</a>
+                            <div>@ordem.ProdutoCodigo &times; @ordem.Quantidade</div>
+                            <div class="small text-muted">Pedido @ordem.PedidoNumero</div>
+                            <div class="small">
+                                @if (etapa.Status == "EmAndamento")
+                                {
+                                    <span>Em andamento há @Formatacao.Duracao(etapa.MinutosNaEtapa ?? 0)</span>
+                                }
+                                else
+                                {
+                                    <span>Aguardando início</span>
+                                }
+                            </div>
+                            @if (ordem.Atrasada)
+                            {
+                                <span class="badge text-bg-warning">Atrasada</span>
+                                @if (ordem.PrevisaoConclusao is DateOnly previsao)
+                                {
+                                    <span class="small">previsão @Formatacao.Data(previsao)</span>
+                                }
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+</div>

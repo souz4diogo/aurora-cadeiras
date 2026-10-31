@@ -53,6 +53,11 @@ public sealed partial class TratamentoDeErrosMiddleware(RequestDelegate proximo,
         ["ESTACAO_FORA_DO_ROTEIRO"] = "Estação fora do roteiro do produto",
         ["MATERIA_PRIMA_INEXISTENTE"] = "Matéria-prima inexistente",
         ["ROTEIRO_INCOMPATIVEL_COM_FICHA"] = "Roteiro incompatível com a ficha técnica",
+        ["ORDEM_PRODUCAO_NAO_ENCONTRADA"] = "Ordem de produção não encontrada",
+        ["ETAPA_NAO_ENCONTRADA"] = "Etapa não encontrada",
+        ["PERDA_ACIMA_DA_QUANTIDADE"] = "Perda acima da quantidade da ordem",
+        ["QUANTIDADE_INVALIDA"] = "Quantidade inválida",
+        ["ALERTA_NAO_ENCONTRADO"] = "Alerta não encontrado",
         ["VALIDACAO"] = "Dados inválidos",
     };
 

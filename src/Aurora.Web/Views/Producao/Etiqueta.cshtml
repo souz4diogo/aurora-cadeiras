@@ -1,0 +1,25 @@
+@model EtiquetaViewModel
+@{
+    var ordem = Model.Ordem.Ordem;
+    ViewData["Title"] = "Etiqueta " + ordem.Numero;
+}
+
+<div class="nao-imprimir d-flex flex-wrap gap-2 mb-3">
+    <button type="button" class="btn btn-primary" data-imprimir>Imprimir etiqueta</button>
+    <a class="btn btn-outline-secondary" asp-action="Detalhes" asp-route-id="@ordem.Id">Voltar à ordem</a>
+</div>
+
+<article class="etiqueta" aria-labelledby="etiqueta-titulo">
+    <h1 id="etiqueta-titulo" class="h3">@ordem.Numero</h1>
+    <div class="etiqueta-qr">@Html.Raw(Model.QrSvg)</div>
+    <dl class="mb-0">
+        <dt>Produto</dt>
+        <dd>@ordem.ProdutoCodigo - @ordem.ProdutoNome</dd>
+        <dt>Quantidade</dt>
+        <dd>@ordem.Quantidade</dd>
+        <dt>Pedido</dt>
+        <dd>@ordem.PedidoNumero</dd>
+        <dt>Previsão de conclusão</dt>
+        <dd>@(ordem.PrevisaoConclusao is DateOnly previsao ? Formatacao.Data(previsao) : "—")</dd>
+    </dl>
+</article>

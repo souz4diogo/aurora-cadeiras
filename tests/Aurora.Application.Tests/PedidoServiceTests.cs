@@ -229,6 +229,31 @@ public class PedidoServiceTests
     }
 
     [Fact]
+    public async Task Confirmar_delega_a_procedure_e_devolve_o_pedido()
+    {
+        CatalogoCom(Produto(1, "CE-100", 10m));
+        var pedido = PedidoDoVendedor(9, new ItemDePedido(1, 1, 10m));
+        typeof(Pedido).GetProperty(nameof(Pedido.Id))!.SetValue(pedido, 5);
+        _pedidos.Setup(r => r.ObterPorIdAsync(5, default)).ReturnsAsync(pedido);
+
+        var resposta = await Servico().ConfirmarAsync(5);
+
+        _pedidos.Verify(r => r.ConfirmarAsync(5, default), Times.Once);
+        Assert.Equal(5, resposta.Id);
+    }
+
+    [Fact]
+    public async Task Vendedor_nao_confirma_pedido_de_outro_vendedor()
+    {
+        _pedidos.Setup(r => r.ObterPorIdAsync(5, default)).ReturnsAsync(PedidoDoVendedor(77, new ItemDePedido(1, 1, 10m)));
+
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(() => Servico().ConfirmarAsync(5));
+
+        Assert.Equal("PEDIDO_NAO_ENCONTRADO", erro.Codigo);
+        _pedidos.Verify(r => r.ConfirmarAsync(It.IsAny<int>(), default), Times.Never);
+    }
+
+    [Fact]
     public async Task Cancelar_delega_ao_repositorio_o_cancelamento_pela_procedure()
     {
         CatalogoCom(Produto(1, "CE-100", 10m));

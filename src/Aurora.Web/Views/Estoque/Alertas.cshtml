@@ -1,0 +1,58 @@
+@model AlertasViewModel
+@{
+    ViewData["Title"] = "Alertas de estoque";
+    var podeMarcar = User.IsInRole(Perfis.Almoxarife);
+}
+
+<h1 class="h3 mb-3">Estoque</h1>
+
+<partial name="_Abas" model="@("Alertas")" />
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-success" role="status">Nenhum alerta aberto: todas as matérias-primas estão acima do estoque mínimo.</p>
+}
+else
+{
+    <p class="text-muted">Matérias-primas com saldo no mínimo ou abaixo. O alerta mais antigo aparece primeiro.</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Alertas de estoque abertos, do mais antigo ao mais novo</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Aberto em</th>
+                    <th scope="col">Matéria-prima</th>
+                    <th scope="col" class="numero">Saldo atual</th>
+                    <th scope="col" class="numero">Mínimo</th>
+                    @if (podeMarcar)
+                    {
+                        <th scope="col"><span class="visually-hidden">Ações</span></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var alerta in Model.Pagina.Items)
+                {
+                    <tr>
+                        <td>@Formatacao.DataHora(alerta.CriadoEm)</td>
+                        <th scope="row">@alerta.MateriaPrimaCodigo - @alerta.MateriaPrimaNome</th>
+                        <td class="numero">@Formatacao.Quantidade(alerta.EstoqueAtual) @alerta.Unidade</td>
+                        <td class="numero">@Formatacao.Quantidade(alerta.EstoqueMinimo) @alerta.Unidade</td>
+                        @if (podeMarcar)
+                        {
+                            <td>
+                                <form asp-action="LerAlerta" asp-route-id="@alerta.Id" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                            aria-label="Marcar como lido o alerta de @alerta.MateriaPrimaNome">Marcar como lido</button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

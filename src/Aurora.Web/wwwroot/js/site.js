@@ -3,6 +3,13 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
+    // Botões "Imprimir" (a política de conteúdo não aceita onclick embutido)
+    document.querySelectorAll('[data-imprimir]').forEach(function (botao) {
+      botao.addEventListener('click', function () {
+        window.print();
+      });
+    });
+
     // Campos com erro de validação do servidor ficam marcados para leitores de tela
     document.querySelectorAll('.input-validation-error').forEach(function (campo) {
       campo.setAttribute('aria-invalid', 'true');

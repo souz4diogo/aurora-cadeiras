@@ -1,0 +1,146 @@
+@model OrdemProducaoResposta
+@{
+    var ordem = Model.Ordem;
+    ViewData["Title"] = "Ordem " + ordem.Numero;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Ordem @ordem.Numero <partial name="_StatusDaOrdem" model="ordem.Status" /></h1>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" asp-action="Etiqueta" asp-route-id="@ordem.Id">Imprimir etiqueta com QR code</a>
+        <a class="btn btn-link" asp-action="Index">Voltar ao quadro</a>
+    </div>
+</div>
+
+@if (ordem.Atrasada)
+{
+    <p class="alert alert-warning" role="status">
+        Esta ordem está atrasada: a previsão de conclusão era @(ordem.PrevisaoConclusao is DateOnly previsao ? Formatacao.Data(previsao) : "—").
+    </p>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Pedido</dt>
+    <dd class="col-sm-9">@ordem.PedidoNumero &middot; @Model.ClienteNome</dd>
+    <dt class="col-sm-3">Produto</dt>
+    <dd class="col-sm-9">@ordem.ProdutoCodigo - @ordem.ProdutoNome</dd>
+    <dt class="col-sm-3">Quantidade</dt>
+    <dd class="col-sm-9">@ordem.Quantidade</dd>
+    <dt class="col-sm-3">Previsão de conclusão</dt>
+    <dd class="col-sm-9">@(ordem.PrevisaoConclusao is DateOnly prevista ? Formatacao.Data(prevista) : "—")</dd>
+    <dt class="col-sm-3">Criada em</dt>
+    <dd class="col-sm-9">@Formatacao.DataHora(ordem.CriadaEm)</dd>
+    @if (ordem.ConcluidaEm is DateTime concluidaEm)
+    {
+        <dt class="col-sm-3">Concluída em</dt>
+        <dd class="col-sm-9">@Formatacao.DataHora(concluidaEm)</dd>
+    }
+</dl>
+
+<section aria-labelledby="titulo-etapas" class="mt-4">
+    <h2 id="titulo-etapas" class="h5">Etapas</h2>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <caption class="visually-hidden">Etapas da ordem de produção, na sequência do roteiro</caption>
+            <thead>
+                <tr>
+                    <th scope="col" class="numero">Sequência</th>
+                    <th scope="col">Estação</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col">Início</th>
+                    <th scope="col">Fim</th>
+                    <th scope="col">Operador</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var etapa in Model.Etapas)
+                {
+                    <tr>
+                        <td class="numero">@etapa.Sequencia</td>
+                        <th scope="row">@etapa.EstacaoNome</th>
+                        <td><partial name="_StatusDaOrdem" model="etapa.Status" /></td>
+                        <td>@(etapa.IniciadaEm is DateTime inicio ? Formatacao.DataHora(inicio) : "—")</td>
+                        <td>@(etapa.ConcluidaEm is DateTime fim ? Formatacao.DataHora(fim) : "—")</td>
+                        <td>@(etapa.OperadorNome ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small">As etapas são iniciadas e finalizadas pelos operadores no aplicativo móvel.</p>
+</section>
+
+<section aria-labelledby="titulo-apontamentos" class="mt-4">
+    <h2 id="titulo-apontamentos" class="h5">Apontamentos</h2>
+    @if (Model.Apontamentos.Count == 0)
+    {
+        <p class="text-muted">Nenhum apontamento ainda.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <caption class="visually-hidden">Início e fim das etapas, em ordem de registro</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Registrado em</th>
+                        <th scope="col">Evento</th>
+                        <th scope="col">Estação</th>
+                        <th scope="col">Usuário</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var apontamento in Model.Apontamentos)
+                    {
+                        var estacao = Model.Etapas.FirstOrDefault(e => e.Id == apontamento.EtapaId)?.EstacaoNome;
+                        <tr>
+                            <td>@Formatacao.DataHora(apontamento.DataHoraServidor)</td>
+                            <td>@(apontamento.Tipo == "Inicio" ? "Início" : "Fim")</td>
+                            <td>@estacao</td>
+                            <td>@apontamento.UsuarioNome</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section aria-labelledby="titulo-perdas" class="mt-4">
+    <h2 id="titulo-perdas" class="h5">Perdas</h2>
+    @if (Model.Perdas.Count == 0)
+    {
+        <p class="text-muted">Nenhuma perda registrada.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <caption class="visually-hidden">Refugos e retrabalhos registrados</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Registrada em</th>
+                        <th scope="col">Estação</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col" class="numero">Quantidade</th>
+                        <th scope="col">Motivo</th>
+                        <th scope="col">Usuário</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var perda in Model.Perdas)
+                    {
+                        <tr>
+                            <td>@Formatacao.DataHora(perda.CriadoEm)</td>
+                            <td>@perda.EstacaoNome</td>
+                            <td>@perda.Tipo</td>
+                            <td class="numero">@perda.Quantidade</td>
+                            <td>@perda.Motivo</td>
+                            <td>@perda.UsuarioNome</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

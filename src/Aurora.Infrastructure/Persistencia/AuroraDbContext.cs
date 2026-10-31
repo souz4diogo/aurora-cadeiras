@@ -28,6 +28,18 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<MateriaPrima> MateriasPrimas => Set<MateriaPrima>();
 
+    public DbSet<OrdemProducao> OrdensProducao => Set<OrdemProducao>();
+
+    public DbSet<OrdemProducaoEtapa> Etapas => Set<OrdemProducaoEtapa>();
+
+    public DbSet<ApontamentoProducao> Apontamentos => Set<ApontamentoProducao>();
+
+    public DbSet<RegistroPerda> Perdas => Set<RegistroPerda>();
+
+    public DbSet<AlertaEstoque> Alertas => Set<AlertaEstoque>();
+
+    public DbSet<EstoqueProduto> EstoquesDeProduto => Set<EstoqueProduto>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Usuario>(e =>
@@ -121,6 +133,74 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
             e.Property(x => x.Quantidade).HasColumnType("decimal(12,3)");
             e.Property(x => x.Motivo).HasColumnType("nvarchar(200)");
             e.Property(x => x.DataHora).HasColumnType("datetime2(0)");
+        });
+
+        // Produção: as procedures criam e avançam OPs, etapas e apontamentos (DENY de escrita para o login da API);
+        // a aplicação só lê, exceto as perdas e a leitura dos alertas
+        modelBuilder.Entity<OrdemProducao>(e =>
+        {
+            e.ToTable("OrdemProducao", "dbo", t => t.HasTrigger("trg_Auditoria_OrdemProducao"));
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("OrdemProducaoId");
+            e.Property(x => x.Numero).HasColumnType("varchar(15)").ValueGeneratedOnAdd();
+            e.Property(x => x.Status).HasColumnType("varchar(12)").HasConversion<string>();
+            e.Property(x => x.PrevisaoConclusao).HasColumnType("date");
+            e.Property(x => x.CriadaEm).HasColumnType("datetime2(0)");
+            e.Property(x => x.ConcluidaEm).HasColumnType("datetime2(0)");
+            e.HasIndex(x => x.Numero).IsUnique();
+            e.HasIndex(x => x.CodigoQr).IsUnique();
+            e.HasMany(x => x.Etapas).WithOne().HasForeignKey(x => x.OrdemProducaoId).OnDelete(DeleteBehavior.Restrict);
+            e.Navigation(x => x.Etapas).UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<OrdemProducaoEtapa>(e =>
+        {
+            e.ToTable("OrdemProducaoEtapa", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("OrdemProducaoEtapaId");
+            e.Property(x => x.Status).HasColumnType("varchar(12)").HasConversion<string>();
+            e.Property(x => x.IniciadaEm).HasColumnType("datetime2(0)");
+            e.Property(x => x.ConcluidaEm).HasColumnType("datetime2(0)");
+            e.HasIndex(x => new { x.OrdemProducaoId, x.Sequencia }).IsUnique();
+        });
+
+        modelBuilder.Entity<ApontamentoProducao>(e =>
+        {
+            e.ToTable("ApontamentoProducao", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("ApontamentoId");
+            e.Property(x => x.Tipo).HasColumnType("varchar(6)").HasConversion<string>();
+            e.Property(x => x.DataHoraCliente).HasColumnType("datetime2(0)");
+            e.Property(x => x.DataHoraServidor).HasColumnType("datetime2(0)");
+            e.HasIndex(x => x.ClientRequestId).IsUnique();
+        });
+
+        modelBuilder.Entity<RegistroPerda>(e =>
+        {
+            e.ToTable("RegistroPerda", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("RegistroPerdaId");
+            e.Property(x => x.Tipo).HasColumnType("varchar(10)").HasConversion<string>();
+            e.Property(x => x.Motivo).HasColumnType("nvarchar(200)").IsRequired();
+            e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<AlertaEstoque>(e =>
+        {
+            e.ToTable("AlertaEstoque", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("AlertaEstoqueId");
+            e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)");
+            e.Property(x => x.LidoEm).HasColumnType("datetime2(0)");
+            e.Ignore(x => x.Lido);
+        });
+
+        modelBuilder.Entity<EstoqueProduto>(e =>
+        {
+            e.ToTable("EstoqueProduto", "dbo");
+            e.HasKey(x => x.ProdutoId);
+            e.Property(x => x.ProdutoId).ValueGeneratedNever();
+            e.Ignore(x => x.Disponivel);
         });
 
         modelBuilder.Entity<Pedido>(e =>

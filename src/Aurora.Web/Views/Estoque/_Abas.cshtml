@@ -1,0 +1,22 @@
+@* Navegação entre as telas do estoque; a atual é marcada com aria-current além da cor *@
+@model string
+@{
+    (string Acao, string Titulo)[] abas =
+    [
+        ("Index", "Matérias-primas"),
+        ("Produtos", "Produto acabado"),
+        ("Movimentos", "Movimentos"),
+        ("Alertas", "Alertas"),
+    ];
+}
+<nav aria-label="Estoque" class="mb-3">
+    <ul class="nav nav-pills">
+        @foreach (var (acao, titulo) in abas)
+        {
+            var atual = acao == Model;
+            <li class="nav-item">
+                <a class="nav-link @(atual ? "active" : "")" asp-action="@acao" aria-current="@(atual ? "page" : null)">@titulo</a>
+            </li>
+        }
+    </ul>
+</nav>
