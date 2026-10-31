@@ -1,0 +1,91 @@
+@model OrdensListaViewModel
+@{
+    ViewData["Title"] = "Ordens de produção";
+    var filtro = Model.Filtro;
+    string[] situacoes = ["Planejada", "EmAndamento", "Concluida", "Cancelada"];
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Ordens de produção</h1>
+    <a class="btn btn-outline-primary" asp-action="Index">Quadro de produção</a>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar ordens de produção">
+    <div class="col-12 col-md-3">
+        <label for="status" class="form-label">Situação</label>
+        <select id="status" name="status" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var situacao in situacoes)
+            {
+                <option value="@situacao" selected="@(filtro.Status == situacao)">@Formatacao.StatusDaOrdem(situacao)</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-3">
+        <label for="estacaoId" class="form-label">Estação atual</label>
+        <select id="estacaoId" name="estacaoId" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var estacao in Model.Estacoes)
+            {
+                <option value="@estacao.Id" selected="@(filtro.EstacaoId == estacao.Id)">@estacao.Nome</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-3">
+        <label for="atrasadas" class="form-label">Prazo</label>
+        <select id="atrasadas" name="atrasadas" class="form-select">
+            <option value="" selected="@(filtro.Atrasadas is null)">Todas</option>
+            <option value="true" selected="@(filtro.Atrasadas == true)">Somente atrasadas</option>
+            <option value="false" selected="@(filtro.Atrasadas == false)">Em dia</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhuma ordem de produção encontrada.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Ordens de produção, da mais recente à mais antiga</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Ordem</th>
+                    <th scope="col">Pedido</th>
+                    <th scope="col">Produto</th>
+                    <th scope="col" class="numero">Quantidade</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col">Estação atual</th>
+                    <th scope="col">Previsão</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ordem in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row"><a asp-action="Detalhes" asp-route-id="@ordem.Id">@ordem.Numero</a></th>
+                        <td>@ordem.PedidoNumero</td>
+                        <td>@ordem.ProdutoCodigo - @ordem.ProdutoNome</td>
+                        <td class="numero">@ordem.Quantidade</td>
+                        <td><partial name="_StatusDaOrdem" model="ordem.Status" /></td>
+                        <td>@(ordem.EtapaAtual?.EstacaoNome ?? "—")</td>
+                        <td>
+                            @(ordem.PrevisaoConclusao is DateOnly previsao ? Formatacao.Data(previsao) : "—")
+                            @if (ordem.Atrasada)
+                            {
+                                <span class="badge text-bg-warning">Atrasada</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

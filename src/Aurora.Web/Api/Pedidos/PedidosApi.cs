@@ -20,6 +20,9 @@ public sealed class PedidosApi(HttpClient http) : ApiClientBase(http), IPedidosA
     public Task<PedidoResposta> AtualizarAsync(int id, PedidoRequisicao dados, CancellationToken ct = default) =>
         HttpPutAsync<PedidoResposta>($"api/v1/pedidos/{id}", dados, ct);
 
+    public Task<PedidoResposta> ConfirmarAsync(int id, CancellationToken ct = default) =>
+        HttpPostAsync<PedidoResposta>($"api/v1/pedidos/{id}/confirmar", new { }, ct);
+
     public Task<PedidoResposta> CancelarAsync(int id, CancellationToken ct = default) =>
         HttpPostAsync<PedidoResposta>($"api/v1/pedidos/{id}/cancelar", new { }, ct);
 }

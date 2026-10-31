@@ -1,0 +1,35 @@
+@model AjusteFormViewModel
+@{
+    ViewData["Title"] = "Ajustar saldo";
+}
+
+<h1 class="h3 mb-3">Ajustar saldo de matéria-prima</h1>
+
+<form asp-action="Ajustar" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <div class="mb-3">
+                <label asp-for="MateriaPrimaId" class="form-label"></label>
+                <select asp-for="MateriaPrimaId" asp-items="Model.MateriasPrimas" class="form-select" aria-describedby="MateriaPrimaId-erro">
+                    <option value="">Escolha...</option>
+                </select>
+                <span asp-validation-for="MateriaPrimaId" id="MateriaPrimaId-erro" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-12 col-lg-3">
+            <aurora-campo for="NovaQuantidade" modo="decimal" dica="Quanto existe de fato, conforme a contagem." />
+        </div>
+        <div class="col-12">
+            <aurora-campo for="Motivo" tamanho-maximo="200" autocomplete="off" dica="Obrigatório. Fica registrado no extrato do estoque." />
+        </div>
+    </div>
+
+    <p class="text-muted">
+        O extrato não é alterado: a diferença entre o saldo atual e o contado entra como um novo movimento de ajuste.
+    </p>
+
+    <button type="submit" class="btn btn-primary">Ajustar saldo</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>

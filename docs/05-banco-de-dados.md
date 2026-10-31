@@ -351,8 +351,10 @@ Sem senhas no repositório: os usuários de demonstração são criados pela apl
 4. `004-triggers.sql`
 5. `005-seguranca.sql`
 6. `006-seed.sql`
+7. `007-idempotencia-concorrente.sql` - corrige o reenvio simultâneo do mesmo `ClientRequestId` em `sp_IniciarEtapa` e `sp_FinalizarEtapa`
 
-O DbUp executa na ordem e registra o que já foi aplicado.
+O DbUp executa na ordem e registra o que já foi aplicado. Scripts já aplicados não mudam: correções entram em
+um novo script numerado.
 
 ---
 

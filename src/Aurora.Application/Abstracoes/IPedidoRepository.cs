@@ -13,6 +13,9 @@ public interface IPedidoRepository
 
     void Adicionar(Pedido pedido);
 
+    /// <summary>Confirma pelo sp_ConfirmarPedido (reserva estoque ou gera OPs) e atualiza o pedido rastreado.</summary>
+    Task ConfirmarAsync(int pedidoId, CancellationToken ct = default);
+
     /// <summary>Cancela pelo sp_CancelarPedido (libera reservas e cancela OPs) e atualiza o pedido rastreado.</summary>
     Task CancelarAsync(int pedidoId, CancellationToken ct = default);
 }

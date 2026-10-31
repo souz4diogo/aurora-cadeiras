@@ -32,6 +32,18 @@ public static class Perfis
     /// <summary>Quem consulta pedidos de venda: Administrador, Gerente, Vendedor (só os próprios) e Almoxarife.</summary>
     public const string ConsultaDePedidos = Administrador + "," + GerenteProducao + "," + Vendedor + "," + Almoxarife;
 
+    /// <summary>Quem consulta as OPs e o quadro de produção: Administrador, Gerente, Vendedor (só as dos próprios pedidos) e Inspetor.</summary>
+    public const string ConsultaDeProducao = Administrador + "," + GerenteProducao + "," + Vendedor + "," + Inspetor;
+
+    /// <summary>Quem abre o detalhe de uma OP: os mesmos da consulta, mais o Operador.</summary>
+    public const string DetalheDeProducao = ConsultaDeProducao + "," + Operador;
+
+    /// <summary>Quem inicia etapas (baixa de estoque): Operador e Inspetor.</summary>
+    public const string OperadorOuInspetor = Operador + "," + Inspetor;
+
+    /// <summary>Quem consulta o saldo de matéria-prima: Administrador, Gerente, Almoxarife e Operador.</summary>
+    public const string SaldoDeMateriaPrima = Administrador + "," + GerenteProducao + "," + Almoxarife + "," + Operador;
+
     /// <summary>Quem consulta o estoque (movimentos): Administrador, Gerente e Almoxarife.</summary>
     public const string ConsultaDeEstoque = Administrador + "," + GerenteProducao + "," + Almoxarife;
 

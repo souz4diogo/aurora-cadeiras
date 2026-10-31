@@ -18,6 +18,9 @@ public sealed record PedidoResposta(
 
     public bool PodeEditar => Status == StatusAberto;
 
+    /// <summary>Só o pedido Aberto é confirmado; depois disso o fluxo segue pela produção.</summary>
+    public bool PodeConfirmar => Status == StatusAberto;
+
     /// <summary>O cancelamento vale até a produção terminar (Aberto, Confirmado ou Em produção).</summary>
     public bool PodeCancelar => Status is StatusAberto or "Confirmado" or "EmProducao";
 }

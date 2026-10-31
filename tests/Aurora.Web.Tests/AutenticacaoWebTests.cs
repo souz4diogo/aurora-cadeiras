@@ -98,14 +98,14 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
     }
 
     [Theory]
-    [InlineData("Administrador", new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos" })]
-    [InlineData("GerenteProducao", new[] { "Produtos", "Pedidos" })]
+    [InlineData("Administrador", new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos", "Produção", "Estoque" })]
+    [InlineData("GerenteProducao", new[] { "Produtos", "Pedidos", "Produção", "Estoque" })]
     [InlineData("Vendedor", new[] { "Clientes", "Pedidos" })]
-    [InlineData("Almoxarife", new[] { "Fornecedores", "Matérias-primas" })]
+    [InlineData("Almoxarife", new[] { "Fornecedores", "Matérias-primas", "Estoque" })]
     public async Task Menu_mostra_so_as_areas_do_perfil(string perfil, string[] esperados)
     {
         using var navegador = await cenario.EntrarComoAsync(perfil);
-        var todos = new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos" };
+        var todos = new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos", "Produção", "Estoque" };
 
         var inicio = Navegador.Decodificar(await navegador.PaginaAsync("/"));
 

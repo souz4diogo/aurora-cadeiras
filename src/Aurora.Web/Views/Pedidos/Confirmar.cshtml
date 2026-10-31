@@ -1,0 +1,19 @@
+@model PedidoResposta
+@{
+    ViewData["Title"] = "Confirmar pedido " + Model.Numero;
+}
+
+<h1 class="h3 mb-3">Confirmar pedido @Model.Numero?</h1>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+<p>
+    O pedido de <strong>@Model.ClienteNome</strong>, no valor de <strong>@Formatacao.Moeda(Model.ValorTotal)</strong>,
+    será confirmado. O sistema reserva o produto acabado que houver em estoque e gera uma ordem de produção para o
+    que faltar. Depois disso o pedido não pode mais ser editado; ele ainda pode ser cancelado enquanto estiver em produção.
+</p>
+
+<form asp-action="Confirmar" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Sim, confirmar o pedido</button>
+    <a class="btn btn-outline-secondary" asp-action="Detalhes" asp-route-id="@Model.Id">Não, voltar</a>
+</form>

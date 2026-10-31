@@ -33,11 +33,21 @@ public sealed class PedidoRepository(AuroraDbContext db) : IPedidoRepository
 
     public void Adicionar(Pedido pedido) => db.Pedidos.Add(pedido);
 
+    public async Task ConfirmarAsync(int pedidoId, CancellationToken ct = default)
+    {
+        await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.sp_ConfirmarPedido @PedidoId = {pedidoId}", ct);
+        await AtualizarRastreadoAsync(pedidoId, ct);
+    }
+
     public async Task CancelarAsync(int pedidoId, CancellationToken ct = default)
     {
         await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.sp_CancelarPedido @PedidoId = {pedidoId}", ct);
+        await AtualizarRastreadoAsync(pedidoId, ct);
+    }
 
-        // A procedure mudou o status por fora do EF; atualiza a cópia rastreada
+    /// <summary>A procedure mudou o status por fora do EF; atualiza a cópia rastreada.</summary>
+    private async Task AtualizarRastreadoAsync(int pedidoId, CancellationToken ct)
+    {
         var rastreado = db.ChangeTracker.Entries<Pedido>().FirstOrDefault(e => e.Entity.Id == pedidoId);
         if (rastreado is not null)
         {

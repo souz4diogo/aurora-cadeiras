@@ -53,4 +53,78 @@ public class FormatacaoTests
     [Fact]
     public void Zeros_a_mais_do_banco_somem_do_campo_do_formulario() =>
         Assert.Equal("2,5", Formatacao.SemZerosAMais(2.500m).ToString(Formatacao.PtBr));
+
+    [Theory]
+    [InlineData(0, "0 min")]
+    [InlineData(47, "47 min")]
+    [InlineData(60, "1 h")]
+    [InlineData(130, "2 h 10 min")]
+    [InlineData(24 * 60, "1 d")]
+    [InlineData(24 * 60 + 3 * 60, "1 d 3 h")]
+    [InlineData(3 * 24 * 60 + 45, "3 d")]
+    public void Duracao_usa_a_maior_unidade_que_cabe(int minutos, string esperado) =>
+        Assert.Equal(esperado, Formatacao.Duracao(minutos));
+
+    [Theory]
+    [InlineData(10, "+10")]
+    [InlineData(-2.5, "-2,5")]
+    [InlineData(0, "0")]
+    [InlineData(1500, "+1.500")]
+    public void Quantidade_com_sinal_mostra_entrada_e_saida(double valor, string esperado) =>
+        Assert.Equal(esperado, Formatacao.QuantidadeComSinal((decimal)valor));
+
+    [Theory]
+    [InlineData("EmAndamento", "Em andamento")]
+    [InlineData("Concluida", "Concluída")]
+    [InlineData("Planejada", "Planejada")]
+    public void Situacao_da_ordem_e_da_etapa_sai_como_o_usuario_le(string status, string esperado)
+    {
+        Assert.Equal(esperado, Formatacao.StatusDaOrdem(status));
+        Assert.Equal(esperado, Formatacao.StatusDaEtapa(status));
+    }
+
+    [Theory]
+    [InlineData("Saida", "Saída")]
+    [InlineData("Entrada", "Entrada")]
+    public void Tipo_de_movimento_leva_acento(string tipo, string esperado) =>
+        Assert.Equal(esperado, Formatacao.TipoDeMovimento(tipo));
+
+    [Theory]
+    [InlineData("Producao", "Produção")]
+    [InlineData("ProducaoConcluida", "Produção concluída")]
+    [InlineData("Expedicao", "Expedição")]
+    [InlineData("Compra", "Compra")]
+    public void Origem_do_movimento_leva_acento(string origem, string esperado) =>
+        Assert.Equal(esperado, Formatacao.OrigemDoMovimento(origem));
+
+    [Fact]
+    public void Qr_code_e_um_svg_que_escala_sem_estilo_embutido_e_com_texto_alternativo()
+    {
+        var svg = CodigoQr.Svg("3f2b8c1e-5a4d-4e7b-9c10-2d6f8a1b7e33", "QR code da OP-2026-00001");
+
+        Assert.StartsWith("<svg", svg, StringComparison.Ordinal);
+        Assert.Contains("role=\"img\"", svg, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"QR code da OP-2026-00001\"", svg, StringComparison.Ordinal);
+        Assert.Contains("viewBox=", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("style=", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("<script", svg, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Qr_code_de_codigos_diferentes_difere_e_o_mesmo_codigo_repete()
+    {
+        var a = CodigoQr.Svg("3f2b8c1e-5a4d-4e7b-9c10-2d6f8a1b7e33", "QR");
+        var b = CodigoQr.Svg("9a1c7e20-8b3f-4d65-a2e4-5c0b9d3f1a88", "QR");
+
+        Assert.NotEqual(a, b);
+        Assert.Equal(a, CodigoQr.Svg("3f2b8c1e-5a4d-4e7b-9c10-2d6f8a1b7e33", "QR"));
+    }
+
+    [Fact]
+    public void Texto_alternativo_do_qr_nao_deixa_sair_do_atributo()
+    {
+        var svg = CodigoQr.Svg("x", "\" onload=\"alert(1)");
+
+        Assert.DoesNotContain("\" onload=", svg, StringComparison.Ordinal);
+    }
 }

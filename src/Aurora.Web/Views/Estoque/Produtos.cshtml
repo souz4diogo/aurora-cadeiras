@@ -1,0 +1,59 @@
+@model SaldosDeProdutoViewModel
+@{
+    ViewData["Title"] = "Estoque de produto acabado";
+}
+
+<h1 class="h3 mb-3">Estoque</h1>
+
+<partial name="_Abas" model="@("Produtos")" />
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar produtos">
+    <div class="col-12 col-md-6">
+        <label for="busca" class="form-label">Código ou nome</label>
+        <input id="busca" name="busca" class="form-control" value="@Model.Busca" autocomplete="off" />
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum produto encontrado.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Saldo de produto acabado: total, reservado a pedidos e disponível</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Produto</th>
+                    <th scope="col" class="numero">Em estoque</th>
+                    <th scope="col" class="numero">Reservado</th>
+                    <th scope="col" class="numero">Disponível</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var produto in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row">@produto.Codigo</th>
+                        <td>@produto.Nome</td>
+                        <td class="numero">@produto.Quantidade</td>
+                        <td class="numero">@produto.Reservado</td>
+                        <td class="numero">@produto.Disponivel</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-muted small">
+        Reservado é o que já foi prometido a pedidos confirmados. Produto acabado entra no estoque quando a inspeção de
+        qualidade aprova a ordem de produção.
+    </p>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

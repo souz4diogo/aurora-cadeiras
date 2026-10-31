@@ -57,6 +57,17 @@ public class PedidosController(PedidoService pedidos) : ControllerBase
     public async Task<ActionResult<PedidoDto>> Atualizar(int id, PedidoRequest request, CancellationToken ct) =>
         Ok(await pedidos.AtualizarAsync(id, request, ct));
 
+    /// <summary>
+    /// Confirma o pedido (RN01): reserva o produto acabado disponível (RN02) e gera as ordens de produção do que
+    /// falta. O pedido vira Em produção, ou Pronto se o estoque atendeu tudo.
+    /// </summary>
+    [HttpPost("{id:int}/confirmar")]
+    [Authorize(Roles = Perfis.AdministradorOuVendedor)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PedidoDto>> Confirmar(int id, CancellationToken ct) =>
+        Ok(await pedidos.ConfirmarAsync(id, ct));
+
     /// <summary>Cancela o pedido (Aberto, Confirmado ou Em produção), liberando reservas e cancelando OPs.</summary>
     [HttpPost("{id:int}/cancelar")]
     [Authorize(Roles = Perfis.AdministradorOuVendedor)]

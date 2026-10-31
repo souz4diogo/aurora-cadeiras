@@ -56,6 +56,18 @@ public sealed class ApiHost(string connectionString) : WebApplicationFactory<api
         return (email, resposta.SenhaProvisoria);
     }
 
+    /// <summary>Cliente HTTP da API já autenticado como um usuário novo do perfil ("Administrador" usa o admin do seed).</summary>
+    public async Task<HttpClient> ClienteAutenticadoAsync(string perfil)
+    {
+        var (email, senha) = perfil == "Administrador" ? (EmailAdmin, SenhaAdmin) : await CriarUsuarioAsync(perfil);
+        var cliente = CreateClient();
+        var login = await cliente.PostAsJsonAsync("/api/v1/auth/login", new { Email = email, Senha = senha });
+        login.EnsureSuccessStatusCode();
+        var token = (await login.Content.ReadFromJsonAsync<TokenDeTeste>())!;
+        cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+        return cliente;
+    }
+
     private sealed record TokenDeTeste(string AccessToken);
 
     private sealed record UsuarioCriadoDeTeste(string SenhaProvisoria);

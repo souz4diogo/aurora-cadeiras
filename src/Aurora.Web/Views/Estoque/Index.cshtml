@@ -1,0 +1,90 @@
+@model SaldosViewModel
+@{
+    ViewData["Title"] = "Estoque de matérias-primas";
+    var podeAjustar = User.IsInRole(Perfis.Almoxarife);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Estoque</h1>
+    @if (podeAjustar)
+    {
+        <a class="btn btn-primary" asp-action="Ajustar">Ajustar saldo</a>
+    }
+</div>
+
+<partial name="_Abas" model="@("Index")" />
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar matérias-primas">
+    <div class="col-12 col-md-5">
+        <label for="busca" class="form-label">Código ou nome</label>
+        <input id="busca" name="busca" class="form-control" value="@Model.Busca" autocomplete="off" />
+    </div>
+    <div class="col-12 col-md-3">
+        <label for="critico" class="form-label">Situação do saldo</label>
+        <select id="critico" name="critico" class="form-select">
+            <option value="" selected="@(Model.Critico is null)">Todos</option>
+            <option value="true" selected="@(Model.Critico == true)">Somente críticos</option>
+            <option value="false" selected="@(Model.Critico == false)">Acima do mínimo</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhuma matéria-prima encontrada.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Saldo das matérias-primas ativas, em ordem alfabética</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Unidade</th>
+                    <th scope="col" class="numero">Saldo</th>
+                    <th scope="col" class="numero">Mínimo</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col">Fornecedor preferencial</th>
+                    @if (podeAjustar)
+                    {
+                        <th scope="col"><span class="visually-hidden">Ações</span></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var materia in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row">@materia.Codigo</th>
+                        <td>@materia.Nome</td>
+                        <td>@materia.Unidade</td>
+                        <td class="numero">@Formatacao.Quantidade(materia.EstoqueAtual)</td>
+                        <td class="numero">@Formatacao.Quantidade(materia.EstoqueMinimo)</td>
+                        <td>
+                            @if (materia.Critico)
+                            {
+                                <span class="badge text-bg-danger">Crítico</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-success">Normal</span>
+                            }
+                        </td>
+                        <td>@(materia.FornecedorPreferencial ?? "—")</td>
+                        @if (podeAjustar)
+                        {
+                            <td><a asp-action="Ajustar" asp-route-materiaPrimaId="@materia.Id" aria-label="Ajustar o saldo de @materia.Nome">Ajustar</a></td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

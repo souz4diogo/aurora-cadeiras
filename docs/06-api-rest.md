@@ -157,7 +157,8 @@ Mapeamento dos erros das procedures: 51001 → `RN04` (409), 51002 → `RN05` (4
 | Método | Rota | Acesso | Descrição | RF/RN |
 |---|---|---|---|---|
 | GET | `/ordens-producao` | Gerente, Admin, Vendedor, Inspetor | Lista (filtros: status, estação, pedido) | RF09 |
-| GET | `/ordens-producao/{id}` | idem + Operador | Detalhe com etapas | RF09 |
+| GET | `/ordens-producao/quadro` | Gerente, Admin, Vendedor, Inspetor | OPs em aberto agrupadas pela estação atual (quadro de produção; ver A38) | RF20 |
+| GET | `/ordens-producao/{id}` | idem + Operador | Detalhe com etapas, apontamentos, perdas e código do QR | RF09 |
 | GET | `/ordens-producao/qr/{codigoQr}` | Operador, Inspetor, Gerente | Localiza a OP pelo QR code | RF11 |
 | GET | `/etapas/minhas?estacaoId=` | Operador, Inspetor | Etapas **pendentes ou em andamento** da estação | RF11 |
 | POST | `/etapas/{id}/iniciar` | Operador, Inspetor | Inicia (baixa de estoque) | RF11, RF13, RN03-RN05 |
@@ -165,6 +166,8 @@ Mapeamento dos erros das procedures: 51001 → `RN04` (409), 51002 → `RN05` (4
 | POST | `/etapas/{id}/perdas` | Operador | Registra refugo ou retrabalho | RF12 |
 | POST | `/apontamentos/sincronizar` | Operador, Inspetor | **Lote** de apontamentos offline | RF23 |
 | POST | `/ordens-producao/{id}/cancelar` | Gerente, Admin | Cancela OP não iniciada | - |
+
+> Fase 3: `qr`, `minhas`, `sincronizar` e o cancelamento isolado de OP não estão implementados (A37). Iniciar e finalizar usam `clientRequestId` e são idempotentes, inclusive no reenvio simultâneo (A40). Perda: A39.
 
 ### 4.6 Qualidade
 
