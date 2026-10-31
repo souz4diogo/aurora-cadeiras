@@ -132,6 +132,21 @@ public class AutenticacaoTests(ApiFactory api)
     }
 
     [Fact]
+    public async Task Refresh_simultaneo_com_o_mesmo_token_so_tem_um_vencedor()
+    {
+        const int tentativas = 8;
+        var (usuario, senha) = await api.CriarUsuarioAsync("Operador");
+        var token = await api.LoginAsync(usuario.Email, senha);
+        using var cliente = api.CreateClient();
+
+        var respostas = await Task.WhenAll(Enumerable.Range(0, tentativas).Select(_ =>
+            cliente.PostAsJsonAsync("/api/v1/auth/refresh", new RefreshRequest(token.RefreshToken))));
+
+        Assert.Single(respostas, r => r.StatusCode == HttpStatusCode.OK);
+        Assert.Equal(tentativas - 1, respostas.Count(r => r.StatusCode == HttpStatusCode.Unauthorized));
+    }
+
+    [Fact]
     public async Task Logout_revoga_o_refresh_token()
     {
         var (usuario, senha) = await api.CriarUsuarioAsync("Operador");

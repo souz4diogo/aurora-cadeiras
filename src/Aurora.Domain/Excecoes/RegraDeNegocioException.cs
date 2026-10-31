@@ -1,14 +1,5 @@
 ﻿namespace Aurora.Domain.Excecoes;
 
-public enum TipoErro
-{
-    Validacao,
-    NaoEncontrado,
-    NaoAutenticado,
-    Conflito,
-    EntidadeNaoProcessavel,
-}
-
 /// <summary>Violação de regra de negócio com código estável (ex.: RN04) para a API traduzir em ProblemDetails.</summary>
 public class RegraDeNegocioException(string codigo, string mensagem, TipoErro tipo = TipoErro.Conflito)
     : Exception(mensagem)

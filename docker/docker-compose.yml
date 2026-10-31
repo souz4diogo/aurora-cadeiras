@@ -1,0 +1,65 @@
+# Ambiente local: SQL Server + scripts do banco (DbUp) + API + painel web.
+# Uso (a partir da raiz do repositório):
+#   cp docker/.env.example docker/.env     # e preencha os valores
+#   docker compose -f docker/docker-compose.yml up --build
+name: aurora
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?Defina SA_PASSWORD em docker/.env}
+    ports:
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  dbup:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dbup
+    environment:
+      ConnectionStrings__Aurora: &conexao "Server=sql;Database=aurora;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+    depends_on:
+      sql:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Aurora: *conexao
+      Jwt__Key: ${JWT_KEY:?Defina JWT_KEY (32 caracteres ou mais) em docker/.env}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Defina SEED_ADMIN_PASSWORD em docker/.env}
+      Swagger__Habilitado: ${SWAGGER_HABILITADO:-false}
+    ports:
+      - "8080:8080"
+    depends_on:
+      dbup:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      Api__BaseUrl: http://api:8080
+    ports:
+      - "8081:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  sql-data:

@@ -26,7 +26,9 @@ nenhuma assinatura, apenas validar com `az bicep build`.
   sites oficiais (as ofertas mudam): Azure for Students (crédito sem cartão, se o e-mail da
   UNIP for aceito), conta gratuita Azure e oferta gratuita do Azure SQL Database.
 
-**Ainda pendente:** confirmar com os professores (SGBD, nuvem) e se o sistema deve ser entregue
+**SQL Server confirmado pelo grupo em 2026-10-30.**
+
+**Ainda pendente:** confirmar com os professores a nuvem e se o sistema deve ser entregue
 rodando ou só documentado. Se a resposta divergir, registrar uma nova entrada abaixo.
 
 ---
@@ -69,6 +71,16 @@ checagem de RN04 e o `CHECK EstoqueAtual >= 0` estourava (erro 547). A procedure
 | A08 | Swagger só liga com `Swagger:Habilitado=true` (padrão `false`); o JSON fica anônimo quando ligado | Doc 06 §1: desligado em produção ou protegido |
 | A09 | O `UsuarioId` da sessão só é definido quando há usuário autenticado; durante o login (anônimo) a auditoria de `Usuario` registra `UsuarioId` nulo | O doc pede o contexto por requisição autenticada |
 | A10 | Os pacotes transitivos `System.Security.Cryptography.Pkcs` (vulnerabilidade NU1902/NU1903) são fixados na 10.0.14 em vez de suprimir o aviso | Avisos são erros no build (CLAUDE.md) |
+| A11 | O token de acesso (30 min) **não é revogado** ao inativar o usuário ou trocar o perfil; vale até expirar. Só os refresh tokens são revogados (A05). Não há consulta ao banco por requisição | Trade-off do JWT sem estado. Se a janela precisar fechar, checar `Ativo` em `OnTokenValidated` (custa uma consulta por requisição) ou reduzir `Jwt:ExpiracaoEmMinutos` |
+| A12 | O JWT só aceita o algoritmo `HS256` (`ValidAlgorithms`) | Torna explícita a defesa contra troca de algoritmo, além da chave simétrica |
+| A13 | Cadastros: `PUT` de matéria-prima **não aceita saldo** (`EstoqueAtual`); o saldo só muda por movimento de estoque. `POST` cria com saldo 0 | `MovimentoEstoque` é o livro-razão (CLAUDE.md); o saldo inicial entra por ajuste (`sp_AjustarEstoque`, fase 2) |
+| A14 | Código de produto e de matéria-prima é normalizado para maiúsculas e único; duplicado devolve 409 `CODIGO_DUPLICADO`, fornecedor inexistente devolve 422 `FORNECEDOR_INEXISTENTE` | Alinha com `UQ_*_Codigo` e com os códigos 4xx de docs/06 |
+| A15 | Imagens Docker em Alpine (`aspnet:10.0-alpine`) com `icu-libs`, usuário não-root `app`, `HEALTHCHECK` via `wget`. O compose local usa `sa`; hom/prod usam o login restrito | Imagem menor e `wget` disponível para o healthcheck; o `sa` fica restrito ao ambiente local descartável |
+| A16 | O runner de scripts é o projeto `src/Aurora.DbUp` (DbUp), lido de `database/` por `SCRIPTS_PATH` e configurado por `ConnectionStrings__Aurora` | Mesmo mecanismo nos testes, no Docker e no CD; scripts já aplicados são ignorados |
+| A17 | CI (`ci.yml`) cobre build, testes com cobertura, pacotes vulneráveis, segredos (gitleaks) e imagens com Trivy; CodeQL em `codeql.yml`. **Ainda não executado no GitHub**; publicação no ACR e meta de cobertura ≥ 70% ficam para a fase 6 | Sem assinatura Azure (custo zero); o gate de cobertura só faz sentido com os módulos prontos |
+| A18 | O refresh é **atômico**: a revogação do token é um `UPDATE ... WHERE RevogadoEm IS NULL` e só quem o executa emite o novo par. Quem perde a corrida pelo mesmo token é tratado como reuso (A04) e derruba as sessões do usuário | Antes, 8 requisições simultâneas com o mesmo refresh token tinham todas sucesso (reproduzido em teste). O custo é que um cliente legítimo que dispare duas renovações ao mesmo tempo precisa logar de novo; o app deve serializar a renovação |
+| A19 | `ForwardedHeaders` (`Habilitado`, `ProxiesConfiaveis`, `RedesConfiaveis`) vem **desligado**; ligado, usa só o último salto de `X-Forwarded-For` (`ForwardLimit=1`) e só de proxies listados. Sem lista, confia no proxy imediato, o que só vale se a API for alcançável apenas pelo ingress | O rate limit do login é por IP: atrás do ingress todos teriam o IP do proxy e dividiriam um único limite; aceitar o cabeçalho de qualquer origem permitiria forjar o IP e burlar o limite |
+| A20 | **Risco aceito:** o bloqueio de conta (5 falhas, 15 min; RN do Domain) permite que um terceiro mantenha uma conta travada de propósito, e o e-mail do administrador inicial é público (README). Mitigações: rate limit por IP no login (A19), e o bloqueio zera por expiração ou quando outro administrador redefine a senha. Recomendação: manter **ao menos dois administradores** | Troca consciente entre barrar força bruta e permitir negação de serviço dirigida. Alternativas se o risco crescer: bloqueio por par (e-mail, IP), CAPTCHA, alerta na auditoria |
 
 **Pendente da 1b:** a matriz completa de permissões (docs/06 §3) só será testada rota a rota conforme os módulos forem criados; hoje cobre `/usuarios`, `/perfis` e `/auth/*`.
 

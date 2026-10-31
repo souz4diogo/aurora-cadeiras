@@ -1,8 +1,5 @@
 # CLAUDE.md - Contexto do Projeto Aurora Cadeiras (PIM IV)
 
-> **Este arquivo deve ficar na RAIZ do repositório** (`Pim_Final/CLAUDE.md`).
-> Hoje ele está em `docs/` junto com os demais documentos; copie para a raiz.
-
 ## O que é este projeto
 
 Sistema de automação da fábrica de cadeiras **fictícia** "Aurora Cadeiras", feito como
@@ -36,7 +33,7 @@ sem avisar.
 .NET LTS (10; usar 8 se a disciplina usar) · ASP.NET Core Web API · ASP.NET Core MVC (Razor) ·
 EF Core + procedures · SQL Server · DbUp · xUnit · Docker · GitHub Actions · Azure (Bicep) ·
 Mobile: Flutter (Dart) **ou** React Native, ainda a definir.
-⚠️ SGBD, nuvem e **mobile** aguardam confirmação (ver `docs/04-arquitetura.md` §1 e
+SGBD confirmado (SQL Server). ⚠️ Nuvem e **mobile** aguardam confirmação (ver `docs/04-arquitetura.md` §1 e
 `docs/08-mobile.md` §1.1). **Não inicie o app mobile antes de a tecnologia ser confirmada.**
 
 ## Estrutura do repositório

@@ -1,4 +1,5 @@
 ﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Comum;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
@@ -16,17 +17,14 @@ public class UsuarioService(
     IValidator<CriarUsuarioRequest> validadorCriar,
     IValidator<AtualizarUsuarioRequest> validadorAtualizar)
 {
-    public const int TamanhoMaximoDePagina = 100;
-
     public static IReadOnlyList<PerfilDto> ListarPerfis() =>
         Enum.GetValues<PerfilUsuario>().Select(p => new PerfilDto((byte)p, p.ToString())).ToList();
 
-    public async Task<Comum.Pagina<UsuarioDto>> ListarAsync(string? busca, int pagina, int tamanho, CancellationToken ct = default)
+    public async Task<Pagina<UsuarioDto>> ListarAsync(string? busca, int pagina, int tamanho, CancellationToken ct = default)
     {
-        pagina = Math.Max(pagina, 1);
-        tamanho = Math.Clamp(tamanho, 1, TamanhoMaximoDePagina);
+        (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
         var (itens, total) = await usuarios.ListarAsync(busca?.Trim(), pagina, tamanho, ct);
-        return new Comum.Pagina<UsuarioDto>(itens.Select(UsuarioDto.De).ToList(), total, pagina, tamanho);
+        return new Pagina<UsuarioDto>(itens.Select(UsuarioDto.De).ToList(), total, pagina, tamanho);
     }
 
     public async Task<UsuarioDto> ObterAsync(int id, CancellationToken ct = default) =>
@@ -37,11 +35,7 @@ public class UsuarioService(
         await validadorCriar.ValidateAndThrowAsync(request, ct);
         var email = Normalizar(request.Email);
 
-        if (await usuarios.EmailExisteAsync(email, null, ct))
-        {
-            throw new RegraDeNegocioException("EMAIL_DUPLICADO", "Já existe um usuário com este e-mail.");
-        }
-
+        await GarantirEmailDisponivelAsync(email, null, ct);
         await GarantirClienteAsync(request.PerfilId, request.ClienteId, ct);
 
         var senha = geradorDeSenha.GerarProvisoria();
@@ -58,11 +52,7 @@ public class UsuarioService(
         var usuario = await ObterOuFalharAsync(id, ct);
         var email = Normalizar(request.Email);
 
-        if (await usuarios.EmailExisteAsync(email, id, ct))
-        {
-            throw new RegraDeNegocioException("EMAIL_DUPLICADO", "Já existe um usuário com este e-mail.");
-        }
-
+        await GarantirEmailDisponivelAsync(email, id, ct);
         await GarantirClienteAsync(request.PerfilId, request.ClienteId, ct);
 
         usuario.Atualizar(request.Nome.Trim(), email, (PerfilUsuario)request.PerfilId, request.ClienteId);
@@ -99,6 +89,14 @@ public class UsuarioService(
     private async Task<Usuario> ObterOuFalharAsync(int id, CancellationToken ct) =>
         await usuarios.ObterPorIdAsync(id, ct)
         ?? throw new RegraDeNegocioException("USUARIO_NAO_ENCONTRADO", "Usuário não encontrado.", TipoErro.NaoEncontrado);
+
+    private async Task GarantirEmailDisponivelAsync(string email, int? ignorarId, CancellationToken ct)
+    {
+        if (await usuarios.EmailExisteAsync(email, ignorarId, ct))
+        {
+            throw new RegraDeNegocioException("EMAIL_DUPLICADO", "Já existe um usuário com este e-mail.");
+        }
+    }
 
     private async Task GarantirClienteAsync(byte perfilId, int? clienteId, CancellationToken ct)
     {

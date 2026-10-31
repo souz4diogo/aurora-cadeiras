@@ -184,6 +184,8 @@ Comando de referência: `az deployment group create -g rg-aurora-<env> -f infra/
 | `ConnectionStrings__Aurora` | Key Vault (referência no Container App) | `Server=...;Database=aurora;Encrypt=True;...` |
 | `Jwt__Key` | Key Vault | segredo aleatório de 256 bits |
 | `Jwt__Issuer`, `Jwt__Audience` | Configuração do app | `aurora-api` |
+| `ForwardedHeaders__Habilitado` | Configuração do app (ligar atrás do ingress) | `true` |
+| `ForwardedHeaders__ProxiesConfiaveis__0`, `ForwardedHeaders__RedesConfiaveis__0` | Configuração do app (opcional; sem lista confia no proxy imediato) | `10.0.0.0/16` |
 | `Api__BaseUrl` | Configuração da Web | `https://api-hom.aurora...` |
 | `ASPNETCORE_ENVIRONMENT` | Container App | `Production` |
 | `SEED_ADMIN_PASSWORD` | Somente dev/hom, fora do repositório | - |

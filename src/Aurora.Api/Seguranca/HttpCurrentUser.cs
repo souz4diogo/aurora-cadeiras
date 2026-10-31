@@ -1,4 +1,6 @@
-﻿using Aurora.Application.Abstracoes;
+﻿using System.Globalization;
+using Aurora.Application.Abstracoes;
+using Aurora.Infrastructure.Seguranca;
 
 namespace Aurora.Api.Seguranca;
 
@@ -8,8 +10,8 @@ public sealed class HttpCurrentUser(IHttpContextAccessor acessor) : ICurrentUser
     {
         get
         {
-            var sub = acessor.HttpContext?.User.FindFirst("sub")?.Value;
-            return int.TryParse(sub, System.Globalization.CultureInfo.InvariantCulture, out var id) ? id : null;
+            var sub = acessor.HttpContext?.User.FindFirst(NomesDeClaims.UsuarioId)?.Value;
+            return int.TryParse(sub, CultureInfo.InvariantCulture, out var id) ? id : null;
         }
     }
 }

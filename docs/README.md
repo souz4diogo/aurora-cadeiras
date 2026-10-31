@@ -19,7 +19,6 @@
 | `10-plano-implementacao.md` | Fases e prompts para o Claude Code | - |
 | `11-negocio-e-viabilidade.md` | Caracterização, Canvas, SWOT, viabilidade, responsabilidade social | **1, 2, 3** |
 | `12-inovacao-ia-3d-ar.md` | Extensão opcional: site público, 3D/AR, orçamento por foto (IA) | 4, 5, 8 (inovação) |
-| `CLAUDE.md` | Contexto do projeto para o Claude Code (já copiado para a raiz do repositório) | - |
 | `DECISOES.md` | Registro de decisões, interpretações e desvios da especificação | - |
 
 ## Estado do projeto
@@ -28,7 +27,7 @@
 |---|---|
 | Escopo e requisitos | Rascunho pronto, aguardando revisão do grupo |
 | Especificações técnicas (04 a 09) | Prontas para implementação |
-| Implementação do sistema | **Em andamento:** fases 0, 1a (banco) e 1b (API base e autenticação) concluídas, com 114 testes passando. Próxima: 1c (cadastros básicos, Docker e CI) |
+| Implementação do sistema | **Em andamento:** fases 0, 1a (banco), 1b (API base e autenticação) e 1c (produtos, matérias-primas, Docker e CI) concluídas, com 211 testes passando. Próxima: 2 (cadastros restantes, pedidos e painel web). O CI ainda não rodou no GitHub |
 | Decisões e desvios da especificação | Registrados em `DECISOES.md` |
 | Texto do PIM (capítulos, Introdução, Conclusão, Resumo, Abstract) | A fazer, **depois** da implementação |
 | Documento final em Word com ABNT | A fazer, por último |
@@ -38,7 +37,8 @@
 
 - [ ] Nomes, RAs, líder, cidade do polo e orientador
 - [ ] Prazo de postagem e de entrega impressa
-- [ ] Confirmar SGBD (SQL Server) e nuvem (Azure, só como projeto, custo zero) com os professores; decisão em `DECISOES.md`
+- [x] SGBD: **SQL Server** confirmado
+- [ ] Confirmar nuvem (Azure, só como projeto, custo zero) com os professores; decisão em `DECISOES.md`
 - [ ] **Perguntar ao professor de mobile** se pode ser React Native em vez de Flutter (sem resposta, usar Flutter)
 - [ ] Confirmar se o sistema deve ser entregue rodando ou só documentado
 - [ ] Confirmar se o Chen vale como modelo lógico ou se o professor quer o relacional
@@ -47,7 +47,7 @@
 ## Ordem recomendada
 
 1. Revisar e aprovar `00-escopo.md`.
-2. Copiar `CLAUDE.md` para a raiz e seguir `10-plano-implementacao.md`.
+2. Conferir o `CLAUDE.md` da raiz do repositório e seguir `10-plano-implementacao.md`.
 3. Guardar as evidências de cada fase em `docs/evidencias/`.
 4. Escrever os capítulos do PIM com as próprias palavras, usando as especificações como base (não copiar os textos).
 5. Conferir tudo com `03-checklist-manual.md` e postar.

@@ -1,6 +1,7 @@
 ﻿using Aurora.Application.Abstracoes;
 using Aurora.Infrastructure.Persistencia;
 using Aurora.Infrastructure.Seguranca;
+using Aurora.Infrastructure.Tempo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IProdutoRepository, ProdutoRepository>();
+        services.AddScoped<IMateriaPrimaRepository, MateriaPrimaRepository>();
 
         services.AddSingleton<IRelogio, RelogioDoSistema>();
         services.AddSingleton<ITokenService, JwtTokenService>();
