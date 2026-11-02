@@ -1,4 +1,5 @@
 import type { AxiosInstance } from 'axios';
+import { randomUUID } from 'expo-crypto';
 
 import { TokenStoreEscolhivel } from '@/core/auth/tokenStore';
 import { CacheJsonRepository } from '@/core/db/cacheJsonRepository';
@@ -57,7 +58,7 @@ export async function criarServicos(aoExpirarSessao: () => void): Promise<Servic
   const cacheJson = new CacheJsonRepository(db);
   const preferencias = new PreferenciasRepository(db);
   const etapasApi = new EtapasApi(http);
-  const etapas = new EtapasService({ api: etapasApi, cache: new EtapaCacheRepository(db), fila });
+  const etapas = new EtapasService({ api: etapasApi, cache: new EtapaCacheRepository(db), fila, novoId: randomUUID });
   const estacoes = new EstacoesService(etapasApi, cacheJson, preferencias);
   const sync = new SyncService({
     fila,

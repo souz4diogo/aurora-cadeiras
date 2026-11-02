@@ -81,6 +81,8 @@ interface ContextoDoTema {
   cores: Cores;
   escala: EscalaDeFonte;
   altoContraste: boolean;
+  /** Cor dos ícones da barra de status: escuros quando o cabeçalho é claro (tema escuro e alto contraste). */
+  estiloDaBarra: 'light' | 'dark';
   definirEscala(escala: EscalaDeFonte): void;
   definirAltoContraste(ativo: boolean): void;
 }
@@ -89,6 +91,7 @@ const Contexto = createContext<ContextoDoTema>({
   cores: CLARO,
   escala: 1,
   altoContraste: false,
+  estiloDaBarra: 'light',
   definirEscala: () => {},
   definirAltoContraste: () => {},
 });
@@ -142,6 +145,7 @@ export function ProvedorDeTema({ preferencias, children }: Props) {
       cores: altoContraste ? ALTO_CONTRASTE : esquema === 'dark' ? ESCURO : CLARO,
       escala,
       altoContraste,
+      estiloDaBarra: altoContraste || esquema === 'dark' ? 'dark' : 'light',
       definirEscala,
       definirAltoContraste,
     }),

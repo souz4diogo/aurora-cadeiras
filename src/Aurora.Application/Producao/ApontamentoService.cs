@@ -1,4 +1,5 @@
 ﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Comum;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
 using FluentValidation;
@@ -41,7 +42,7 @@ public partial class ApontamentoService(
             return ResultadoDeSincronizacaoDto.Rejeitado(Guid.Empty, "VALIDACAO", "Item vazio no lote.");
         }
 
-        if (!TentarObterTipo(item.Tipo, out var tipo))
+        if (!EnumPorNome.TentarObter(item.Tipo, out TipoApontamento tipo))
         {
             return ResultadoDeSincronizacaoDto.Rejeitado(
                 item.ClientRequestId, "VALIDACAO", "O tipo do apontamento deve ser Inicio ou Fim.");
@@ -90,15 +91,6 @@ public partial class ApontamentoService(
             return ResultadoDeSincronizacaoDto.Rejeitado(
                 item.ClientRequestId, CodigoDeErroInterno, "Não foi possível processar este apontamento agora. Tente de novo.");
         }
-    }
-
-    /// <summary>Aceita só o nome do tipo (sem diferenciar maiúsculas); o Enum.TryParse sozinho aceitaria "1".</summary>
-    private static bool TentarObterTipo(string? texto, out TipoApontamento tipo)
-    {
-        var nome = Enum.GetNames<TipoApontamento>()
-            .FirstOrDefault(n => string.Equals(n, texto?.Trim(), StringComparison.OrdinalIgnoreCase));
-        tipo = nome is null ? default : Enum.Parse<TipoApontamento>(nome);
-        return nome is not null;
     }
 
     private static partial class LogMensagens

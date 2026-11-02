@@ -1,4 +1,4 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
 using Aurora.Application.Comum;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
@@ -16,7 +16,7 @@ public class InspecaoService(IQualidadeRepository qualidade, IValidator<Inspecao
     public async Task<InspecaoDto> RegistrarAsync(int ordemProducaoId, InspecaoRequest request, CancellationToken ct = default)
     {
         await validador.ValidateAndThrowAsync(request, ct);
-        InspecaoRequestValidator.TentarObterResultado(request.Resultado, out var resultado);
+        EnumPorNome.TentarObter(request.Resultado, out ResultadoInspecao resultado);
 
         // A estação de retrabalho só faz sentido na reprovação; na aprovação ela é descartada
         var estacao = resultado == ResultadoInspecao.Reprovada ? request.EstacaoRetrabalhoId : null;

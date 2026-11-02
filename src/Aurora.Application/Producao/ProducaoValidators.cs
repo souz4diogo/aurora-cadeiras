@@ -1,4 +1,5 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Comum;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
 using FluentValidation;
@@ -39,21 +40,10 @@ public sealed class PerdaRequestValidator : AbstractValidator<PerdaRequest>
 
     public PerdaRequestValidator()
     {
-        RuleFor(x => x.Tipo).NotEmpty().Must(EhTipoConhecido)
+        RuleFor(x => x.Tipo).NotEmpty().Must(t => EnumPorNome.TentarObter<TipoPerda>(t, out _))
             .WithMessage("O tipo da perda deve ser Refugo ou Retrabalho.");
         RuleFor(x => x.Quantidade).InclusiveBetween(1, QuantidadeMaxima);
         RuleFor(x => x.Motivo).NotEmpty().WithMessage("O motivo da perda é obrigatório.")
             .MaximumLength(RegistroPerda.TamanhoMaximoDoMotivo);
-    }
-
-    public static bool EhTipoConhecido(string? tipo) => TentarObterTipo(tipo, out _);
-
-    /// <summary>Aceita só o nome do tipo (sem diferenciar maiúsculas); o Enum.TryParse sozinho aceitaria "1".</summary>
-    public static bool TentarObterTipo(string? texto, out TipoPerda tipo)
-    {
-        var nome = Enum.GetNames<TipoPerda>()
-            .FirstOrDefault(n => string.Equals(n, texto?.Trim(), StringComparison.OrdinalIgnoreCase));
-        tipo = nome is null ? default : Enum.Parse<TipoPerda>(nome);
-        return nome is not null;
     }
 }

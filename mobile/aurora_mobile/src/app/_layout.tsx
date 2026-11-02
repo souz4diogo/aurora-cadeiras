@@ -49,7 +49,7 @@ export default function LayoutRaiz() {
 
 function Navegacao() {
   const { estado } = useAuth();
-  const { cores } = useTema();
+  const { cores, estiloDaBarra } = useTema();
   const logado = estado.status === 'logado';
 
   if (estado.status === 'carregando') {
@@ -62,7 +62,7 @@ function Navegacao() {
 
   return (
     <SyncProvider ativo={logado}>
-      <StatusBar style="light" />
+      <StatusBar style={estiloDaBarra} />
       {logado ? <SeloDeSincronizacao /> : null}
       <Stack
         screenOptions={{

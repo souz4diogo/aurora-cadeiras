@@ -60,6 +60,19 @@ export function useDetalheDaEtapa(etapaId: number, perfil: Perfil) {
   const estado = useCarregamento(carregar);
   const etapaAtual = estado.dados?.etapa ?? null;
 
+  /** Tenta enviar o item recém-gravado. Uma rodada pode já estar em curso e ter começado antes do toque: se ele ficou para trás, roda de novo. */
+  async function enviar(id: string): Promise<void> {
+    for (let tentativa = 0; tentativa < 2; tentativa++) {
+      await sincronizarAgora().catch(() => undefined);
+      const item = await buscarNaFila(id);
+      if (!item || item.estado !== 'Pendente' || !online) return;
+    }
+  }
+
+  async function buscarNaFila(id: string) {
+    return (await fila.listar()).find((i) => i.clientRequestId === id);
+  }
+
   async function apontar(tipo: TipoDeApontamento): Promise<void> {
     if (!etapaAtual || apontando) return;
     setApontando(true);
@@ -67,35 +80,31 @@ export function useDetalheDaEtapa(etapaId: number, perfil: Perfil) {
     try {
       const id = await etapas.apontar(tipo, etapaAtual);
       await atualizarContagem();
+      await enviar(id);
 
-      // Uma rodada pode já estar em curso e ter começado antes do toque: se o item ficou para trás, roda de novo
-      for (let tentativa = 0; tentativa < 2; tentativa++) {
-        await sincronizarAgora().catch(() => undefined);
-        const item = (await fila.listar()).find((i) => i.clientRequestId === id);
-        if (!item || item.estado !== 'Pendente' || !online) break;
-      }
+      // Fora da fila = o servidor aceitou; rejeitado = ficou com o motivo; pendente = esperando rede
+      const item = await buscarNaFila(id);
+      const situacao = !item ? 'confirmado' : item.estado === 'Rejeitado' ? 'rejeitado' : 'guardado';
+      (situacao === 'rejeitado' ? vibrarAlerta : vibrarSucesso)();
+      setMensagem(mensagemDoApontamento(tipo, situacao, item?.mensagem));
 
-      const item = (await fila.listar()).find((i) => i.clientRequestId === id);
-      if (!item) {
-        vibrarSucesso();
-        setMensagem(mensagemDoApontamento(tipo, 'confirmado'));
-      } else if (item.estado === 'Rejeitado') {
-        vibrarAlerta();
-        setMensagem(mensagemDoApontamento(tipo, 'rejeitado', item.mensagem));
-      } else {
-        vibrarSucesso();
-        setMensagem(mensagemDoApontamento(tipo, 'guardado'));
-      }
-
-      // A etapa concluída some do cache do servidor; sem ela, a tela segue com o que o toque produziu
-      const atualizada = await etapas.obterEtapa(etapaId);
-      const proximoStatus = tipo === 'Inicio' ? 'EmAndamento' : 'Concluida';
-      const resultado: EtapaNaTela | null =
-        atualizada ?? (item?.estado === 'Rejeitado' ? etapaAtual : { ...etapaAtual, status: proximoStatus, pendenteEnvio: false });
+      const resultado = await etapaAposApontar(tipo, situacao, etapaAtual);
       estado.definir((anterior) => (anterior ? { ...anterior, etapa: resultado } : anterior));
     } finally {
       setApontando(false);
     }
+  }
+
+  /** A etapa concluída some do cache do servidor; sem ela, a tela segue com o que o toque produziu. */
+  async function etapaAposApontar(
+    tipo: TipoDeApontamento,
+    situacao: 'confirmado' | 'guardado' | 'rejeitado',
+    anterior: EtapaNaTela,
+  ): Promise<EtapaNaTela> {
+    const atualizada = await etapas.obterEtapa(etapaId);
+    if (atualizada) return atualizada;
+    if (situacao === 'rejeitado') return anterior;
+    return { ...anterior, status: tipo === 'Inicio' ? 'EmAndamento' : 'Concluida', pendenteEnvio: false };
   }
 
   return {

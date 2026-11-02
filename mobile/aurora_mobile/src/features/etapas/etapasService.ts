@@ -1,5 +1,3 @@
-import { randomUUID } from 'expo-crypto';
-
 import { ApiError, ehErroDeRede, interpretarErro } from '@/core/http/problem';
 import type { EtapaCacheRepository } from '@/features/etapas/etapaCacheRepository';
 import type { EtapasApi } from '@/features/etapas/etapasApi';
@@ -25,7 +23,8 @@ export interface DependenciasDeEtapas {
   cache: EtapaCacheRepository;
   fila: FilaRepository;
   agora?: () => Date;
-  novoId?: () => string;
+  /** Gera o identificador de cada apontamento (um UUID); vem da raiz de composição. */
+  novoId: () => string;
 }
 
 /**
@@ -34,11 +33,9 @@ export interface DependenciasDeEtapas {
  */
 export class EtapasService {
   private readonly agora: () => Date;
-  private readonly novoId: () => string;
 
   constructor(private readonly deps: DependenciasDeEtapas) {
     this.agora = deps.agora ?? (() => new Date());
-    this.novoId = deps.novoId ?? randomUUID;
   }
 
   /** Servidor primeiro; sem rede, o que estava guardado. Sempre sobrepõe o que ainda não foi enviado. */
@@ -100,7 +97,7 @@ export class EtapasService {
    * quem chama dispara a sincronização em seguida.
    */
   async apontar(tipo: TipoDeApontamento, etapa: EtapaDaEstacao): Promise<string> {
-    const clientRequestId = this.novoId();
+    const clientRequestId = this.deps.novoId();
     await this.deps.fila.enfileirar({
       clientRequestId,
       tipo,

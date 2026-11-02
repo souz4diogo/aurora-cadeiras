@@ -30,6 +30,9 @@ const RESUMO_VAZIO: ResumoDaSincronizacao = {
   interrompidaPorRede: false,
 };
 
+/** Se a rodada pode seguir para o próximo lote ou deve parar. */
+type Andamento = 'seguir' | 'parar';
+
 /**
  * Envia a fila de apontamentos ao servidor (docs/08 §5): em ordem de hora do aparelho, em lotes, sem perder item.
  * Aplicado e JaProcessado saem da fila; Rejeitado fica com o motivo; falha de rede devolve o lote à fila.
@@ -52,70 +55,77 @@ export class SyncService {
   }
 
   private async executar(): Promise<ResumoDaSincronizacao> {
-    const { fila, api, aposSincronizar } = this.deps;
+    const { fila } = this.deps;
     const tamanho = this.deps.tamanhoDoLote ?? TAMANHO_DO_LOTE;
     const resumo = { ...RESUMO_VAZIO };
 
     for (;;) {
       const lote = await fila.proximosPendentes(tamanho);
       if (lote.length === 0) break;
-
-      const ids = lote.map((i) => i.clientRequestId);
-      await fila.marcarEnviando(ids);
-
-      let resultados: ResultadoDoItem[];
-      try {
-        resultados = await api.sincronizar(
-          lote.map(({ clientRequestId, tipo, etapaId, dataHoraCliente }) => ({
-            clientRequestId,
-            tipo,
-            etapaId,
-            dataHoraCliente,
-          })),
-        );
-      } catch (erro) {
-        // Sem resposta não dá para saber o que o servidor aplicou: devolve tudo; o reenvio é idempotente
-        await fila.devolverParaFila(ids);
-        if (ehErroDeRede(erro)) {
-          resumo.interrompidaPorRede = true;
-          break;
-        }
-        throw erro;
-      }
-
-      const porId = new Map(resultados.map((r) => [r.clientRequestId, r]));
-      const confirmados: string[] = [];
-      const semResposta: string[] = [];
-      for (const id of ids) {
-        const resultado = porId.get(id);
-        if (!resultado) {
-          semResposta.push(id);
-        } else if (resultado.status === 'Rejeitado') {
-          await fila.marcarRejeitado(id, resultado.code ?? 'ERRO', resultado.mensagem ?? 'Rejeitado pelo servidor.');
-          resumo.rejeitados++;
-        } else {
-          confirmados.push(id);
-        }
-      }
-      await this.refletirConfirmados(lote.filter((i) => confirmados.includes(i.clientRequestId)));
-      await fila.remover(confirmados);
-      await fila.devolverParaFila(semResposta);
-      resumo.confirmados += confirmados.length;
-
-      // Item que o servidor não respondeu voltaria no próximo laço: para evitar laço infinito, encerra a rodada
-      if (semResposta.length > 0) break;
+      if ((await this.enviarLote(lote, resumo)) === 'parar') break;
     }
 
     resumo.aindaPendentes = (await fila.contar()).pendentes;
+    if (resumo.confirmados > 0 || resumo.rejeitados > 0) await this.recarregarTela();
+    return resumo;
+  }
 
-    if (resumo.confirmados > 0 || resumo.rejeitados > 0) {
-      try {
-        await aposSincronizar?.();
-      } catch {
-        // Atualizar a tela é um bônus; a fila já está correta
+  /** Marca o lote como em envio, manda ao servidor e trata a resposta (ou a falta dela). */
+  private async enviarLote(lote: ApontamentoPendente[], resumo: ResumoDaSincronizacao): Promise<Andamento> {
+    const { fila } = this.deps;
+    const ids = lote.map((i) => i.clientRequestId);
+    await fila.marcarEnviando(ids);
+
+    let resultados: ResultadoDoItem[];
+    try {
+      resultados = await this.deps.api.sincronizar(
+        lote.map(({ clientRequestId, tipo, etapaId, dataHoraCliente }) => ({
+          clientRequestId,
+          tipo,
+          etapaId,
+          dataHoraCliente,
+        })),
+      );
+    } catch (erro) {
+      // Sem resposta não dá para saber o que o servidor aplicou: devolve tudo; o reenvio é idempotente
+      await fila.devolverParaFila(ids);
+      if (!ehErroDeRede(erro)) throw erro;
+      resumo.interrompidaPorRede = true;
+      return 'parar';
+    }
+    return this.aplicarResultados(lote, resultados, resumo);
+  }
+
+  /** Confirmados saem da fila, rejeitados ficam com o motivo e o que o servidor não respondeu volta a pendente. */
+  private async aplicarResultados(
+    lote: ApontamentoPendente[],
+    resultados: ResultadoDoItem[],
+    resumo: ResumoDaSincronizacao,
+  ): Promise<Andamento> {
+    const { fila } = this.deps;
+    const porId = new Map(resultados.map((r) => [r.clientRequestId, r]));
+    const confirmados: ApontamentoPendente[] = [];
+    const semResposta: string[] = [];
+
+    for (const item of lote) {
+      const resultado = porId.get(item.clientRequestId);
+      if (!resultado) {
+        semResposta.push(item.clientRequestId);
+      } else if (resultado.status === 'Rejeitado') {
+        await fila.marcarRejeitado(item.clientRequestId, resultado.code ?? 'ERRO', resultado.mensagem ?? 'Rejeitado pelo servidor.');
+        resumo.rejeitados++;
+      } else {
+        confirmados.push(item);
       }
     }
-    return resumo;
+
+    await this.refletirConfirmados(confirmados);
+    await fila.remover(confirmados.map((i) => i.clientRequestId));
+    await fila.devolverParaFila(semResposta);
+    resumo.confirmados += confirmados.length;
+
+    // Item que o servidor não respondeu voltaria no próximo laço: encerra a rodada para não girar em círculo
+    return semResposta.length > 0 ? 'parar' : 'seguir';
   }
 
   /** Falha ao atualizar o cache local não pode impedir de tirar da fila o que o servidor já aceitou. */
@@ -125,6 +135,15 @@ export class SyncService {
       await this.deps.aoConfirmar?.(itens);
     } catch {
       // O recarregamento do servidor, logo em seguida, acerta o cache
+    }
+  }
+
+  /** Atualizar a tela é um bônus: a fila já está correta mesmo que isto falhe. */
+  private async recarregarTela(): Promise<void> {
+    try {
+      await this.deps.aposSincronizar?.();
+    } catch {
+      // ignorado de propósito
     }
   }
 }
