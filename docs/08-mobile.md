@@ -142,7 +142,8 @@ abre o app → escolhe a estação → toca em **Ler QR** → a etapa aparece �
 |---|---|
 | `etapa_cache` | etapa_id, ordem_producao_id, numero_op, produto_nome, estacao_id, sequencia, status, quantidade, atualizado_em |
 | `apontamento_pendente` | **client_request_id (PK)**, tipo (`Inicio`/`Fim`), etapa_id, data_hora_cliente, tentativas, estado (`Pendente`/`Enviando`/`Rejeitado`), mensagem |
-| `pedido_cache` | pedido_id, numero, status, prazo, resumo_json, atualizado_em |
+| `cache_json` | chave, json, atualizado_em: guarda pedidos, saldo de estoque, estações e fichas técnicas (no lugar de `pedido_cache`; ver A57) |
+| `preferencia` | chave, valor: estação escolhida, tamanho do texto, alto contraste |
 
 ### Algoritmo
 1. Ao tocar em Iniciar/Finalizar, o app **grava o apontamento na fila** (com um UUID como `clientRequestId`) e atualiza o estado local da etapa (marcado "pendente de envio").
@@ -189,8 +190,8 @@ sequenceDiagram
 | Estoque | `GET /estoque/materias-primas` |
 | Pedidos | `GET /meus-pedidos` (cliente), `GET /pedidos` (vendedor), `GET /pedidos/{id}/acompanhamento` |
 
-Em condições normais (online), o app chama `iniciar`/`finalizar` direto para resposta imediata;
-a fila serve quando a chamada falha por rede. Erros `ProblemDetails` (campo `code`) viram
+O app grava todo apontamento na fila local e já tenta enviá-lo por `/apontamentos/sincronizar`, então o caminho
+é o mesmo com ou sem rede e a resposta, online, volta em segundos (A56). Erros `ProblemDetails` (campo `code`) viram
 mensagens em português para o usuário.
 
 ---
