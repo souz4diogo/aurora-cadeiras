@@ -1,0 +1,11 @@
+{
+  "name": "aurora-auditoria-de-acessibilidade",
+  "private": true,
+  "type": "module",
+  "description": "Roda axe-core (WCAG 2.1 A/AA) e Lighthouse em cada tela do painel web, logado como um perfil.",
+  "dependencies": {
+    "axe-core": "^4.10.0",
+    "lighthouse": "^12.0.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}

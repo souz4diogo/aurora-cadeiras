@@ -169,3 +169,15 @@ table caption {
 .grafico-valor {
   font-weight: 600;
 }
+
+/* Menu do administrador tem 12 itens: com o espaçamento padrão o botão Sair sairia da tela em 1440 px */
+@media (min-width: 1400px) {
+  .navbar-expand-xxl .navbar-nav .nav-link {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
+
+  .navbar-expand-xxl .navbar-brand {
+    margin-right: 0.75rem;
+  }
+}

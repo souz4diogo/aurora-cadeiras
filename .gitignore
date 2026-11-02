@@ -18,6 +18,7 @@ secrets.json
 
 # Mobile (quando existir)
 mobile/**/node_modules/
+tools/**/node_modules/
 mobile/**/.dart_tool/
 mobile/**/build/
 mobile/**/.expo/

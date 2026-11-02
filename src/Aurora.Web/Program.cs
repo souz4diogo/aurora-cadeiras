@@ -17,6 +17,11 @@ builder.Services.AddControllersWithViews(opcoes =>
     opcoes.Filters.Add<ApiExceptionFilter>();
     opcoes.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
     opcoes.TraduzirMensagensDeValidacao();
+}).AddViewOptions(opcoes =>
+{
+    // Os formulários são validados no servidor (novalidate) e não carregam o jQuery Validation. Sem isto, o resumo de
+    // erros sai com <li style="display:none">, que a política de conteúdo bloqueia e vira erro no console.
+    opcoes.HtmlHelperOptions.ClientValidationEnabled = false;
 });
 
 var app = builder.Build();

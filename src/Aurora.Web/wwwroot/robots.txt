@@ -1,0 +1,3 @@
+# Painel interno: todas as telas (menos o login) exigem autenticação, então nada de conteúdo vaza para buscadores.
+User-agent: *
+Allow: /

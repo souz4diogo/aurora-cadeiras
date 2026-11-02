@@ -21,7 +21,7 @@
     </p>
 }
 
-<div class="quadro">
+<div class="quadro" role="region" aria-label="Quadro de produção, uma coluna por estação" tabindex="0">
     @foreach (var coluna in Model.Colunas)
     {
         <section class="quadro-coluna" aria-labelledby="coluna-@coluna.EstacaoId">
