@@ -35,6 +35,13 @@ public class OrdensProducaoController(OrdemProducaoService ordens) : ControllerB
     public async Task<ActionResult<QuadroDeProducaoDto>> ObterQuadro(CancellationToken ct) =>
         Ok(await ordens.ObterQuadroAsync(ct));
 
+    /// <summary>Localiza a OP pelo código do QR da etiqueta e devolve o detalhe dela (RF11).</summary>
+    [HttpGet("qr/{codigoQr:guid}")]
+    [Authorize(Roles = Perfis.LeituraDeQr)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrdemProducaoDto>> ObterPorQr(Guid codigoQr, CancellationToken ct) =>
+        Ok(await ordens.ObterPorQrAsync(codigoQr, ct));
+
     /// <summary>Detalhe da OP com etapas, apontamentos, perdas e o código do QR (RF09 a RF12).</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

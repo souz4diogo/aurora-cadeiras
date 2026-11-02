@@ -31,6 +31,43 @@ public sealed class PedidoRepository(AuroraDbContext db) : IPedidoRepository
         return (itens, total);
     }
 
+    public async Task<IReadOnlyList<EventoDoPedidoDto>> ListarEventosAsync(int pedidoId, CancellationToken ct = default)
+    {
+        var linhas = await db.Database
+            .SqlQuery<EventoLinha>($"SELECT DataHora, Evento, NumeroOp FROM dbo.vw_AcompanhamentoPedido WHERE PedidoId = {pedidoId}")
+            .ToListAsync(ct);
+
+        // A view guarda a hora em segundos: o que acontece no mesmo segundo segue a ordem natural do processo
+        return linhas
+            .Where(l => l.DataHora is not null)
+            .OrderBy(l => l.DataHora)
+            .ThenBy(l => PosicaoNoProcesso(l.Evento))
+            .ThenBy(l => l.NumeroOp, StringComparer.Ordinal)
+            .ThenBy(l => l.Evento, StringComparer.Ordinal)
+            .Select(l => new EventoDoPedidoDto(l.DataHora!.Value, l.Evento, l.NumeroOp))
+            .ToList();
+    }
+
+    /// <summary>Registro, início de etapa, fim de etapa, OP concluída e expedição: a ordem em que o pedido avança.</summary>
+    private static int PosicaoNoProcesso(string evento) => evento switch
+    {
+        _ when evento.StartsWith("Pedido registrado", StringComparison.Ordinal) => 0,
+        _ when evento.StartsWith("Etapa iniciada", StringComparison.Ordinal) => 1,
+        _ when evento.StartsWith("Etapa concluída", StringComparison.Ordinal) => 2,
+        _ when evento.StartsWith("Ordem de produção concluída", StringComparison.Ordinal) => 3,
+        _ => 4,
+    };
+
+    /// <summary>Colunas de vw_AcompanhamentoPedido que a linha do tempo usa.</summary>
+    private sealed class EventoLinha
+    {
+        public DateTime? DataHora { get; set; }
+
+        public string Evento { get; set; } = "";
+
+        public string? NumeroOp { get; set; }
+    }
+
     public void Adicionar(Pedido pedido) => db.Pedidos.Add(pedido);
 
     public async Task ConfirmarAsync(int pedidoId, CancellationToken ct = default)

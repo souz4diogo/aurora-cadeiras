@@ -59,6 +59,29 @@ public class OrdemProducaoService(
         return new QuadroDeProducaoDto(colunas, total, Truncado: total > ordens.Count);
     }
 
+    /// <summary>Localiza a OP pelo código do QR da etiqueta e devolve o mesmo detalhe de <see cref="ObterAsync"/> (RF11).</summary>
+    public async Task<OrdemProducaoDto> ObterPorQrAsync(Guid codigoQr, CancellationToken ct = default)
+    {
+        var id = await producao.ObterOrdemIdPorQrAsync(codigoQr, ct)
+            ?? throw new RegraDeNegocioException(
+                "ORDEM_PRODUCAO_NAO_ENCONTRADA", "Ordem de produção não encontrada.", TipoErro.NaoEncontrado);
+        return await ObterAsync(id, ct);
+    }
+
+    /// <summary>
+    /// Fila da estação: etapas pendentes ou em andamento de OPs em aberto (RF11). A estação precisa existir e gerar
+    /// etapa; as etapas ainda travadas pela anterior vêm com <c>Liberada = false</c>.
+    /// </summary>
+    public async Task<IReadOnlyList<EtapaDaEstacaoDto>> ListarEtapasDaEstacaoAsync(byte estacaoId, CancellationToken ct = default)
+    {
+        var estacao = (await estacoes.ListarAsync(ct)).FirstOrDefault(e => e.Id == estacaoId && e.GeraEtapa)
+            ?? throw new RegraDeNegocioException(
+                "ESTACAO_INEXISTENTE", "A estação informada não existe ou não gera etapas.", TipoErro.EntidadeNaoProcessavel);
+
+        var etapas = await producao.ListarEtapasDaEstacaoAsync(estacao.Id, ct);
+        return etapas.Select(EtapaDaEstacaoDto.De).ToList();
+    }
+
     public async Task<OrdemProducaoDto> ObterAsync(int id, CancellationToken ct = default)
     {
         var detalhe = await producao.ObterOrdemAsync(id, RestricaoDeVendedor, ct)

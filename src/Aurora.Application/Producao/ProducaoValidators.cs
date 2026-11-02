@@ -19,6 +19,20 @@ public sealed class ApontamentoRequestValidator : AbstractValidator<ApontamentoR
     }
 }
 
+public sealed class SincronizacaoRequestValidator : AbstractValidator<SincronizacaoRequest>
+{
+    /// <summary>Tamanho máximo do lote; a fila local maior que isso é enviada em mais de uma chamada.</summary>
+    public const int TamanhoMaximoDoLote = 200;
+
+    public SincronizacaoRequestValidator()
+    {
+        RuleFor(x => x.Itens).NotNull().WithMessage("Informe os itens do lote.")
+            .Must(i => i is null || i.Count > 0).WithMessage("O lote não pode ser vazio.")
+            .Must(i => i is null || i.Count <= TamanhoMaximoDoLote)
+            .WithMessage($"O lote aceita no máximo {TamanhoMaximoDoLote} itens.");
+    }
+}
+
 public sealed class PerdaRequestValidator : AbstractValidator<PerdaRequest>
 {
     public const int QuantidadeMaxima = 100_000;

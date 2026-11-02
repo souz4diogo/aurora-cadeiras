@@ -22,6 +22,32 @@ public class PedidoService(
     private int? RestricaoDeVendedor =>
         usuarioAtual.Perfil == PerfilUsuario.Vendedor ? usuarioAtual.UsuarioId : null;
 
+    /// <summary>
+    /// O cliente enxerga só os pedidos do cliente a que está vinculado. Um usuário Cliente sem vínculo não enxerga
+    /// nenhum (o id -1 não existe), em vez de cair na visão irrestrita.
+    /// </summary>
+    private int? RestricaoDeCliente =>
+        usuarioAtual.Perfil == PerfilUsuario.Cliente ? usuarioAtual.ClienteId ?? -1 : null;
+
+    /// <summary>Pedidos do cliente logado, do mais recente ao mais antigo (RF22).</summary>
+    public async Task<Pagina<PedidoResumoDto>> ListarMeusAsync(
+        StatusPedido? status, int pagina, int tamanho, CancellationToken ct = default)
+    {
+        (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
+        var clienteId = usuarioAtual.ClienteId ?? -1;
+        var filtro = new FiltroDePedidos(null, status, clienteId, null, null, null, Hoje);
+        var (itens, total) = await pedidos.ListarAsync(filtro, pagina, tamanho, ct);
+        return new Pagina<PedidoResumoDto>(itens.Select(i => PedidoResumoDto.De(i, Hoje)).ToList(), total, pagina, tamanho);
+    }
+
+    /// <summary>Pedido com a linha do tempo da produção; vendedor e cliente só enxergam os próprios (404 nos demais).</summary>
+    public async Task<AcompanhamentoDto> ObterAcompanhamentoAsync(int id, CancellationToken ct = default)
+    {
+        var pedido = await ObterOuFalharAsync(id, ct);
+        var eventos = await pedidos.ListarEventosAsync(pedido.Id, ct);
+        return new AcompanhamentoDto(await MontarDtoAsync(pedido, ct), eventos);
+    }
+
     public async Task<Pagina<PedidoResumoDto>> ListarAsync(
         StatusPedido? status,
         int? clienteId,
@@ -90,7 +116,9 @@ public class PedidoService(
     private async Task<Pedido> ObterOuFalharAsync(int id, CancellationToken ct)
     {
         var pedido = await pedidos.ObterPorIdAsync(id, ct);
-        if (pedido is null || (RestricaoDeVendedor is int vendedorId && pedido.VendedorId != vendedorId))
+        if (pedido is null
+            || (RestricaoDeVendedor is int vendedorId && pedido.VendedorId != vendedorId)
+            || (RestricaoDeCliente is int clienteId && pedido.ClienteId != clienteId))
         {
             throw new RegraDeNegocioException("PEDIDO_NAO_ENCONTRADO", "Pedido não encontrado.", TipoErro.NaoEncontrado);
         }

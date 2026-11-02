@@ -89,6 +89,31 @@ internal sealed class CenarioDeProducao
         return (await resposta.Content.ReadFromJsonAsync<PedidoDto>())!;
     }
 
+    /// <summary>Segundo produto com o mesmo roteiro (e sem ficha técnica), para pedidos que geram duas OPs.</summary>
+    public static async Task<ProdutoDto> NovoProdutoComOMesmoRoteiroAsync(HttpClient admin)
+    {
+        var sufixo = Guid.NewGuid().ToString("N");
+        var produto = await CriarAsync<ProdutoDto>(
+            admin, "/api/v1/produtos", new ProdutoRequest(("Q" + sufixo)[..12].ToUpperInvariant(), "Cadeira Extra", 1, 100m));
+        (await admin.PutAsJsonAsync(
+                $"/api/v1/produtos/{produto.Id}/roteiro", new RoteiroRequest(new[] { Corte, MontagemDaEstrutura, Qualidade })))
+            .AssertStatus(HttpStatusCode.OK);
+        return produto;
+    }
+
+    /// <summary>Pedido de uma unidade de cada produto (o do cenário e o <paramref name="segundo"/>), já confirmado: duas OPs.</summary>
+    public async Task<PedidoDto> PedidoComDoisProdutosConfirmadoAsync(HttpClient vendedor, ProdutoDto segundo)
+    {
+        var pedido = await CriarAsync<PedidoDto>(
+            vendedor,
+            "/api/v1/pedidos",
+            new PedidoRequest(
+                Cliente.Id, Prazo, null, [new PedidoItemRequest(Produto.Id, 1), new PedidoItemRequest(segundo.Id, 1)]));
+        var resposta = await vendedor.PostAsync($"/api/v1/pedidos/{pedido.Id}/confirmar", content: null);
+        resposta.AssertStatus(HttpStatusCode.OK);
+        return (await resposta.Content.ReadFromJsonAsync<PedidoDto>())!;
+    }
+
     /// <summary>A OP gerada para o pedido, já com as etapas.</summary>
     public static async Task<OrdemProducaoDto> OrdemDoPedidoAsync(HttpClient gerente, int pedidoId)
     {
@@ -119,9 +144,32 @@ internal sealed class CenarioDeProducao
     public static ApontamentoRequest NovoApontamento(Guid? requisicao = null) =>
         new(requisicao ?? Guid.NewGuid(), DateTimeOffset.UtcNow);
 
-    public async Task<HttpClient> NovoVendedorAsync()
+    public Task<HttpClient> NovoVendedorAsync() => NovoUsuarioAsync("Vendedor");
+
+    /// <summary>Usuário do perfil Cliente vinculado ao cliente deste cenário (RF22).</summary>
+    public Task<HttpClient> NovoClienteLogadoAsync() => NovoUsuarioAsync("Cliente", Cliente.Id);
+
+    /// <summary>
+    /// Conclui, como operador, todas as etapas da OP que vêm antes da Qualidade (as já concluídas são puladas, então
+    /// serve também depois de um retrabalho) e inicia a Qualidade. Devolve a OP como estava antes de avançar.
+    /// </summary>
+    public static async Task<OrdemProducaoDto> AvancarAteAQualidadeAsync(HttpClient gerente, HttpClient operador, int pedidoId)
     {
-        var (usuario, senha) = await _api.CriarUsuarioAsync("Vendedor");
+        var ordem = await OrdemDoPedidoAsync(gerente, pedidoId);
+        foreach (var etapa in ordem.Etapas.Where(e => e.EstacaoId != Qualidade && e.Status != "Concluida").OrderBy(e => e.Sequencia))
+        {
+            (await operador.PostAsJsonAsync($"/api/v1/etapas/{etapa.Id}/iniciar", NovoApontamento())).AssertStatus(HttpStatusCode.OK);
+            (await operador.PostAsJsonAsync($"/api/v1/etapas/{etapa.Id}/finalizar", NovoApontamento())).AssertStatus(HttpStatusCode.OK);
+        }
+
+        var qualidade = ordem.Etapas.Single(e => e.EstacaoId == Qualidade);
+        (await operador.PostAsJsonAsync($"/api/v1/etapas/{qualidade.Id}/iniciar", NovoApontamento())).AssertStatus(HttpStatusCode.OK);
+        return ordem;
+    }
+
+    private async Task<HttpClient> NovoUsuarioAsync(string perfil, int? clienteId = null)
+    {
+        var (usuario, senha) = await _api.CriarUsuarioAsync(perfil, clienteId: clienteId);
         var token = await _api.LoginAsync(usuario.Email, senha);
         var cliente = _api.CreateClient();
         cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);

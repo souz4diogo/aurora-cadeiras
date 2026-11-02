@@ -2,12 +2,14 @@
 using Aurora.Application.Clientes;
 using Aurora.Application.Estacoes;
 using Aurora.Application.Estoque;
+using Aurora.Application.Expedicoes;
 using Aurora.Application.FichasTecnicas;
 using Aurora.Application.Fornecedores;
 using Aurora.Application.MateriasPrimas;
 using Aurora.Application.Pedidos;
 using Aurora.Application.Producao;
 using Aurora.Application.Produtos;
+using Aurora.Application.Qualidade;
 using Aurora.Application.Roteiros;
 using Aurora.Application.Usuarios;
 using FluentValidation;
@@ -32,6 +34,9 @@ public static class DependencyInjection
         services.AddScoped<EstoqueService>();
         services.AddScoped<OrdemProducaoService>();
         services.AddScoped<EtapaService>();
+        services.AddScoped<ApontamentoService>();
+        services.AddScoped<InspecaoService>();
+        services.AddScoped<ExpedicaoService>();
         services.AddScoped<MateriaPrimaService>();
         return services;
     }

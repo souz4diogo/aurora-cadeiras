@@ -16,6 +16,15 @@ public sealed class HttpCurrentUser(IHttpContextAccessor acessor) : ICurrentUser
         }
     }
 
+    public int? ClienteId
+    {
+        get
+        {
+            var valor = acessor.HttpContext?.User.FindFirst(NomesDeClaims.ClienteId)?.Value;
+            return int.TryParse(valor, CultureInfo.InvariantCulture, out var id) ? id : null;
+        }
+    }
+
     public PerfilUsuario? Perfil
     {
         get

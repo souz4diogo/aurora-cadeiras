@@ -36,6 +36,10 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<RegistroPerda> Perdas => Set<RegistroPerda>();
 
+    public DbSet<Inspecao> Inspecoes => Set<Inspecao>();
+
+    public DbSet<Expedicao> Expedicoes => Set<Expedicao>();
+
     public DbSet<AlertaEstoque> Alertas => Set<AlertaEstoque>();
 
     public DbSet<EstoqueProduto> EstoquesDeProduto => Set<EstoqueProduto>();
@@ -183,6 +187,27 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
             e.Property(x => x.Tipo).HasColumnType("varchar(10)").HasConversion<string>();
             e.Property(x => x.Motivo).HasColumnType("nvarchar(200)").IsRequired();
             e.Property(x => x.CriadoEm).HasColumnType("datetime2(0)").HasDefaultValueSql("SYSUTCDATETIME()").ValueGeneratedOnAdd();
+        });
+
+        // Inspeção e expedição são gravadas por sp_RegistrarInspecao e sp_Expedir; a aplicação só consulta
+        modelBuilder.Entity<Inspecao>(e =>
+        {
+            e.ToTable("Inspecao", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("InspecaoId");
+            e.Property(x => x.Resultado).HasColumnType("varchar(10)").HasConversion<string>();
+            e.Property(x => x.Observacao).HasColumnType("nvarchar(300)");
+            e.Property(x => x.DataHora).HasColumnType("datetime2(0)");
+        });
+
+        modelBuilder.Entity<Expedicao>(e =>
+        {
+            e.ToTable("Expedicao", "dbo");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("ExpedicaoId");
+            e.Property(x => x.Transportadora).HasColumnType("nvarchar(80)");
+            e.Property(x => x.CodigoRastreio).HasColumnType("varchar(40)");
+            e.Property(x => x.DataHora).HasColumnType("datetime2(0)");
         });
 
         modelBuilder.Entity<AlertaEstoque>(e =>

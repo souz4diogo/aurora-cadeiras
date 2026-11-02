@@ -12,6 +12,15 @@ public interface IProducaoRepository
     /// <summary>A OP com etapas, apontamentos e perdas; nula se não existir ou fugir da restrição de vendedor.</summary>
     Task<OrdemProducaoDetalhe?> ObterOrdemAsync(int id, int? vendedorId, CancellationToken ct = default);
 
+    /// <summary>Id da OP dona do código do QR; nulo se nenhuma OP tem esse código.</summary>
+    Task<int?> ObterOrdemIdPorQrAsync(Guid codigoQr, CancellationToken ct = default);
+
+    /// <summary>Etapas pendentes ou em andamento da estação, de OPs em aberto, das mais urgentes às menos.</summary>
+    Task<IReadOnlyList<EtapaDaEstacao>> ListarEtapasDaEstacaoAsync(byte estacaoId, CancellationToken ct = default);
+
+    /// <summary>Já existe apontamento com este <c>ClientRequestId</c> (reenvio de lote offline)?</summary>
+    Task<bool> ApontamentoRegistradoAsync(Guid clientRequestId, CancellationToken ct = default);
+
     Task<EtapaResumo?> ObterEtapaAsync(int etapaId, CancellationToken ct = default);
 
     /// <summary>Executa sp_IniciarEtapa: confere a sequência (RN05), baixa a matéria-prima (RN03/RN04) e aponta o início.</summary>

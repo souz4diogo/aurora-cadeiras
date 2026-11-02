@@ -62,11 +62,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     }
 
     public async Task<(UsuarioDto Usuario, string Senha)> CriarUsuarioAsync(
-        string perfil = "Vendedor", string? email = null)
+        string perfil = "Vendedor", string? email = null, int? clienteId = null)
     {
         using var admin = await ComoAdministradorAsync();
         var perfilId = (byte)Enum.Parse<Aurora.Domain.Enums.PerfilUsuario>(perfil);
-        int? clienteId = perfil == "Cliente" ? 1 : null;
+        clienteId ??= perfil == "Cliente" ? 1 : null;
         email ??= $"{perfil.ToLowerInvariant()}.{Guid.NewGuid():N}@teste.local";
 
         var resposta = await admin.PostAsJsonAsync("/api/v1/usuarios", new CriarUsuarioRequest($"Usuário {perfil}", email, perfilId, clienteId));

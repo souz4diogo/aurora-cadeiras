@@ -1,4 +1,4 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
 using Aurora.Application.Pedidos;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
@@ -265,5 +265,84 @@ public class PedidoServiceTests
 
         _pedidos.Verify(r => r.CancelarAsync(5, default), Times.Once);
         Assert.Equal(5, resposta.Id);
+    }
+
+    private void ComoCliente(int? clienteId)
+    {
+        _usuarioAtual.SetupGet(u => u.Perfil).Returns(PerfilUsuario.Cliente);
+        _usuarioAtual.SetupGet(u => u.ClienteId).Returns(clienteId);
+    }
+
+    [Fact]
+    public async Task Meus_pedidos_filtra_pelo_cliente_vinculado_ao_usuario_e_nunca_pelo_vendedor()
+    {
+        ComoCliente(3);
+        FiltroDePedidos? usado = null;
+        _pedidos.Setup(r => r.ListarAsync(It.IsAny<FiltroDePedidos>(), 1, 20, default))
+            .Callback<FiltroDePedidos, int, int, CancellationToken>((f, _, _, _) => usado = f)
+            .ReturnsAsync(([], 0));
+
+        await Servico().ListarMeusAsync(StatusPedido.Pronto, 1, 20);
+
+        Assert.Equal(3, usado!.ClienteId);
+        Assert.Null(usado.VendedorId);
+        Assert.Equal(StatusPedido.Pronto, usado.Status);
+    }
+
+    [Fact]
+    public async Task Meus_pedidos_de_usuario_cliente_sem_vinculo_nao_cai_na_visao_irrestrita()
+    {
+        ComoCliente(null);
+        FiltroDePedidos? usado = null;
+        _pedidos.Setup(r => r.ListarAsync(It.IsAny<FiltroDePedidos>(), 1, 20, default))
+            .Callback<FiltroDePedidos, int, int, CancellationToken>((f, _, _, _) => usado = f)
+            .ReturnsAsync(([], 0));
+
+        await Servico().ListarMeusAsync(null, 1, 20);
+
+        Assert.Equal(-1, usado!.ClienteId);
+    }
+
+    [Fact]
+    public async Task Cliente_acompanha_o_proprio_pedido_com_a_linha_do_tempo()
+    {
+        ComoCliente(3);
+        CatalogoCom(Produto(1, "CE-100", 10m));
+        var pedido = PedidoDoVendedor(9, new ItemDePedido(1, 1, 10m));
+        typeof(Pedido).GetProperty(nameof(Pedido.Id))!.SetValue(pedido, 5);
+        _pedidos.Setup(r => r.ObterPorIdAsync(5, default)).ReturnsAsync(pedido);
+        var evento = new EventoDoPedidoDto(Agora, "Pedido registrado", null);
+        _pedidos.Setup(r => r.ListarEventosAsync(5, default)).ReturnsAsync([evento]);
+
+        var resposta = await Servico().ObterAcompanhamentoAsync(5);
+
+        Assert.Equal(5, resposta.Pedido.Id);
+        Assert.Equal([evento], resposta.Eventos);
+    }
+
+    [Fact]
+    public async Task Cliente_nao_acompanha_pedido_de_outro_cliente_e_a_linha_do_tempo_nem_e_consultada()
+    {
+        ComoCliente(7);
+        var pedido = PedidoDoVendedor(9, new ItemDePedido(1, 1, 10m)); // pedido do cliente 3
+        typeof(Pedido).GetProperty(nameof(Pedido.Id))!.SetValue(pedido, 5);
+        _pedidos.Setup(r => r.ObterPorIdAsync(5, default)).ReturnsAsync(pedido);
+
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(() => Servico().ObterAcompanhamentoAsync(5));
+
+        Assert.Equal("PEDIDO_NAO_ENCONTRADO", erro.Codigo);
+        _pedidos.Verify(r => r.ListarEventosAsync(It.IsAny<int>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task Vendedor_nao_acompanha_pedido_de_outro_vendedor()
+    {
+        var pedido = PedidoDoVendedor(4, new ItemDePedido(1, 1, 10m)); // o usuário logado é o vendedor 9
+        typeof(Pedido).GetProperty(nameof(Pedido.Id))!.SetValue(pedido, 5);
+        _pedidos.Setup(r => r.ObterPorIdAsync(5, default)).ReturnsAsync(pedido);
+
+        var erro = await Assert.ThrowsAsync<RegraDeNegocioException>(() => Servico().ObterAcompanhamentoAsync(5));
+
+        Assert.Equal(TipoErro.NaoEncontrado, erro.Tipo);
     }
 }

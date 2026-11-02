@@ -2,6 +2,7 @@ using Aurora.Api.Seguranca;
 using Aurora.Application.Producao;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Aurora.Api.Controllers;
 
@@ -9,8 +10,19 @@ namespace Aurora.Api.Controllers;
 [Route("api/v1/etapas")]
 [Authorize(Roles = Perfis.OperadorOuInspetor)]
 [Produces("application/json")]
-public class EtapasController(EtapaService etapas) : ControllerBase
+public class EtapasController(EtapaService etapas, OrdemProducaoService ordens) : ControllerBase
 {
+    /// <summary>
+    /// Fila da estação: etapas pendentes ou em andamento de OPs em aberto, as em andamento e as liberadas primeiro
+    /// (RF11). <c>liberada = false</c> indica que a etapa anterior da OP ainda não terminou (RN05).
+    /// </summary>
+    [HttpGet("minhas")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<IReadOnlyList<EtapaDaEstacaoDto>>> ListarDaEstacao(
+        [FromQuery, BindRequired] byte estacaoId, CancellationToken ct) =>
+        Ok(await ordens.ListarEtapasDaEstacaoAsync(estacaoId, ct));
+
     /// <summary>
     /// Inicia a etapa e baixa do estoque a matéria-prima da ficha técnica da estação (RN03). Sem saldo, 409 RN04;
     /// com a etapa anterior em aberto, 409 RN05. Reenviar o mesmo <c>clientRequestId</c> não baixa o estoque de novo.

@@ -11,6 +11,9 @@ public interface IPedidoRepository
     Task<(IReadOnlyList<PedidoResumo> Itens, int Total)> ListarAsync(
         FiltroDePedidos filtro, int pagina, int tamanho, CancellationToken ct = default);
 
+    /// <summary>Linha do tempo do pedido (vw_AcompanhamentoPedido), do evento mais antigo ao mais recente.</summary>
+    Task<IReadOnlyList<EventoDoPedidoDto>> ListarEventosAsync(int pedidoId, CancellationToken ct = default);
+
     void Adicionar(Pedido pedido);
 
     /// <summary>Confirma pelo sp_ConfirmarPedido (reserva estoque ou gera OPs) e atualiza o pedido rastreado.</summary>

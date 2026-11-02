@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Aurora.Application.Abstracoes;
 using Aurora.Application.Producao;
 using Aurora.Domain.Entidades;
@@ -73,16 +73,85 @@ public sealed class ProducaoRepository(AuroraDbContext db) : IProducaoRepository
         return new OrdemProducaoDetalhe(resumo, cliente.CodigoQr, cliente.ClienteNome, etapas, apontamentos, perdas);
     }
 
+    public Task<int?> ObterOrdemIdPorQrAsync(Guid codigoQr, CancellationToken ct = default) =>
+        db.OrdensProducao.AsNoTracking()
+            .Where(o => o.CodigoQr == codigoQr)
+            .Select(o => (int?)o.Id)
+            .SingleOrDefaultAsync(ct);
+
+    public async Task<IReadOnlyList<EtapaDaEstacao>> ListarEtapasDaEstacaoAsync(byte estacaoId, CancellationToken ct = default)
+    {
+        var abertas = StatusEmAberto;
+        var linhas = await (
+                from e in db.Etapas.AsNoTracking()
+                join o in db.OrdensProducao on e.OrdemProducaoId equals o.Id
+                join pi in db.Set<PedidoItem>() on o.PedidoItemId equals pi.Id
+                join pd in db.Pedidos on pi.PedidoId equals pd.Id
+                join p in db.Produtos on o.ProdutoId equals p.Id
+                join es in db.Estacoes on e.EstacaoId equals es.Id
+                where e.EstacaoId == estacaoId && e.Status != StatusEtapa.Concluida && abertas.Contains(o.Status)
+                select new
+                {
+                    EtapaId = e.Id,
+                    OrdemId = o.Id,
+                    NumeroOp = o.Numero,
+                    o.CodigoQr,
+                    PedidoNumero = pd.Numero,
+                    ProdutoCodigo = p.Codigo,
+                    ProdutoNome = p.Nome,
+                    o.Quantidade,
+                    o.PrevisaoConclusao,
+                    EstacaoId = e.EstacaoId,
+                    EstacaoNome = es.Nome,
+                    e.Sequencia,
+                    e.Status,
+                    e.IniciadaEm,
+                    e.OperadorId,
+                    Liberada = !db.Etapas.Any(a =>
+                        a.OrdemProducaoId == e.OrdemProducaoId && a.Sequencia < e.Sequencia && a.Status != StatusEtapa.Concluida),
+                })
+            .ToListAsync(ct);
+
+        // Em andamento primeiro, depois as liberadas, e dentro de cada grupo as de previsão mais próxima
+        return linhas
+            .OrderByDescending(l => l.Status == StatusEtapa.EmAndamento)
+            .ThenByDescending(l => l.Liberada)
+            .ThenBy(l => l.PrevisaoConclusao is null)
+            .ThenBy(l => l.PrevisaoConclusao)
+            .ThenBy(l => l.EtapaId)
+            .Select(l => new EtapaDaEstacao(
+                l.EtapaId,
+                l.OrdemId,
+                l.NumeroOp,
+                l.CodigoQr,
+                l.PedidoNumero,
+                l.ProdutoCodigo,
+                l.ProdutoNome,
+                l.Quantidade,
+                l.PrevisaoConclusao,
+                l.EstacaoId,
+                l.EstacaoNome,
+                l.Sequencia,
+                l.Status,
+                l.IniciadaEm,
+                l.OperadorId,
+                l.Liberada))
+            .ToList();
+    }
+
+    public Task<bool> ApontamentoRegistradoAsync(Guid clientRequestId, CancellationToken ct = default) =>
+        db.Apontamentos.AsNoTracking().AnyAsync(a => a.ClientRequestId == clientRequestId, ct);
+
     public Task<EtapaResumo?> ObterEtapaAsync(int etapaId, CancellationToken ct = default) =>
         ConsultarEtapas(e => e.Id == etapaId).SingleOrDefaultAsync(ct);
 
-    public async Task IniciarEtapaAsync(int etapaId, Guid clientRequestId, DateTime dataHoraClienteUtc, CancellationToken ct = default) =>
-        await db.Database.ExecuteSqlInterpolatedAsync(
+    public Task IniciarEtapaAsync(int etapaId, Guid clientRequestId, DateTime dataHoraClienteUtc, CancellationToken ct = default) =>
+        db.ExecutarProcedureAsync(
             $"EXEC dbo.sp_IniciarEtapa @OrdemProducaoEtapaId = {etapaId}, @ClientRequestId = {clientRequestId}, @DataHoraCliente = {dataHoraClienteUtc}",
             ct);
 
-    public async Task FinalizarEtapaAsync(int etapaId, Guid clientRequestId, DateTime dataHoraClienteUtc, CancellationToken ct = default) =>
-        await db.Database.ExecuteSqlInterpolatedAsync(
+    public Task FinalizarEtapaAsync(int etapaId, Guid clientRequestId, DateTime dataHoraClienteUtc, CancellationToken ct = default) =>
+        db.ExecutarProcedureAsync(
             $"EXEC dbo.sp_FinalizarEtapa @OrdemProducaoEtapaId = {etapaId}, @ClientRequestId = {clientRequestId}, @DataHoraCliente = {dataHoraClienteUtc}",
             ct);
 

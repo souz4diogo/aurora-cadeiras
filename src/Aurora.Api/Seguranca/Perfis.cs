@@ -38,6 +38,18 @@ public static class Perfis
     /// <summary>Quem abre o detalhe de uma OP: os mesmos da consulta, mais o Operador.</summary>
     public const string DetalheDeProducao = ConsultaDeProducao + "," + Operador;
 
+    /// <summary>Quem localiza a OP pelo QR da etiqueta: Operador, Inspetor e Gerente de Produção.</summary>
+    public const string LeituraDeQr = Operador + "," + Inspetor + "," + GerenteProducao;
+
+    /// <summary>Quem consulta o histórico de inspeções: Inspetor, Gerente de Produção e Administrador.</summary>
+    public const string ConsultaDeInspecoes = Inspetor + "," + GerenteProducao + "," + Administrador;
+
+    /// <summary>Quem consulta as expedições: Almoxarife, Gerente, Administrador e Vendedor (só as dos próprios pedidos).</summary>
+    public const string ConsultaDeExpedicoes = Almoxarife + "," + GerenteProducao + "," + Administrador + "," + Vendedor;
+
+    /// <summary>Quem acompanha um pedido: os que consultam pedidos mais o Cliente (só o próprio).</summary>
+    public const string AcompanhamentoDePedido = ConsultaDePedidos + "," + Cliente;
+
     /// <summary>Quem inicia etapas (baixa de estoque): Operador e Inspetor.</summary>
     public const string OperadorOuInspetor = Operador + "," + Inspetor;
 
