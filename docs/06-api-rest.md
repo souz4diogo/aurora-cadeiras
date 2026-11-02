@@ -167,7 +167,7 @@ Mapeamento dos erros das procedures: 51001 → `RN04` (409), 51002 → `RN05` (4
 | POST | `/apontamentos/sincronizar` | Operador, Inspetor | **Lote** de apontamentos offline | RF23 |
 | POST | `/ordens-producao/{id}/cancelar` | Gerente, Admin | Cancela OP não iniciada | - |
 
-> Fase 3: `qr`, `minhas`, `sincronizar` e o cancelamento isolado de OP não estão implementados (A37). Iniciar e finalizar usam `clientRequestId` e são idempotentes, inclusive no reenvio simultâneo (A40). Perda: A39.
+> Fase 4a: `qr`, `minhas` e `sincronizar` estão implementados (A48 a A50). O cancelamento isolado de OP segue não implementado (A37). Iniciar e finalizar usam `clientRequestId` e são idempotentes, inclusive no reenvio simultâneo (A40). Perda: A39.
 
 ### 4.6 Qualidade
 
