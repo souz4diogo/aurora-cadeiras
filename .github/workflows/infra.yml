@@ -1,0 +1,76 @@
+name: Infraestrutura
+
+# Cria ou atualiza a infraestrutura de um ambiente com o Bicep de infra/. Sempre manual.
+# "what-if" só mostra o que mudaria; "deploy" aplica. O Environment "prod" exige aprovação de um revisor.
+# Segredos do Environment: SQL_ADMIN_PASSWORD, JWT_KEY e (opcional) SEED_ADMIN_PASSWORD.
+# Variáveis do Environment: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, ALERTA_EMAIL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: Ambiente
+        type: choice
+        options: [hom, prod]
+        required: true
+      acao:
+        description: O que fazer
+        type: choice
+        options: [what-if, deploy]
+        default: what-if
+      implantar-apps:
+        description: Criar também os Container Apps (exige as imagens já publicadas no ACR)
+        type: boolean
+        default: false
+      tag-das-imagens:
+        description: Tag das imagens (SHA do commit); só vale com "implantar-apps"
+        type: string
+        default: ""
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: infra-${{ inputs.ambiente }}
+  cancel-in-progress: false
+
+jobs:
+  bicep:
+    name: Bicep ${{ inputs.acao }} em ${{ inputs.ambiente }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ambiente }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validar o Bicep (compila e roda o linter)
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      - name: Login no Azure (OIDC)
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Bicep ${{ inputs.acao }}
+        env:
+          SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          COMANDO=create
+          EXTRA=()
+          if [ "${{ inputs.acao }}" = "what-if" ]; then COMANDO=what-if; EXTRA=(--no-pretty-print); fi
+          TAG="${{ inputs.tag-das-imagens }}"
+          az deployment group "$COMANDO" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "aurora-${{ inputs.ambiente }}-${{ github.run_number }}" \
+            --template-file infra/main.bicep \
+            --parameters "infra/parameters.${{ inputs.ambiente }}.json" \
+            --parameters sqlAdminPassword="$SQL_ADMIN_PASSWORD" jwtKey="$JWT_KEY" seedAdminPassword="${SEED_ADMIN_PASSWORD:-}" \
+                         alertaEmail="${{ vars.ALERTA_EMAIL }}" implantarApps=${{ inputs.implantar-apps }} \
+                         ${TAG:+tagDasImagens="$TAG"} \
+            "${EXTRA[@]}"

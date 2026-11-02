@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ambiente": { "value": "prod" },
+    "sqlSku": { "value": { "name": "S1", "tier": "Standard" } },
+    "sqlRetencaoDoPitrEmDias": { "value": 14 },
+    "acrSku": { "value": "Standard" },
+    "replicasMinimas": { "value": 2 },
+    "replicasMaximas": { "value": 6 },
+    "protecaoContraRemocaoDoCofre": { "value": true }
+  }
+}

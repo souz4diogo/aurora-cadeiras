@@ -189,9 +189,15 @@ Comando de referência: `az deployment group create -g rg-aurora-<env> -f infra/
 | `ForwardedHeaders__ProxiesConfiaveis__0`, `ForwardedHeaders__RedesConfiaveis__0` | Configuração do app (opcional; sem lista confia no proxy imediato) | `10.0.0.0/16` |
 | `Api__BaseUrl` | Configuração da Web | `https://api-hom.aurora...` |
 | `ASPNETCORE_ENVIRONMENT` | Container App | `Production` |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | Container App (segredo); sem ela a telemetria fica desligada | `InstrumentationKey=...` |
+| `DataProtection__CaminhoDasChaves` | Configuração da Web: pasta compartilhada das chaves do cookie e do anti-CSRF (obrigatória com 2 ou mais instâncias) | `/chaves` |
 | `SEED_ADMIN_PASSWORD` | Somente dev/hom, fora do repositório | - |
 
 ---
+
+> **Estado da implementação (fase 6):** o `infra/` e os workflows `deploy.yml`, `implantar.yml` e `infra.yml` existem e
+> foram validados offline (`az bicep build`, `actionlint`), mas **não foram aplicados** a uma assinatura. Veja
+> `infra/README.md` e as decisões A76 a A79 de `docs/DECISOES.md`.
 
 ## 9. Evidências para o texto da Etapa 8
 

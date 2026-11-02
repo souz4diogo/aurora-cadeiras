@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(opcoes => opcoes.AddServerHeader = false);
 
+builder.Services.AddAuroraTelemetria(builder.Configuration);
+builder.Services.AddAuroraProtecaoDeDados(builder.Configuration);
 builder.Services.AddAuroraAutenticacaoWeb(builder.Configuration, builder.Environment);
 builder.Services.AddAuroraApi(builder.Configuration);
 builder.Services.AddHealthChecks();

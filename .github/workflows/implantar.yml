@@ -1,0 +1,156 @@
+name: Implantar (reutilizável)
+
+# Passos de implantação de um ambiente, chamados pelo deploy.yml (hom e prod):
+# banco (DbUp) -> deploy das imagens -> smoke test -> reversão se falhar.
+# Variáveis do ambiente (GitHub Environment): AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID,
+# AZURE_RESOURCE_GROUP, ACR_NAME, API_APP, WEB_APP, DBUP_JOB.
+
+on:
+  workflow_call:
+    inputs:
+      ambiente:
+        description: hom ou prod (nome do GitHub Environment)
+        required: true
+        type: string
+      sha:
+        description: SHA do commit, que é também a tag das imagens
+        required: true
+        type: string
+      importar-de:
+        description: ACR de origem das imagens (promoção para prod); vazio = as imagens já estão no ACR do ambiente
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  id-token: write # OIDC com o Azure: sem segredo de longa duração
+  contents: read
+
+env:
+  SHA: ${{ inputs.sha }}
+
+jobs:
+  implantar:
+    name: Implantar em ${{ inputs.ambiente }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ambiente }}
+    timeout-minutes: 40
+    env:
+      RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+      ACR: ${{ vars.ACR_NAME }}
+      API: ${{ vars.API_APP }}
+      WEB: ${{ vars.WEB_APP }}
+      JOB_DBUP: ${{ vars.DBUP_JOB }}
+    steps:
+      - name: Login no Azure (OIDC)
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Promoção: a MESMA imagem testada em hom (mesmo digest) é copiada para o ACR de prod
+      - name: Importar as imagens do ambiente anterior
+        if: inputs.importar-de != ''
+        run: |
+          set -euo pipefail
+          for imagem in aurora-api aurora-web aurora-dbup; do
+            az acr import --name "$ACR" --source "${{ inputs.importar-de }}.azurecr.io/${imagem}:${SHA}" \
+              --image "${imagem}:${SHA}" --force
+          done
+
+      - name: Banco - aplicar os scripts com o DbUp
+        run: |
+          set -euo pipefail
+          az containerapp job update --name "$JOB_DBUP" --resource-group "$RG" \
+            --image "${ACR}.azurecr.io/aurora-dbup:${SHA}" --output none
+          EXECUCAO=$(az containerapp job start --name "$JOB_DBUP" --resource-group "$RG" --query name --output tsv)
+          echo "Execução do DbUp: $EXECUCAO"
+          for tentativa in $(seq 1 60); do
+            ESTADO=$(az containerapp job execution show --name "$JOB_DBUP" --resource-group "$RG" \
+              --job-execution-name "$EXECUCAO" --query properties.status --output tsv)
+            echo "[$tentativa] $ESTADO"
+            case "$ESTADO" in
+              Succeeded) exit 0 ;;
+              Failed|Stopped|Degraded) echo "::error::O DbUp terminou como $ESTADO. Veja os logs no Log Analytics."; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "::error::O DbUp não terminou em 10 minutos."
+          exit 1
+
+      - name: Guardar a revisão atual (para reverter)
+        id: anterior
+        run: |
+          set -euo pipefail
+          API_ANTERIOR=$(az containerapp show --name "$API" --resource-group "$RG" --query properties.latestReadyRevisionName --output tsv)
+          WEB_ANTERIOR=$(az containerapp show --name "$WEB" --resource-group "$RG" --query properties.latestReadyRevisionName --output tsv)
+          echo "API: $API_ANTERIOR | Web: $WEB_ANTERIOR"
+          echo "api=$API_ANTERIOR" >> "$GITHUB_OUTPUT"
+          echo "web=$WEB_ANTERIOR" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy - atualizar API e Web com a imagem do commit
+        id: deploy
+        run: |
+          set -euo pipefail
+          az containerapp update --name "$API" --resource-group "$RG" --image "${ACR}.azurecr.io/aurora-api:${SHA}" \
+            --revision-suffix "r${SHA:0:7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --output none
+          az containerapp update --name "$WEB" --resource-group "$RG" --image "${ACR}.azurecr.io/aurora-web:${SHA}" \
+            --revision-suffix "r${SHA:0:7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" --output none
+
+      # Em modo de revisões múltiplas a antiga segue atendendo até a nova ficar pronta; sem esta espera o smoke
+      # test poderia passar contra a revisão velha.
+      - name: Esperar as revisões novas ficarem prontas
+        run: |
+          set -euo pipefail
+          for app in "$API" "$WEB"; do
+            for tentativa in $(seq 1 40); do
+              NOVA=$(az containerapp show --name "$app" --resource-group "$RG" --query properties.latestRevisionName --output tsv)
+              PRONTA=$(az containerapp show --name "$app" --resource-group "$RG" --query properties.latestReadyRevisionName --output tsv)
+              echo "$app [$tentativa] mais nova=$NOVA pronta=$PRONTA"
+              [ "$NOVA" = "$PRONTA" ] && break
+              [ "$tentativa" = 40 ] && { echo "::error::A revisão $NOVA de $app não ficou pronta."; exit 1; }
+              sleep 10
+            done
+          done
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          API_FQDN=$(az containerapp show --name "$API" --resource-group "$RG" --query properties.configuration.ingress.fqdn --output tsv)
+          WEB_FQDN=$(az containerapp show --name "$WEB" --resource-group "$RG" --query properties.configuration.ingress.fqdn --output tsv)
+          verificar() {
+            for _ in $(seq 1 12); do
+              CODIGO=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 20 "$1" || true)
+              echo "$1 -> $CODIGO"
+              [ "$CODIGO" = "$2" ] && return 0
+              sleep 10
+            done
+            echo "::error::$1 não respondeu $2"
+            return 1
+          }
+          verificar "https://${API_FQDN}/health/ready" 200
+          verificar "https://${WEB_FQDN}/health" 200
+          verificar "https://${WEB_FQDN}/Conta/Login" 200
+
+      # Se algo acima falhou, o tráfego volta para a revisão anterior e a nova é desativada
+      - name: Reverter para a revisão anterior
+        if: failure() && steps.deploy.conclusion != 'skipped'
+        env:
+          API_ANTERIOR: ${{ steps.anterior.outputs.api }}
+          WEB_ANTERIOR: ${{ steps.anterior.outputs.web }}
+        run: |
+          set -uo pipefail
+          reverter() {
+            APP="$1"; ANTERIOR="$2"
+            if [ -z "$ANTERIOR" ]; then echo "Sem revisão anterior de $APP para reverter."; return; fi
+            NOVA=$(az containerapp show --name "$APP" --resource-group "$RG" --query properties.latestRevisionName --output tsv)
+            az containerapp ingress traffic set --name "$APP" --resource-group "$RG" --revision-weight "${ANTERIOR}=100" --output none
+            if [ "$NOVA" != "$ANTERIOR" ]; then
+              az containerapp revision deactivate --name "$APP" --resource-group "$RG" --revision "$NOVA" --output none
+            fi
+            echo "$APP voltou para $ANTERIOR"
+          }
+          reverter "$API" "$API_ANTERIOR"
+          reverter "$WEB" "$WEB_ANTERIOR"
+          echo "::error::O deploy falhou e foi revertido. O banco NÃO volta atrás: os scripts do DbUp devem ser compatíveis com a versão anterior."

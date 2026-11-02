@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(opcoes => opcoes.AddServerHeader = false);
 
+builder.Services.AddAuroraTelemetria(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddAuroraApplication();
