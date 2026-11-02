@@ -1,4 +1,4 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
 using Aurora.Application.Comum;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
@@ -27,15 +27,17 @@ public class PedidoService(
     /// nenhum (o id -1 não existe), em vez de cair na visão irrestrita.
     /// </summary>
     private int? RestricaoDeCliente =>
-        usuarioAtual.Perfil == PerfilUsuario.Cliente ? usuarioAtual.ClienteId ?? -1 : null;
+        usuarioAtual.Perfil == PerfilUsuario.Cliente ? ClienteDoUsuario : null;
+
+    /// <summary>Cliente a que o usuário está vinculado; sem vínculo, um id que não existe (-1), nunca "todos".</summary>
+    private int ClienteDoUsuario => usuarioAtual.ClienteId ?? -1;
 
     /// <summary>Pedidos do cliente logado, do mais recente ao mais antigo (RF22).</summary>
     public async Task<Pagina<PedidoResumoDto>> ListarMeusAsync(
         StatusPedido? status, int pagina, int tamanho, CancellationToken ct = default)
     {
         (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
-        var clienteId = usuarioAtual.ClienteId ?? -1;
-        var filtro = new FiltroDePedidos(null, status, clienteId, null, null, null, Hoje);
+        var filtro = new FiltroDePedidos(null, status, ClienteDoUsuario, null, null, null, Hoje);
         var (itens, total) = await pedidos.ListarAsync(filtro, pagina, tamanho, ct);
         return new Pagina<PedidoResumoDto>(itens.Select(i => PedidoResumoDto.De(i, Hoje)).ToList(), total, pagina, tamanho);
     }

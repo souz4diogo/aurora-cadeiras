@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Aurora.Application.Producao;
 
@@ -60,6 +60,7 @@ public class FilaDaEstacaoTests(ApiFactory api)
         Assert.Equal(ordem.Ordem.Numero, corte.NumeroOp);
         Assert.Equal(ordem.CodigoQr, corte.CodigoQr);
         Assert.Equal(pedido.Numero, corte.PedidoNumero);
+        Assert.Equal(cenario.Produto.Id, corte.ProdutoId);
         Assert.Equal(cenario.Produto.Codigo, corte.ProdutoCodigo);
         Assert.Equal(3, corte.Quantidade);
         Assert.Equal("Corte", corte.EstacaoNome);

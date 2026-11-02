@@ -1,0 +1,49 @@
+# Atualização automática de dependências (docs/09 §6: "Verificação de vulnerabilidades no CI; Dependabot").
+# Os PRs chegam semanalmente e passam pelo mesmo CI dos demais: nada entra sem build, testes e varredura verdes.
+version: 2
+
+updates:
+  # Backend .NET (API, painel web, bibliotecas e testes)
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  # App mobile (Expo / React Native). O Expo fixa versões compatíveis entre si: atualize o SDK com
+  # `npx expo install --fix`, e deixe o Dependabot cuidar do resto.
+  - package-ecosystem: npm
+    directory: /mobile/aurora_mobile
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "expo*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+
+  # Ações do GitHub (fixadas por SHA no workflow; o Dependabot atualiza o SHA e o comentário da versão)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(ci)"
+
+  # Imagens base dos Dockerfiles
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(docker)"

@@ -1,4 +1,5 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Comum;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
@@ -60,7 +61,7 @@ public class EtapaService(
                 TipoErro.EntidadeNaoProcessavel);
         }
 
-        PerdaRequestValidator.TentarObterTipo(request.Tipo, out var tipo);
+        EnumPorNome.TentarObter(request.Tipo, out TipoPerda tipo);
         var perda = new RegistroPerda(etapa.Id, tipo, request.Quantidade, request.Motivo.Trim(), usuarioId);
         producao.AdicionarPerda(perda);
         await unitOfWork.SalvarAsync(ct);

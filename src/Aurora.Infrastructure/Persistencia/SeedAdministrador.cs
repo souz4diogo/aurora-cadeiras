@@ -1,4 +1,5 @@
 ﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Autenticacao;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,12 @@ public static class SeedAdministrador
         if (await db.Usuarios.AnyAsync(ct))
         {
             return;
+        }
+
+        // Falha fechada: preferimos não ter administrador a ter um com senha fraca (docs/06 §2)
+        if (!PoliticaDeSenha.Atende(senha))
+        {
+            throw new InvalidOperationException($"SEED_ADMIN_PASSWORD não atende à política de senha. {PoliticaDeSenha.Descricao}");
         }
 
         var hasher = escopo.ServiceProvider.GetRequiredService<ISenhaHasher>();

@@ -1,4 +1,4 @@
-using Aurora.Domain.Enums;
+﻿using Aurora.Domain.Enums;
 
 namespace Aurora.Application.Producao;
 
@@ -9,6 +9,7 @@ public sealed record EtapaDaEstacao(
     string NumeroOp,
     Guid CodigoQr,
     string PedidoNumero,
+    int ProdutoId,
     string ProdutoCodigo,
     string ProdutoNome,
     int Quantidade,
@@ -31,6 +32,7 @@ public sealed record EtapaDaEstacaoDto(
     string NumeroOp,
     Guid CodigoQr,
     string PedidoNumero,
+    int ProdutoId,
     string ProdutoCodigo,
     string ProdutoNome,
     int Quantidade,
@@ -49,6 +51,7 @@ public sealed record EtapaDaEstacaoDto(
         e.NumeroOp,
         e.CodigoQr,
         e.PedidoNumero,
+        e.ProdutoId,
         e.ProdutoCodigo,
         e.ProdutoNome,
         e.Quantidade,

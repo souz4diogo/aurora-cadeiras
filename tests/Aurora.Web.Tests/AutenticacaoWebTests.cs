@@ -98,6 +98,25 @@ public class AutenticacaoWebTests(CenarioDoPainel cenario)
     }
 
     [Theory]
+    [InlineData("Production", null, true)] // padrão fora do desenvolvimento: sempre Secure, mesmo vendo HTTP
+    [InlineData("Production", "false", false)] // opt-out explícito (docker compose local em HTTP)
+    [InlineData("Development", null, false)] // desenvolvimento local em HTTP
+    [InlineData("Development", "true", true)]
+    public async Task Cookie_de_sessao_so_e_Secure_conforme_o_ambiente_e_a_configuracao(
+        string ambiente, string? configuracao, bool esperadoSecure)
+    {
+        await using var painel = new PainelHost(cenario.Api, ambiente, configuracao);
+        using var navegador = painel.NovoNavegador();
+
+        var resposta = await navegador.EntrarAsync(ApiHost.EmailAdmin, ApiHost.SenhaAdmin);
+
+        var cookie = CookieDeSessao(resposta);
+        Assert.NotEqual("", cookie);
+        Assert.Equal(esperadoSecure, cookie.Contains("; secure", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("httponly", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
     [InlineData("Administrador", new[] { "Clientes", "Fornecedores", "Produtos", "Matérias-primas", "Pedidos", "Produção", "Estoque" })]
     [InlineData("GerenteProducao", new[] { "Produtos", "Pedidos", "Produção", "Estoque" })]
     [InlineData("Vendedor", new[] { "Clientes", "Pedidos" })]
