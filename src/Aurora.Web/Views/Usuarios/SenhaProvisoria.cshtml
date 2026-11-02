@@ -1,0 +1,22 @@
+@model SenhaProvisoriaViewModel
+@{
+    ViewData["Title"] = Model.Redefinicao ? "Senha redefinida" : "Usuário criado";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<div class="alert alert-warning" role="alert">
+    Anote a senha agora e passe ao usuário por um canal seguro. <strong>Ela não será mostrada de novo</strong> e não fica
+    guardada no sistema (só o código de verificação dela).
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Nome</dt>
+    <dd class="col-sm-9">@Model.Nome</dd>
+    <dt class="col-sm-3">E-mail (login)</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+    <dt class="col-sm-3">Senha provisória</dt>
+    <dd class="col-sm-9"><code class="fs-5 user-select-all">@Model.Senha</code></dd>
+</dl>
+
+<a class="btn btn-primary" asp-action="Index">Concluir</a>

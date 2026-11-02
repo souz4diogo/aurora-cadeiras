@@ -1,0 +1,18 @@
+@model UsuarioResposta
+@{
+    ViewData["Title"] = "Redefinir senha de " + Model.Nome;
+}
+
+<h1 class="h3 mb-3">Redefinir a senha de @Model.Nome?</h1>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+<p>
+    Será gerada uma nova senha provisória para <strong>@Model.Email</strong>. A senha atual deixa de valer e todas as
+    sessões abertas dele são encerradas. A senha nova aparece uma única vez, na próxima tela.
+</p>
+
+<form asp-action="RedefinirSenha" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+    <button type="submit" class="btn btn-danger">Sim, redefinir a senha</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Não, voltar</a>
+</form>

@@ -8,6 +8,7 @@ public static class MenuPrincipal
 {
     private static readonly ItemDeMenu[] Itens =
     [
+        new("Usuários", "Usuários, perfis e redefinição de senha", "Usuarios", Perfis.Administrador),
         new("Clientes", "Cadastro de clientes", "Clientes", Perfis.AdministradorOuVendedor),
         new("Fornecedores", "Fornecedores e comunidades tradicionais", "Fornecedores", Perfis.AdministradorOuAlmoxarife),
         new("Produtos", "Produtos, ficha técnica e roteiro", "Produtos", Perfis.AdministradorOuGerente),

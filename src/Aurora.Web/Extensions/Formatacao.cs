@@ -50,6 +50,13 @@ public static class Formatacao
         _ => status,
     };
 
+    /// <summary>Nome do perfil como o usuário lê.</summary>
+    public static string NomeDoPerfil(string perfil) => perfil switch
+    {
+        "GerenteProducao" => "Gerente de Produção",
+        _ => perfil,
+    };
+
     public static string StatusDaEtapa(string status) => StatusDaOrdem(status);
 
     public static string TipoDeMovimento(string tipo) => tipo switch

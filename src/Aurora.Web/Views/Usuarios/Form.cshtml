@@ -1,0 +1,43 @@
+@model UsuarioFormViewModel
+@{
+    var edicao = Model.Id is not null;
+    ViewData["Title"] = edicao ? "Editar usuário" : "Novo usuário";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form asp-action="@(edicao ? "Editar" : "Novo")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-6"><aurora-campo for="Nome" tamanho-maximo="120" autocomplete="off" /></div>
+        <div class="col-12 col-lg-6"><aurora-campo for="Email" tipo="email" tamanho-maximo="150" autocomplete="off" /></div>
+        <div class="col-12 col-lg-4">
+            <div class="mb-3">
+                <label asp-for="PerfilId" class="form-label"></label>
+                <select asp-for="PerfilId" asp-items="Model.Perfis" class="form-select" aria-describedby="PerfilId-erro">
+                    <option value="">Escolha o perfil</option>
+                </select>
+                <span asp-validation-for="PerfilId" id="PerfilId-erro" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-12 col-lg-8">
+            <div class="mb-3">
+                <label asp-for="ClienteId" class="form-label"></label>
+                <select asp-for="ClienteId" asp-items="Model.Clientes" class="form-select" aria-describedby="ClienteId-dica ClienteId-erro">
+                    <option value="">Nenhum</option>
+                </select>
+                <div id="ClienteId-dica" class="form-text">Só para o perfil Cliente: o usuário passa a ver os pedidos desse cliente. Nos outros perfis é ignorado.</div>
+                <span asp-validation-for="ClienteId" id="ClienteId-erro" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    @if (!edicao)
+    {
+        <p class="text-muted">Uma senha provisória é gerada e mostrada uma única vez, depois de salvar.</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-link" asp-action="Index">Cancelar</a>
+</form>
