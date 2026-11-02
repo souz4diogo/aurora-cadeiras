@@ -39,7 +39,7 @@ export class EtapasService {
 
   /** Servidor primeiro; sem rede, o que estava guardado. Sempre sobrepõe o que ainda não foi enviado. */
   async carregarFila(estacaoId: number): Promise<FilaDaEstacao> {
-    const { api, cache, fila } = this.deps;
+    const { api, cache } = this.deps;
     let doCache = false;
     try {
       const doServidor = await api.minhas(estacaoId);
@@ -49,9 +49,15 @@ export class EtapasService {
       doCache = true;
     }
 
+    return { ...(await this.lerFilaLocal(estacaoId)), doCache };
+  }
+
+  /** A fila como está no aparelho, sem chamar a rede: cache do servidor mais o que ainda não foi enviado. */
+  async lerFilaLocal(estacaoId: number): Promise<Omit<FilaDaEstacao, 'doCache'>> {
+    const { cache, fila } = this.deps;
     const guardadas = await cache.listarDaEstacao(estacaoId);
     const etapas = etapasAbertas(aplicarPendencias(guardadas, await fila.listarAtivos()));
-    return { etapas, doCache, atualizadoEm: await cache.ultimaAtualizacao(estacaoId) };
+    return { etapas, atualizadoEm: await cache.ultimaAtualizacao(estacaoId) };
   }
 
   /** A etapa como a tela mostra, com o que ainda não foi enviado; nula se o aparelho não a conhece. */

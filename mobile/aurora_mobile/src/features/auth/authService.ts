@@ -12,6 +12,8 @@ export interface DependenciasDeAuth {
   tokenStore: ArmazenamentoDaSessao;
   /** Apaga o banco local (etapas, fila, caches) ao sair (docs/08 §4 e §9). */
   limparDadosLocais: () => Promise<void>;
+  /** Depois de um login com sucesso (ex.: detectar troca de usuário no aparelho). */
+  aoAutenticar?: (usuario: UsuarioLogado) => Promise<void>;
 }
 
 export class AuthService {
@@ -32,6 +34,7 @@ export class AuthService {
       };
       this.deps.tokenStore.definirPersistencia(manterConectado);
       await this.deps.tokenStore.salvar(sessao);
+      await this.deps.aoAutenticar?.(sessao.usuario);
       return sessao.usuario;
     } catch (erro) {
       throw interpretarErro(erro);

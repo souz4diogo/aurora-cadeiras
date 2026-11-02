@@ -65,6 +65,17 @@ describe('AuthService', () => {
     expect(await tokenStore.carregar()).toBeNull();
   });
 
+  it('avisa o aparelho do login para detectar troca de usuário', async () => {
+    const aoAutenticar = jest.fn(async () => {});
+    const tokenStore = new ArmazenamentoFalso();
+    const api = { login: jest.fn(async () => resposta), logout: jest.fn() } as unknown as AuthApi;
+    const servico = new AuthService({ api, tokenStore, limparDadosLocais: async () => {}, aoAutenticar });
+
+    await servico.entrar('a@b.c', 'x', false);
+
+    expect(aoAutenticar).toHaveBeenCalledWith(resposta.usuario);
+  });
+
   it('restaurar devolve o usuário da sessão guardada, ou nada', async () => {
     const { servico } = montar();
     expect(await servico.restaurar()).toBeNull();

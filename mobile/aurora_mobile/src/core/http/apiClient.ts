@@ -1,4 +1,4 @@
-import axios, { type AxiosAdapter, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+import { create, isAxiosError, type AxiosAdapter, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
 import type { Sessao, TokenStore, UsuarioLogado } from '@/core/auth/tokenStore';
 import { API_BASE_URL, TIMEOUT_DA_API_MS } from '@/core/config';
@@ -36,14 +36,14 @@ function ehRotaDeAutenticacao(url: string | undefined): boolean {
  */
 export function criarApiClient(opcoes: OpcoesDoCliente): AxiosInstance {
   const { tokenStore, aoExpirarSessao } = opcoes;
-  const http = axios.create({
+  const http = create({
     baseURL: opcoes.baseURL ?? API_BASE_URL,
     timeout: TIMEOUT_DA_API_MS,
     headers: { Accept: 'application/json' },
     adapter: opcoes.adapter,
   });
   // Cliente sem interceptors: a própria chamada de renovação não pode cair no tratamento de 401
-  const semInterceptors = axios.create({
+  const semInterceptors = create({
     baseURL: opcoes.baseURL ?? API_BASE_URL,
     timeout: TIMEOUT_DA_API_MS,
     adapter: opcoes.adapter,
@@ -84,7 +84,7 @@ export function criarApiClient(opcoes: OpcoesDoCliente): AxiosInstance {
   http.interceptors.response.use(
     (resposta) => resposta,
     async (erro: unknown) => {
-      if (!axios.isAxiosError(erro) || erro.response?.status !== 401 || !erro.config) throw erro;
+      if (!isAxiosError(erro) || erro.response?.status !== 401 || !erro.config) throw erro;
       const original = erro.config as ConfigComTentativa;
       if (original._jaRenovou || ehRotaDeAutenticacao(original.url)) throw erro;
 

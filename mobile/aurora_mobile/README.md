@@ -1,56 +1,89 @@
-# Welcome to your Expo app 👋
+# Aurora Cadeiras: app mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App do chão de fábrica e do acompanhamento de pedidos (PIM IV). **React Native (Expo SDK 58) + TypeScript**,
+autorizado pelo professor de mobile. Especificação: [`docs/08-mobile.md`](../../docs/08-mobile.md). Decisões: A55 a A62
+em [`docs/DECISOES.md`](../../docs/DECISOES.md).
 
-## Get started
+| Perfil | O que faz no app |
+|---|---|
+| Operador | Escolhe a estação, vê a fila, lê o QR da OP, inicia e finaliza etapas (mesmo sem internet), registra perda, consulta estoque |
+| Inspetor | Inicia a etapa de Qualidade e a conclui com a inspeção (aprova ou reprova com retrabalho) |
+| Vendedor | Acompanha os pedidos que criou |
+| Cliente | Acompanha o andamento dos próprios pedidos (somente leitura) |
 
-1. Install dependencies
+Administrador, Gerente e Almoxarife trabalham no painel web; no app veem só um aviso.
 
-   ```bash
-   npm install
-   ```
+## Como rodar
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Pré-requisitos: Node 22.13 ou mais novo (o CI usa 24) e a API no ar (`dotnet run --project src/Aurora.Api`, porta 5011).
 
 ```bash
-npm run reset-project
+cd mobile/aurora_mobile
+npm install
+npx expo start --android          # emulador Android ou Expo Go
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+A URL da API vem de `EXPO_PUBLIC_API_BASE_URL` (definida em tempo de build). Sem ela, o app usa
+`http://10.0.2.2:5011/api/v1`, onde `10.0.2.2` é a máquina hospedeira vista pelo emulador Android.
 
-### Other setup steps
+```bash
+# aparelho físico na mesma rede (troque pelo IP da sua máquina)
+EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:5011/api/v1 npx expo start
+# produção: sempre HTTPS
+EXPO_PUBLIC_API_BASE_URL=https://api.exemplo.com/api/v1 npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+> HTTP simples só serve para desenvolvimento. Não há segredo no app: a URL é a única configuração.
 
-## Learn more
+## Verificações
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm run typecheck   # TypeScript estrito
+npm run lint        # ESLint (expo lint)
+npm test            # Jest: unidade, componente e fluxo offline
+npm run check       # os três de uma vez
+npx expo-doctor     # confere dependências e configuração
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Os testes rodam o SQL de verdade no SQLite embutido do Node (`node:sqlite`); só a rede é simulada. Eles cobrem a fila
+e a sincronização (aplicado, rejeitado, rede caindo no meio, reenvio do mesmo `clientRequestId`), o interceptor de
+renovação do token, o cache e as telas. **O que os testes não cobrem** é o aparelho de verdade: câmera, vibração,
+TalkBack e o `expo-sqlite` nativo precisam do roteiro manual abaixo.
 
-## Join the community
+## Roteiro manual (docs/08 §10)
 
-Join our community of developers creating universal apps.
+1. Entre como Operador, escolha a estação **Corte** e abra uma etapa liberada.
+2. Ative o **modo avião**. Toque em **Iniciar etapa**: a tela diz "salvo no aparelho" e o selo no topo mostra
+   *Offline · 1 apontamento a enviar*. Toque em **Finalizar etapa**.
+3. Abra **Fila de sincronização**: os dois itens aparecem como *Aguardando envio*.
+4. Desative o modo avião. Em instantes a fila esvazia e o selo volta a *Online*.
+5. Repita com a matéria-prima sem saldo: o início é **rejeitado** na sincronização, a fila mostra o motivo (RN04) e
+   oferece *Tentar de novo* e *Descartar*.
+6. Ligue o TalkBack e percorra o fluxo do operador.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Organização
+
+```
+src/
+├─ app/            rotas do Expo Router (arquivos finos: só montam a tela)
+├─ core/           cliente HTTP + renovação de token, sessão segura, SQLite e migrações, serviços
+├─ features/       auth · estacoes · etapas · qr · sync · perdas · qualidade · estoque · pedidos · preferencias
+│                  (cada uma com serviço/API, ViewModel em hook e tela)
+└─ shared/         componentes acessíveis, tema, formatação, cache de leitura
+tests/             unidade · componentes · fluxo (offline)
+```
+
+Padrão MVVM: a **tela** só desenha; o **ViewModel** (hook) guarda estado e chama os **serviços**; os serviços falam com
+a API e com o SQLite. Telas nunca montam serviços: recebem tudo por contexto (`useServicos`), o que permite testar com
+serviços de verdade sobre um banco em memória.
+
+## Banco local (SQLite)
+
+| Tabela | Para quê |
+|---|---|
+| `apontamento_pendente` | Fila de início e fim de etapa; a chave é o `client_request_id` (idempotência) |
+| `etapa_cache` | Etapas da estação já carregadas, para ver e apontar sem rede |
+| `cache_json` | Último saldo de estoque, pedidos, estações e fichas técnicas, com a hora da atualização |
+| `preferencia` | Estação escolhida, tamanho do texto, alto contraste |
+
+Ao **sair**, o app tenta enviar a fila e, se sobrar algo, pede confirmação antes de apagar o banco.

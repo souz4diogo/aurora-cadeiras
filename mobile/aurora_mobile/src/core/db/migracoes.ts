@@ -66,7 +66,7 @@ export async function migrar(db: Db): Promise<void> {
 }
 
 /** Preferências que sobrevivem ao logout (não são dados da sessão). */
-export const PREFERENCIAS_QUE_FICAM = ['escala_fonte'];
+export const PREFERENCIAS_QUE_FICAM = ['escala_fonte', 'alto_contraste'];
 
 /** Logout: apaga os dados da sessão do aparelho (docs/08 §4 e §9). */
 export async function apagarDadosLocais(db: Db): Promise<void> {
