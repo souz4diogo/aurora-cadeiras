@@ -1,5 +1,8 @@
+import { AxiosError } from 'axios';
+
 import { MemoryTokenStore, type Sessao } from '@/core/auth/tokenStore';
 import { criarApiClient } from '@/core/http/apiClient';
+import { ehErroDeRede } from '@/core/http/problem';
 import { adaptadorFalso, cabecalho, type Tratador } from '../helpers/adaptador';
 
 const usuario = { id: 12, nome: 'Carlos', perfil: 'Operador' } as const;
@@ -92,6 +95,45 @@ describe('cliente HTTP da API', () => {
 
     expect(aoExpirarSessao).toHaveBeenCalledTimes(1);
     expect(await tokenStore.carregar()).toBeNull();
+  });
+
+  it.each([
+    ['queda de rede', null],
+    ['erro 500 do servidor', 500],
+    ['servidor indisponível', 503],
+  ])('%s ao renovar NÃO desloga: a sessão e os tokens continuam', async (_nome, status) => {
+    const { http, tokenStore, aoExpirarSessao } = await montar((config) => {
+      if (config.url?.includes('/auth/refresh')) {
+        if (status === null) throw new AxiosError('Network Error', 'ERR_NETWORK', config);
+        return { status };
+      }
+      return { status: 401 };
+    });
+
+    const falha = await http.get('/etapas/minhas').catch((erro: unknown) => erro);
+
+    expect(aoExpirarSessao).not.toHaveBeenCalled();
+    expect(await tokenStore.carregar()).toEqual(sessaoInicial);
+    expect(ehErroDeRede(falha) || (falha as AxiosError).response?.status === status).toBe(true);
+  });
+
+  it.each([400, 401, 403])('refresh recusado com %s encerra a sessão', async (status) => {
+    const { http, tokenStore, aoExpirarSessao } = await montar((config) =>
+      config.url?.includes('/auth/refresh') ? { status } : { status: 401 },
+    );
+
+    await expect(http.get('/x')).rejects.toBeDefined();
+
+    expect(aoExpirarSessao).toHaveBeenCalledTimes(1);
+    expect(await tokenStore.carregar()).toBeNull();
+  });
+
+  it('sem sessão guardada, o 401 encerra a sessão (não há o que renovar)', async () => {
+    const { http, aoExpirarSessao } = await montar(() => ({ status: 401 }), false);
+
+    await expect(http.get('/x')).rejects.toBeDefined();
+
+    expect(aoExpirarSessao).toHaveBeenCalledTimes(1);
   });
 
   it('401 do login (senha errada) não tenta renovar nada', async () => {

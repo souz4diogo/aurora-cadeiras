@@ -2,6 +2,7 @@ import type { AxiosInstance } from 'axios';
 import { randomUUID } from 'expo-crypto';
 
 import { TokenStoreEscolhivel } from '@/core/auth/tokenStore';
+import { URL_DA_API_E_INSEGURA } from '@/core/config';
 import { CacheJsonRepository } from '@/core/db/cacheJsonRepository';
 import type { Db } from '@/core/db/db';
 import { abrirBancoLocal } from '@/core/db/expoDb';
@@ -47,6 +48,7 @@ export interface Servicos {
  * token falha, e leva o app de volta ao Login.
  */
 export async function criarServicos(aoExpirarSessao: () => void): Promise<Servicos> {
+  if (URL_DA_API_E_INSEGURA) throw new Error('A URL da API precisa ser HTTPS fora do desenvolvimento.');
   const db = await abrirBancoLocal();
   const tokenStore = new TokenStoreEscolhivel();
   const http = criarApiClient({ tokenStore, aoExpirarSessao });

@@ -33,7 +33,8 @@ EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:5011/api/v1 npx expo start
 EXPO_PUBLIC_API_BASE_URL=https://api.exemplo.com/api/v1 npx expo start
 ```
 
-> HTTP simples só serve para desenvolvimento. Não há segredo no app: a URL é a única configuração.
+> HTTP simples só serve para desenvolvimento. **Fora dele o app exige HTTPS**: um build com `EXPO_PUBLIC_API_BASE_URL`
+> em `http://` mostra um aviso e não conecta (A66). Não há segredo no app: a URL é a única configuração.
 
 ## Verificações
 

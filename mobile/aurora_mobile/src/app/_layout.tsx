@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { URL_DA_API_E_INSEGURA } from '@/core/config';
 import { ServicosProvider } from '@/core/ServicosProvider';
 import { criarServicos, type Servicos } from '@/core/servicos';
 import { AuthProvider, eventosDeSessao, useAuth } from '@/features/auth/AuthProvider';
@@ -16,11 +17,19 @@ export default function LayoutRaiz() {
   const [falha, setFalha] = useState(false);
 
   useEffect(() => {
+    if (URL_DA_API_E_INSEGURA) return;
     criarServicos(() => eventosDeSessao.expirou())
       .then(setServicos)
       .catch(() => setFalha(true));
   }, []);
 
+  if (URL_DA_API_E_INSEGURA) {
+    return (
+      <Tela>
+        <Aviso tipo="erro" texto="Este aplicativo foi gerado sem uma URL HTTPS para a API e por isso não vai conectar. Gere o aplicativo de novo com EXPO_PUBLIC_API_BASE_URL apontando para https://..." />
+      </Tela>
+    );
+  }
   if (falha) {
     return (
       <Tela>

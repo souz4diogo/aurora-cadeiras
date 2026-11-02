@@ -44,7 +44,10 @@ export class SecureTokenStore implements TokenStore {
   }
 
   async salvar(sessao: Sessao): Promise<void> {
-    await SecureStore.setItemAsync(CHAVE, JSON.stringify(sessao));
+    await SecureStore.setItemAsync(CHAVE, JSON.stringify(sessao), {
+      // Só com o aparelho desbloqueado e sem sair dele (iOS não leva o token em backup nem para outro aparelho)
+      keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    });
   }
 
   async limpar(): Promise<void> {

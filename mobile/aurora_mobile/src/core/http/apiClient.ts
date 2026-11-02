@@ -23,6 +23,20 @@ interface ConfigComTentativa extends InternalAxiosRequestConfig {
   _jaRenovou?: boolean;
 }
 
+/** Não há sessão guardada para renovar. */
+class SemSessaoError extends Error {}
+
+/**
+ * O servidor respondeu e RECUSOU a renovação (refresh inválido, expirado, revogado ou reutilizado): a sessão acabou.
+ * Queda de rede, tempo esgotado ou erro do servidor (5xx) não provam nada sobre a sessão e não podem deslogar quem
+ * está trabalhando offline na fábrica.
+ */
+export function renovacaoFoiRecusada(falha: unknown): boolean {
+  if (falha instanceof SemSessaoError) return true;
+  const status = isAxiosError(falha) ? falha.response?.status : undefined;
+  return status === 400 || status === 401 || status === 403;
+}
+
 /** Rotas de autenticação: um 401 aqui é senha ou refresh inválido, nunca "token vencido". */
 const ROTAS_DE_AUTENTICACAO = ['/auth/login', '/auth/refresh', '/auth/logout'];
 
@@ -55,7 +69,7 @@ export function criarApiClient(opcoes: OpcoesDoCliente): AxiosInstance {
     renovacaoEmAndamento ??= (async () => {
       try {
         const atual = await tokenStore.carregar();
-        if (!atual) throw new Error('sem sessão');
+        if (!atual) throw new SemSessaoError();
         const resposta = await semInterceptors.post<TokenResponse>('/auth/refresh', {
           refreshToken: atual.refreshToken,
         });
@@ -91,7 +105,9 @@ export function criarApiClient(opcoes: OpcoesDoCliente): AxiosInstance {
       let nova: Sessao;
       try {
         nova = await renovar();
-      } catch {
+      } catch (falha) {
+        // Sessão ainda pode valer: devolve o erro real (rede, 5xx) e deixa tokens e fila intactos
+        if (!renovacaoFoiRecusada(falha)) throw falha;
         await tokenStore.limpar();
         aoExpirarSessao();
         throw erro;

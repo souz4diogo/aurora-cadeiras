@@ -5,11 +5,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Aurora.Web.Tests.Infraestrutura;
 
 /// <summary>O painel web em memória, com o cliente HTTP da API apontando para a <see cref="ApiHost"/> (sem rede).</summary>
-public sealed class PainelHost(ApiHost api) : WebApplicationFactory<PontoDeEntradaDaWeb>
+public sealed class PainelHost(ApiHost api, string? ambiente = null, string? cookieSomenteHttps = null)
+    : WebApplicationFactory<PontoDeEntradaDaWeb>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("Api:BaseUrl", "http://api.local");
+        if (ambiente is not null)
+        {
+            builder.UseEnvironment(ambiente);
+        }
+
+        if (cookieSomenteHttps is not null)
+        {
+            builder.UseSetting("Sessao:CookieSomenteHttps", cookieSomenteHttps);
+        }
+
         builder.ConfigureServices(servicos =>
             servicos.ConfigureHttpClientDefaults(cliente =>
                 cliente.ConfigurePrimaryHttpMessageHandler(() => api.Server.CreateHandler())));

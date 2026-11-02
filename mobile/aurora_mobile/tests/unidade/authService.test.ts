@@ -76,6 +76,20 @@ describe('AuthService', () => {
     expect(aoAutenticar).toHaveBeenCalledWith(resposta.usuario);
   });
 
+  it('se a limpeza do usuário anterior falha, o login falha e NENHUMA sessão fica guardada', async () => {
+    const aoAutenticar = jest.fn(async () => {
+      throw new Error('banco ocupado');
+    });
+    const tokenStore = new ArmazenamentoFalso();
+    const api = { login: jest.fn(async () => resposta), logout: jest.fn() } as unknown as AuthApi;
+    const servico = new AuthService({ api, tokenStore, limparDadosLocais: async () => {}, aoAutenticar });
+
+    await expect(servico.entrar('a@b.c', 'x', true)).rejects.toBeDefined();
+
+    expect(await tokenStore.carregar()).toBeNull();
+    expect(await servico.restaurar()).toBeNull();
+  });
+
   it('restaurar devolve o usuário da sessão guardada, ou nada', async () => {
     const { servico } = montar();
     expect(await servico.restaurar()).toBeNull();

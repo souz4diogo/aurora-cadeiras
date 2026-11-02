@@ -55,6 +55,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       Api__BaseUrl: http://api:8080
+      # Só para o uso local em HTTP (http://localhost:8081). Em produção deixe o padrão: o cookie de sessão é Secure.
+      Sessao__CookieSomenteHttps: "false"
     ports:
       - "8081:8080"
     depends_on:

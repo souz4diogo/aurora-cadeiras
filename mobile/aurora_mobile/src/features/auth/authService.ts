@@ -32,9 +32,11 @@ export class AuthService {
         refreshToken: resposta.refreshToken,
         usuario: resposta.usuario,
       };
+      // Antes de gravar a sessão: se a limpeza dos dados do usuário anterior falhar, o login falha inteiro e nenhuma
+      // sessão fica guardada (senão, ao reabrir, o app entraria como o novo usuário e enviaria a fila do antigo)
+      await this.deps.aoAutenticar?.(sessao.usuario);
       this.deps.tokenStore.definirPersistencia(manterConectado);
       await this.deps.tokenStore.salvar(sessao);
-      await this.deps.aoAutenticar?.(sessao.usuario);
       return sessao.usuario;
     } catch (erro) {
       throw interpretarErro(erro);

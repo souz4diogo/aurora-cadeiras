@@ -6,6 +6,16 @@
 export const API_BASE_URL: string =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://10.0.2.2:5011/api/v1';
 
+/**
+ * Fora do desenvolvimento a API só pode ser falada por HTTPS (docs/08 §9, RNF03). HTTP simples serve ao emulador e ao
+ * `expo start`; um build de produção com URL HTTP é recusado, em vez de trafegar token e dados em claro.
+ */
+export function urlDaApiInsegura(url: string, emDesenvolvimento: boolean): boolean {
+  return !emDesenvolvimento && !/^https:\/\//i.test(url.trim());
+}
+
+export const URL_DA_API_E_INSEGURA = urlDaApiInsegura(API_BASE_URL, __DEV__);
+
 /** Máximo de apontamentos por chamada de sincronização (docs/08 §5). */
 export const TAMANHO_DO_LOTE = 50;
 
