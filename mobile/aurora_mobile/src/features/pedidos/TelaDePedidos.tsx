@@ -36,7 +36,11 @@ export function TelaDePedidos() {
         <Aviso tipo="aviso" texto={`Sem conexão. Lista de ${formatarDataEHora(dados.atualizadoEm)}.`} />
       ) : null}
 
-      {dados?.dados.map((pedido) => (
+      {dados && dados.dados.total > dados.dados.itens.length ? (
+        <Aviso tipo="info" texto={`Mostrando os ${dados.dados.itens.length} pedidos mais recentes de ${dados.dados.total}.`} />
+      ) : null}
+
+      {dados?.dados.itens.map((pedido) => (
         <Cartao
           key={pedido.id}
           aoPressionar={() => router.push({ pathname: '/pedido/[id]', params: { id: String(pedido.id) } })}
@@ -53,7 +57,7 @@ export function TelaDePedidos() {
         </Cartao>
       ))}
 
-      {dados && dados.dados.length === 0 ? (
+      {dados && dados.dados.itens.length === 0 ? (
         <EstadoVazio
           titulo="Nenhum pedido"
           texto={usuario.perfil === 'Cliente' ? 'Quando você fizer um pedido, ele aparece aqui.' : 'Os pedidos que você criar aparecem aqui.'}

@@ -53,7 +53,12 @@ describe('fluxo offline do operador', () => {
       servidor.online = online;
       return enviar(itens);
     };
-    sync = new SyncService({ fila, api: servidor, aposSincronizar: () => etapas.atualizarCache(1) });
+    sync = new SyncService({
+      fila,
+      api: servidor,
+      aoConfirmar: (itens) => etapas.registrarConfirmados(itens),
+      aposSincronizar: () => etapas.atualizarCache(1),
+    });
   });
 
   it('iniciar e finalizar sem rede ficam na fila e vão ao servidor quando a conexão volta', async () => {
@@ -113,6 +118,25 @@ describe('fluxo offline do operador', () => {
     expect(primeira.interrompidaPorRede).toBe(true);
     expect(segunda.confirmados).toBe(1);
     expect(servidor.totalDeEfeitos).toBe(1);
+  });
+
+  it('depois de o servidor confirmar, a tela não volta atrás nem se o recarregamento falhar', async () => {
+    await etapas.carregarFila(1);
+    await etapas.apontar('Inicio', (await etapas.carregarFila(1)).etapas[0]);
+    // O servidor aceita, mas a rede cai logo em seguida: o recarregamento da lista não consegue acontecer
+    const enviar = servidor.sincronizar.bind(servidor);
+    servidor.sincronizar = async (itens) => {
+      const resultados = await enviar(itens);
+      online = false;
+      return resultados;
+    };
+
+    await sync.sincronizar();
+    const lista = await etapas.carregarFila(1);
+
+    expect(await fila.contar()).toEqual({ pendentes: 0, enviando: 0, rejeitados: 0 });
+    expect(lista.doCache).toBe(true);
+    expect(lista.etapas[0]).toMatchObject({ status: 'EmAndamento', pendenteEnvio: false }); // e não "Pronta para iniciar"
   });
 
   it('o item corrigido pode ser reenviado com o mesmo identificador', async () => {

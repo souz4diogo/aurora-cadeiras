@@ -1,7 +1,12 @@
 import { TAMANHO_DO_LOTE } from '@/core/config';
 import { ehErroDeRede } from '@/core/http/problem';
 import type { FilaRepository } from '@/features/sync/filaRepository';
-import type { ItemDoLote, ResultadoDoItem, ResumoDaSincronizacao } from '@/features/sync/tipos';
+import type {
+  ApontamentoPendente,
+  ItemDoLote,
+  ResultadoDoItem,
+  ResumoDaSincronizacao,
+} from '@/features/sync/tipos';
 
 /** O que o serviço precisa da API (POST /apontamentos/sincronizar). */
 export interface SincronizacaoApi {
@@ -13,6 +18,8 @@ export interface DependenciasDaSincronizacao {
   api: SincronizacaoApi;
   /** Depois de enviar, recarrega do servidor o que o app mostra (o servidor é a fonte da verdade, docs/08 §5). */
   aposSincronizar?: () => Promise<void>;
+  /** Chamado com os itens confirmados ANTES de saírem da fila, para o estado local não voltar atrás. */
+  aoConfirmar?: (itens: ApontamentoPendente[]) => Promise<void>;
   tamanhoDoLote?: number;
 }
 
@@ -90,6 +97,7 @@ export class SyncService {
           confirmados.push(id);
         }
       }
+      await this.refletirConfirmados(lote.filter((i) => confirmados.includes(i.clientRequestId)));
       await fila.remover(confirmados);
       await fila.devolverParaFila(semResposta);
       resumo.confirmados += confirmados.length;
@@ -108,5 +116,15 @@ export class SyncService {
       }
     }
     return resumo;
+  }
+
+  /** Falha ao atualizar o cache local não pode impedir de tirar da fila o que o servidor já aceitou. */
+  private async refletirConfirmados(itens: ApontamentoPendente[]): Promise<void> {
+    if (itens.length === 0) return;
+    try {
+      await this.deps.aoConfirmar?.(itens);
+    } catch {
+      // O recarregamento do servidor, logo em seguida, acerta o cache
+    }
   }
 }

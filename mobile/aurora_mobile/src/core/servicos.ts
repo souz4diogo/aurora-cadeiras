@@ -62,6 +62,7 @@ export async function criarServicos(aoExpirarSessao: () => void): Promise<Servic
   const sync = new SyncService({
     fila,
     api: new SincronizacaoHttpApi(http),
+    aoConfirmar: (itens) => etapas.registrarConfirmados(itens),
     // Depois de enviar, recarrega do servidor a lista da estação escolhida (o servidor é a fonte da verdade)
     aposSincronizar: async () => {
       const estacao = await estacoes.estacaoEscolhida();

@@ -27,7 +27,11 @@ export function TelaDeEstoque() {
         />
       ) : null}
 
-      {dados?.dados.map((m) => (
+      {dados && dados.dados.total > dados.dados.itens.length ? (
+        <Aviso tipo="aviso" texto={`Mostrando ${dados.dados.itens.length} de ${dados.dados.total} materiais. Use o painel web para ver todos.`} />
+      ) : null}
+
+      {dados?.dados.itens.map((m) => (
         <Cartao
           key={m.id}
           rotuloDeAcessibilidade={`${m.nome}. Saldo ${formatarQuantidade(m.estoqueAtual)} ${m.unidade}. Mínimo ${formatarQuantidade(m.estoqueMinimo)}. ${m.critico ? 'Estoque crítico.' : 'Estoque normal.'}`}
@@ -44,7 +48,7 @@ export function TelaDeEstoque() {
         </Cartao>
       ))}
 
-      {dados && dados.dados.length === 0 ? (
+      {dados && dados.dados.itens.length === 0 ? (
         <EstadoVazio titulo="Nenhum material" texto="Não há matéria-prima cadastrada." />
       ) : null}
     </Tela>

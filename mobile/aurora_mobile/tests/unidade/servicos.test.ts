@@ -100,6 +100,27 @@ describe('banco local', () => {
 });
 
 describe('cache de etapas', () => {
+  it('apontamento confirmado é refletido na linha do cache', async () => {
+    const cache = new EtapaCacheRepository(db);
+    await cache.guardar(etapa({ etapaId: 1 }), '2026-11-02T12:00:00.000Z');
+    await cache.guardar(etapa({ etapaId: 2, status: 'EmAndamento', iniciadaEm: '2026-11-02T10:00:00.000Z' }), '2026-11-02T12:00:00.000Z');
+
+    await cache.aplicarApontamento(1, 'Inicio', '2026-11-02T12:30:00.000Z');
+    await cache.aplicarApontamento(2, 'Fim', '2026-11-02T12:40:00.000Z');
+
+    expect(await cache.obter(1)).toMatchObject({ status: 'EmAndamento', iniciadaEm: '2026-11-02T12:30:00.000Z' });
+    expect((await cache.obter(2))?.status).toBe('Concluida');
+  });
+
+  it('um início repetido não regride nem reescreve uma etapa que já andou', async () => {
+    const cache = new EtapaCacheRepository(db);
+    await cache.guardar(etapa({ status: 'Concluida' }), '2026-11-02T12:00:00.000Z');
+
+    await cache.aplicarApontamento(341, 'Inicio', '2026-11-02T12:30:00.000Z');
+
+    expect((await cache.obter(341))?.status).toBe('Concluida');
+  });
+
   it('ordena em andamento, depois liberadas, depois pela previsão mais próxima', async () => {
     const cache = new EtapaCacheRepository(db);
     await cache.substituirDaEstacao(
@@ -238,6 +259,14 @@ describe('perdas, inspeção e estoque', () => {
     ]);
   });
 
+  it('estoque guarda quantos materiais existem ao todo, para a tela avisar quando corta a lista', async () => {
+    const saldo = { id: 9, codigo: 'MAD-01', nome: 'Madeira', unidade: 'm3', estoqueAtual: 3, estoqueMinimo: 1, critico: false };
+    const get = jest.fn().mockResolvedValue({ data: { items: [saldo], total: 250 } });
+    const servico = new EstoqueService({ get } as unknown as AxiosInstance, new CacheJsonRepository(db));
+
+    expect((await servico.saldos()).dados).toEqual({ itens: [saldo], total: 250 });
+  });
+
   it('estoque sem rede mostra o último saldo conhecido', async () => {
     const saldo = { id: 9, codigo: 'MAD-01', nome: 'Madeira', unidade: 'm3', estoqueAtual: 3, estoqueMinimo: 1, critico: false };
     const get = jest.fn().mockResolvedValueOnce({ data: { items: [saldo] } }).mockRejectedValueOnce(erroDeRede());
@@ -247,7 +276,7 @@ describe('perdas, inspeção e estoque', () => {
     const offline = await servico.saldos();
 
     expect(online.doCache).toBe(false);
-    expect(offline).toMatchObject({ doCache: true, dados: [saldo] });
+    expect(offline).toMatchObject({ doCache: true, dados: { itens: [saldo], total: 1 } });
   });
 });
 

@@ -67,6 +67,22 @@ export class EtapaCacheRepository {
     await this.gravar(etapa, agoraIso);
   }
 
+  /**
+   * Reflete no cache o que o servidor acabou de confirmar. Sem isto, no instante em que o item sai da fila a tela
+   * perderia a sobreposição e voltaria a mostrar a etapa como pendente (até o próximo recarregamento do servidor).
+   */
+  async aplicarApontamento(etapaId: number, tipo: 'Inicio' | 'Fim', dataHoraIso: string): Promise<void> {
+    if (tipo === 'Inicio') {
+      await this.db.executar(
+        `UPDATE etapa_cache SET status = 'EmAndamento', iniciada_em = COALESCE(iniciada_em, ?)
+          WHERE etapa_id = ? AND status = 'Pendente'`,
+        [dataHoraIso, etapaId],
+      );
+    } else {
+      await this.db.executar(`UPDATE etapa_cache SET status = 'Concluida' WHERE etapa_id = ?`, [etapaId]);
+    }
+  }
+
   async listarDaEstacao(estacaoId: number): Promise<EtapaDaEstacao[]> {
     const linhas = await this.db.consultar<Linha>(
       `SELECT ${COLUNAS} FROM etapa_cache WHERE estacao_id = ?

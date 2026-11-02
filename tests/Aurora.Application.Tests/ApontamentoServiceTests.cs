@@ -1,8 +1,9 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
 using Aurora.Application.Producao;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
 using FluentValidation;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Aurora.Application.Tests;
@@ -37,7 +38,8 @@ public class ApontamentoServiceTests
             _usuarioAtual.Object,
             new ApontamentoRequestValidator(_relogio.Object),
             new PerdaRequestValidator());
-        return new ApontamentoService(etapas, _producao.Object, _usuarioAtual.Object, new SincronizacaoRequestValidator());
+        return new ApontamentoService(
+            etapas, _producao.Object, _usuarioAtual.Object, new SincronizacaoRequestValidator(), NullLogger<ApontamentoService>.Instance);
     }
 
     private static ApontamentoOfflineItem Item(string tipo, Guid? id = null, int etapaId = 341, DateTimeOffset? hora = null) =>
@@ -85,6 +87,32 @@ public class ApontamentoServiceTests
         Assert.Equal("RN05", resposta.Resultados[0].Code);
         Assert.Equal("Etapa anterior não concluída.", resposta.Resultados[0].Mensagem);
         Assert.Equal(StatusDeSincronizacao.Aplicado, resposta.Resultados[1].Status);
+    }
+
+    [Fact]
+    public async Task Falha_inesperada_rejeita_so_o_item_e_o_lote_segue()
+    {
+        var quebrado = Item("Inicio", etapaId: 1);
+        var saudavel = Item("Inicio", etapaId: 2);
+        _producao.Setup(r => r.IniciarEtapaAsync(1, quebrado.ClientRequestId, It.IsAny<DateTime>(), default))
+            .ThrowsAsync(new InvalidOperationException("deadlock"));
+
+        var resposta = await Servico().SincronizarAsync(new SincronizacaoRequest([quebrado, saudavel]));
+
+        Assert.Equal(StatusDeSincronizacao.Rejeitado, resposta.Resultados[0].Status);
+        Assert.Equal(ApontamentoService.CodigoDeErroInterno, resposta.Resultados[0].Code);
+        Assert.DoesNotContain("deadlock", resposta.Resultados[0].Mensagem);
+        Assert.Equal(StatusDeSincronizacao.Aplicado, resposta.Resultados[1].Status);
+    }
+
+    [Fact]
+    public async Task Cancelamento_da_requisicao_nao_vira_rejeicao()
+    {
+        _producao.Setup(r => r.IniciarEtapaAsync(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<DateTime>(), default))
+            .ThrowsAsync(new OperationCanceledException());
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => Servico().SincronizarAsync(new SincronizacaoRequest([Item("Inicio")])));
     }
 
     [Fact]

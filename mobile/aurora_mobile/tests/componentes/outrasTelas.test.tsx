@@ -67,6 +67,15 @@ describe('pedidos', () => {
     expect(router.push).toHaveBeenCalledWith({ pathname: '/pedido/[id]', params: { id: '31' } });
   });
 
+  it('avisa quando a lista mostra só uma parte dos pedidos', async () => {
+    const app = await montarApp('Vendedor');
+    app.http.get.mockResolvedValue({ data: { items: [pedido], total: 130 } });
+
+    await render(<TelaDePedidos />, { wrapper: app.Envolver });
+
+    expect(await screen.findByText(/Mostrando os 1 pedidos mais recentes de 130/)).toBeOnTheScreen();
+  });
+
   it('o detalhe mostra itens e a linha do tempo da produção na ordem', async () => {
     const app = await montarApp('Cliente');
     app.http.get.mockResolvedValue({
@@ -107,6 +116,15 @@ describe('estoque', () => {
     expect(screen.getByText('⚠ Estoque crítico (no mínimo ou abaixo)')).toBeOnTheScreen();
     expect(screen.getByText('✔ Estoque normal')).toBeOnTheScreen();
     expect(screen.getByText(/Atualizado em/)).toBeOnTheScreen();
+  });
+
+  it('avisa quando o estoque tem mais materiais do que cabem na tela', async () => {
+    const app = await montarApp();
+    app.http.get.mockResolvedValue({ data: { items: [saldo()], total: 140 } });
+
+    await render(<TelaDeEstoque />, { wrapper: app.Envolver });
+
+    expect(await screen.findByText(/Mostrando 1 de 140 materiais/)).toBeOnTheScreen();
   });
 
   it('sem rede mostra o último saldo conhecido avisando a hora dele', async () => {

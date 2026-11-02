@@ -6,7 +6,11 @@ import type { EtapasApi } from '@/features/etapas/etapasApi';
 import { aplicarPendencias, etapasAbertas } from '@/features/etapas/pendencias';
 import type { EtapaDaEstacao, EtapaNaTela, OrdemProducaoDetalhe } from '@/features/etapas/tipos';
 import type { FilaRepository } from '@/features/sync/filaRepository';
-import type { TipoDeApontamento } from '@/features/sync/tipos';
+import type { ApontamentoPendente, TipoDeApontamento } from '@/features/sync/tipos';
+
+/** Só OP planejada ou em andamento recebe apontamento (a lista /etapas/minhas já filtra assim). */
+const STATUS_QUE_ACEITAM_APONTAMENTO = ['Planejada', 'EmAndamento'];
+const ROTULO_DO_STATUS: Record<string, string> = { Concluida: 'concluída', Cancelada: 'cancelada' };
 
 export interface FilaDaEstacao {
   etapas: EtapaNaTela[];
@@ -79,6 +83,13 @@ export class EtapasService {
       throw interpretarErro(erro);
     }
 
+    if (!STATUS_QUE_ACEITAM_APONTAMENTO.includes(ordem.ordem.status)) {
+      throw new ApiError(
+        'ORDEM_ENCERRADA',
+        `A ordem ${ordem.ordem.numero} está ${ROTULO_DO_STATUS[ordem.ordem.status] ?? ordem.ordem.status.toLowerCase()} e não aceita apontamentos.`,
+      );
+    }
+
     const etapa = this.etapaDaEstacao(ordem, estacaoId);
     await this.deps.cache.guardar(etapa, this.agora().toISOString());
     return etapa.etapaId;
@@ -99,6 +110,13 @@ export class EtapasService {
       dataHoraCliente: this.agora().toISOString(),
     });
     return clientRequestId;
+  }
+
+  /** Aplica ao cache, na ordem em que foram feitos, os apontamentos que o servidor confirmou. */
+  async registrarConfirmados(itens: readonly ApontamentoPendente[]): Promise<void> {
+    for (const item of itens) {
+      await this.deps.cache.aplicarApontamento(item.etapaId, item.tipo, item.dataHoraCliente);
+    }
   }
 
   /** Atualiza o cache da estação depois de uma sincronização; falha de rede é silenciosa. */

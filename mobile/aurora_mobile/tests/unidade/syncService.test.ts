@@ -229,6 +229,35 @@ describe('SyncService', () => {
     expect(servidor.lotes).toHaveLength(1);
   });
 
+  it('avisa o aparelho dos itens confirmados antes de tirá-los da fila, e só deles', async () => {
+    servidor.regra = (item) => (item.clientRequestId === 'recusado' ? { code: 'RN04', mensagem: 'x' } : undefined);
+    await fila.enfileirar(apontamento('a', 'Inicio', 1, 1));
+    await fila.enfileirar(apontamento('recusado', 'Inicio', 2, 2));
+    const visto: { ids: string[]; aindaNaFila: string[] }[] = [];
+    const aoConfirmar = jest.fn(async (itens: { clientRequestId: string }[]) => {
+      visto.push({
+        ids: itens.map((i) => i.clientRequestId),
+        aindaNaFila: (await fila.listar()).map((i) => i.clientRequestId),
+      });
+    });
+
+    await new SyncService({ fila, api: servidor, aoConfirmar }).sincronizar();
+
+    expect(visto).toEqual([{ ids: ['a'], aindaNaFila: expect.arrayContaining(['a', 'recusado']) }]);
+  });
+
+  it('falha ao atualizar o aparelho não impede de tirar da fila o que o servidor aceitou', async () => {
+    await fila.enfileirar(apontamento('a', 'Inicio', 1));
+    const aoConfirmar = jest.fn(async () => {
+      throw new Error('banco ocupado');
+    });
+
+    const resumo = await new SyncService({ fila, api: servidor, aoConfirmar }).sincronizar();
+
+    expect(resumo.confirmados).toBe(1);
+    expect(await fila.listar()).toEqual([]);
+  });
+
   it('fila vazia não chama o servidor nem recarrega a tela', async () => {
     const apos = jest.fn(async () => {});
 

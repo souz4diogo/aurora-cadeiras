@@ -65,6 +65,16 @@ describe('lista de etapas da estação', () => {
     }
   });
 
+  it('o inspetor não vê o botão Estoque, que a API nega a ele', async () => {
+    const app = await montarApp('Inspetor', 5);
+
+    await render(<TelaDeEtapas />, { wrapper: app.Envolver });
+
+    await screen.findByText('Nenhuma etapa na fila');
+    expect(screen.queryByRole('button', { name: 'Estoque' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Ler QR code' })).toBeOnTheScreen();
+  });
+
   it('sem estação escolhida manda o operador escolher uma', async () => {
     const app = await montarApp('Operador', null);
 

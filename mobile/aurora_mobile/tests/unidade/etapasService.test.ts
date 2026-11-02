@@ -180,6 +180,22 @@ describe('EtapasService.abrirPorQr', () => {
     expect((await cache.obter(etapaId))?.liberada).toBe(false);
   });
 
+  it.each([
+    ['Cancelada', /cancelada e não aceita apontamentos/],
+    ['Concluida', /concluída e não aceita apontamentos/],
+  ])('OP %s não abre etapa pelo QR', async (status, mensagem) => {
+    ordemPorQr.mockResolvedValue({ ...ordemComTresEtapas(), ordem: { ...ordemComTresEtapas().ordem, status } });
+
+    await expect(servico().abrirPorQr('qr-58', 2)).rejects.toMatchObject({ code: 'ORDEM_ENCERRADA', message: mensagem });
+    expect(await cache.obter(301)).toBeNull();
+  });
+
+  it('OP planejada, que ainda não começou, abre normalmente', async () => {
+    ordemPorQr.mockResolvedValue({ ...ordemComTresEtapas(), ordem: { ...ordemComTresEtapas().ordem, status: 'Planejada' } });
+
+    await expect(servico().abrirPorQr('qr-58', 2)).resolves.toBe(301);
+  });
+
   it('OP sem etapa em aberto na estação avisa com mensagem clara', async () => {
     ordemPorQr.mockResolvedValue(ordemComTresEtapas(['Concluida', 'Concluida', 'Pendente']));
 

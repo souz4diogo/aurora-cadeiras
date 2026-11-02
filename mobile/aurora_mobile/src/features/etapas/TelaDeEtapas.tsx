@@ -1,6 +1,7 @@
 import { Redirect, router } from 'expo-router';
 import { View } from 'react-native';
 
+import { useUsuario } from '@/features/auth/AuthProvider';
 import { descreverEtapa, StatusDaEtapa } from '@/features/etapas/StatusDaEtapa';
 import type { EtapaNaTela } from '@/features/etapas/tipos';
 import { useFilaDaEstacao } from '@/features/etapas/useFilaDaEstacao';
@@ -10,6 +11,7 @@ import { formatarData, formatarHora } from '@/shared/formatar';
 /** Minhas etapas (RF11): fila da estação com o estado de cada etapa, atalhos e o horário da última atualização. */
 export function TelaDeEtapas() {
   const fila = useFilaDaEstacao();
+  const { perfil } = useUsuario();
   const dados = fila.dados;
 
   if (dados && dados.estacaoId === null) return <Redirect href="/estacao" />;
@@ -31,7 +33,10 @@ export function TelaDeEtapas() {
           aoPressionar={() => router.push('/qr')}
         />
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <Botao titulo="Estoque" variante="secundario" estilo={{ flex: 1 }} aoPressionar={() => router.push('/estoque')} />
+          {/* Consulta de estoque é do operador (docs/08 §2); a API nega ao inspetor */}
+          {perfil === 'Operador' ? (
+            <Botao titulo="Estoque" variante="secundario" estilo={{ flex: 1 }} aoPressionar={() => router.push('/estoque')} />
+          ) : null}
           <Botao titulo="Trocar estação" variante="secundario" estilo={{ flex: 1 }} aoPressionar={() => router.push('/estacao')} />
         </View>
       </View>

@@ -50,6 +50,15 @@ export interface Acompanhamento {
   eventos: EventoDoPedido[];
 }
 
+/** Tamanho da página que o app pede: a API aceita no máximo 100. */
+const TAMANHO_DA_PAGINA = 50;
+
+/** Os pedidos mais recentes e quantos existem ao todo, para a tela avisar quando mostra só uma parte. */
+export interface ListaDePedidos {
+  itens: PedidoResumo[];
+  total: number;
+}
+
 /** Pedidos para o vendedor (os que criou) e para o cliente (os dele), com linha do tempo da produção (RF22). */
 export class PedidosService {
   constructor(
@@ -58,11 +67,13 @@ export class PedidosService {
   ) {}
 
   /** O cliente usa /meus-pedidos; o vendedor, /pedidos (a API já restringe o vendedor aos próprios pedidos). */
-  listar(perfil: Perfil): Promise<ResultadoDaConsulta<PedidoResumo[]>> {
+  listar(perfil: Perfil): Promise<ResultadoDaConsulta<ListaDePedidos>> {
     const rota = perfil === 'Cliente' ? '/meus-pedidos' : '/pedidos';
     return consultarComCache(this.cache, `pedidos:${rota}`, async () => {
-      const { data } = await this.http.get<{ items: PedidoResumo[] }>(rota, { params: { page: 1, pageSize: 50 } });
-      return data.items;
+      const { data } = await this.http.get<{ items: PedidoResumo[]; total?: number }>(rota, {
+        params: { page: 1, pageSize: TAMANHO_DA_PAGINA },
+      });
+      return { itens: data.items, total: data.total ?? data.items.length };
     });
   }
 
