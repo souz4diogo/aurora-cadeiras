@@ -20,3 +20,8 @@ secrets.json
 mobile/**/node_modules/
 mobile/**/.dart_tool/
 mobile/**/build/
+mobile/**/.expo/
+mobile/**/dist/
+mobile/**/android/
+mobile/**/ios/
+mobile/**/expo-env.d.ts
