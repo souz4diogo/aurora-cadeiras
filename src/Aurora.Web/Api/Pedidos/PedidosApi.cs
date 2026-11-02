@@ -14,6 +14,9 @@ public sealed class PedidosApi(HttpClient http) : ApiClientBase(http), IPedidosA
     public Task<PedidoResposta> ObterAsync(int id, CancellationToken ct = default) =>
         HttpGetAsync<PedidoResposta>($"api/v1/pedidos/{id}", ct);
 
+    public Task<AcompanhamentoResposta> ObterAcompanhamentoAsync(int id, CancellationToken ct = default) =>
+        HttpGetAsync<AcompanhamentoResposta>($"api/v1/pedidos/{id}/acompanhamento", ct);
+
     public Task<PedidoResposta> CriarAsync(PedidoRequisicao dados, CancellationToken ct = default) =>
         HttpPostAsync<PedidoResposta>("api/v1/pedidos", dados, ct);
 

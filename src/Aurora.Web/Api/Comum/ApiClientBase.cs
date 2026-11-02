@@ -90,6 +90,23 @@ public abstract class ApiClientBase(HttpClient http)
         }
     }
 
+    /// <summary>GET cuja resposta é um arquivo (relatórios): devolve os bytes, o tipo e o nome sugerido pela API.</summary>
+    protected async Task<ArquivoBaixado> HttpBaixarAsync(string url, CancellationToken ct)
+    {
+        using var resposta = await http.GetAsync(url, ct);
+        if (!resposta.IsSuccessStatusCode)
+        {
+            throw await CriarExcecaoAsync(resposta, ct);
+        }
+
+        var cabecalho = resposta.Content.Headers.ContentDisposition;
+        var nome = cabecalho?.FileNameStar ?? cabecalho?.FileName?.Trim('"') ?? "relatorio";
+        return new ArquivoBaixado(
+            await resposta.Content.ReadAsByteArrayAsync(ct),
+            resposta.Content.Headers.ContentType?.MediaType ?? "application/octet-stream",
+            nome);
+    }
+
     private async Task<T> EnviarAsync<T>(HttpMethod metodo, string url, object? corpo, CancellationToken ct)
     {
         using var requisicao = new HttpRequestMessage(metodo, url);

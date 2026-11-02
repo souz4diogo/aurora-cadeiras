@@ -1,0 +1,179 @@
+@model PainelViewModel
+@{
+    ViewData["Title"] = "Painel gerencial";
+    var resumo = Model.Resumo;
+
+    // Cartões: o número vem sempre com o rótulo em texto; o destaque (borda) só reforça quando há algo a olhar
+    (string Titulo, int Valor, string Controller, string Acao, bool Alerta)[] cartoes =
+    [
+        ("Pedidos em aberto", resumo.PedidosEmAberto, "Pedidos", "Index", false),
+        ("Pedidos atrasados", resumo.PedidosAtrasados, "Pedidos", "Index", resumo.PedidosAtrasados > 0),
+        ("Prontos para expedir", resumo.PedidosProntosParaExpedir, "Expedicao", "Index", false),
+        ("OPs planejadas", resumo.OrdensPlanejadas, "Producao", "Ordens", false),
+        ("OPs em andamento", resumo.OrdensEmAndamento, "Producao", "Ordens", false),
+        ("OPs atrasadas", resumo.OrdensAtrasadas, "Producao", "Ordens", resumo.OrdensAtrasadas > 0),
+        ("Materiais críticos", resumo.MateriaisCriticos, "Estoque", "Alertas", resumo.MateriaisCriticos > 0),
+        ("Compras a receber", resumo.ComprasAReceber, "Compras", "Index", false),
+        ("Compras atrasadas", resumo.ComprasAtrasadas, "Compras", "Index", resumo.ComprasAtrasadas > 0),
+    ];
+
+    var barrasDasEstacoes = Model.Estacoes
+        .Select(e => new GraficoDeBarras.Barra(e.Estacao, e.OrdensNaEstacao, e.OrdensNaEstacao.ToString(System.Globalization.CultureInfo.InvariantCulture)))
+        .ToList();
+    var barrasDeConsumo = Model.Consumo
+        .Select(c => new GraficoDeBarras.Barra(c.Nome, (double)c.Quantidade, Formatacao.Quantidade(c.Quantidade) + " " + c.Unidade))
+        .ToList();
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Painel gerencial</h1>
+    <p class="text-muted mb-0">Atualizado em @Formatacao.DataHora(resumo.AtualizadoEm)</p>
+</div>
+
+<section aria-labelledby="titulo-resumo">
+    <h2 id="titulo-resumo" class="visually-hidden">Resumo</h2>
+    <div class="row g-3 mb-4">
+        @foreach (var cartao in cartoes)
+        {
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="card h-100 @(cartao.Alerta ? "cartao-de-alerta" : "")">
+                    <div class="card-body">
+                        <p class="card-text mb-1">@cartao.Titulo</p>
+                        <p class="display-6 mb-1">@cartao.Valor</p>
+                        <a class="stretched-link small" asp-controller="@cartao.Controller" asp-action="@cartao.Acao"
+                           aria-label="Ver detalhes: @cartao.Titulo">Ver detalhes</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section aria-labelledby="titulo-estacoes" class="mb-4">
+    <h2 id="titulo-estacoes" class="h5">Produção por estação</h2>
+    <p class="text-muted">Ordens de produção que estão em cada estação agora (a estação da primeira etapa ainda não concluída).</p>
+    <div class="grafico-caixa">@Html.Raw(GraficoDeBarras.Svg(
+        "Ordens de produção por estação",
+        "Quantidade de ordens de produção em cada estação neste momento. Os números estão na tabela abaixo.",
+        barrasDasEstacoes))</div>
+    <div class="table-responsive mt-2">
+        <table class="table table-sm align-middle">
+            <caption class="visually-hidden">Produção por estação</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Estação</th>
+                    <th scope="col" class="numero">OPs na estação</th>
+                    <th scope="col" class="numero">Em andamento</th>
+                    <th scope="col" class="numero">Aguardando</th>
+                    <th scope="col" class="numero">Atrasadas</th>
+                    <th scope="col" class="numero">Tempo médio na etapa</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var estacao in Model.Estacoes)
+                {
+                    <tr>
+                        <th scope="row">@estacao.Estacao</th>
+                        <td class="numero">@estacao.OrdensNaEstacao</td>
+                        <td class="numero">@estacao.EmAndamento</td>
+                        <td class="numero">@estacao.Aguardando</td>
+                        <td class="numero">@estacao.Atrasadas</td>
+                        <td class="numero">@(estacao.TempoMedioNaEtapaMinutos is double minutos ? Formatacao.Duracao((int)Math.Round(minutos)) : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section aria-labelledby="titulo-consumo" class="mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <h2 id="titulo-consumo" class="h5 mb-0">Consumo de materiais</h2>
+        <form method="get" class="d-flex align-items-end gap-2" aria-label="Período do consumo">
+            <div>
+                <label for="dias" class="form-label mb-0">Período</label>
+                <select id="dias" name="dias" class="form-select form-select-sm">
+                    @foreach (var janela in PainelViewModel.JanelasDeConsumo)
+                    {
+                        <option value="@janela" selected="@(janela == Model.Dias)">Últimos @janela dias</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Atualizar</button>
+        </form>
+    </div>
+    @if (Model.Consumo.Count == 0)
+    {
+        <p class="alert alert-info mt-2" role="status">Nenhum material saiu para a produção nos últimos @Model.Dias dias.</p>
+    }
+    else
+    {
+        <div class="grafico-caixa mt-2">@Html.Raw(GraficoDeBarras.Svg(
+            $"Consumo de materiais nos últimos {Model.Dias} dias",
+            "Os materiais que mais saíram para a produção no período. Os números estão na tabela abaixo.",
+            barrasDeConsumo))</div>
+        <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle">
+                <caption class="visually-hidden">Consumo de materiais nos últimos @Model.Dias dias</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Material</th>
+                        <th scope="col" class="numero">Quantidade</th>
+                        <th scope="col" class="numero">Custo estimado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var consumo in Model.Consumo)
+                    {
+                        <tr>
+                            <th scope="row">@consumo.Codigo - @consumo.Nome</th>
+                            <td class="numero">@Formatacao.Quantidade(consumo.Quantidade) @consumo.Unidade</td>
+                            <td class="numero">@Formatacao.Moeda(consumo.CustoEstimado)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section aria-labelledby="titulo-atrasados" class="mb-4">
+    <h2 id="titulo-atrasados" class="h5">Pedidos atrasados</h2>
+    @if (Model.Atrasados.Items.Count == 0)
+    {
+        <p class="alert alert-success" role="status">Nenhum pedido em andamento com o prazo vencido.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <caption class="visually-hidden">Pedidos em andamento com prazo vencido, do mais atrasado ao menos</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Pedido</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Prazo</th>
+                        <th scope="col" class="numero">Atraso</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="numero">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pedido in Model.Atrasados.Items)
+                    {
+                        <tr>
+                            <th scope="row"><a asp-controller="Pedidos" asp-action="Detalhes" asp-route-id="@pedido.PedidoId">@pedido.Numero</a></th>
+                            <td>@pedido.Cliente</td>
+                            <td>@Formatacao.Data(pedido.PrazoEntrega)</td>
+                            <td class="numero">@pedido.DiasAtraso @(pedido.DiasAtraso == 1 ? "dia" : "dias")</td>
+                            <td><partial name="_StatusDoPedido" model="pedido.Status" /></td>
+                            <td class="numero">@Formatacao.Moeda(pedido.ValorTotal)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Atrasados.Page, Model.Atrasados.TotalDePaginas, Model.Atrasados.Total)" />
+    }
+</section>

@@ -43,6 +43,13 @@ public static class Formatacao
         _ => status,
     };
 
+    /// <summary>Status do pedido de compra como o usuário lê ("ParcialmenteRecebido" vira "Parcialmente recebido").</summary>
+    public static string StatusDaCompra(string status) => status switch
+    {
+        "ParcialmenteRecebido" => "Parcialmente recebido",
+        _ => status,
+    };
+
     public static string StatusDaEtapa(string status) => StatusDaOrdem(status);
 
     public static string TipoDeMovimento(string tipo) => tipo switch

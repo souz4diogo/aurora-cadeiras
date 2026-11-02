@@ -139,3 +139,33 @@ table caption {
   }
 }
 
+
+/* Painel gerencial: cartão com algo a olhar ganha borda grossa, além do número e do rótulo em texto */
+.cartao-de-alerta {
+  border-left: 5px solid #b02a37;
+}
+
+/* Gráficos de barras em SVG (sem estilo embutido: a política de conteúdo só aceita este arquivo) */
+.grafico-caixa {
+  max-width: 720px;
+}
+
+.grafico {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.grafico-barra {
+  fill: #4a2f20;
+}
+
+.grafico-rotulo,
+.grafico-valor {
+  font-size: 13px;
+  fill: #212529;
+}
+
+.grafico-valor {
+  font-weight: 600;
+}

@@ -1,0 +1,32 @@
+@model ExpedirFormViewModel
+@{
+    var pedido = Model.Pedido!;
+    ViewData["Title"] = "Expedir pedido " + pedido.Numero;
+}
+
+<h1 class="h3 mb-3">Expedir pedido @pedido.Numero</h1>
+
+<p>
+    O pedido de <strong>@pedido.ClienteNome</strong>, no valor de <strong>@Formatacao.Moeda(pedido.ValorTotal)</strong>, sai
+    da fábrica agora: a reserva é liberada, o produto acabado é baixado do estoque e o pedido passa a expedido.
+    Esta ação não pode ser desfeita.
+</p>
+
+<ul>
+    @foreach (var item in pedido.Itens)
+    {
+        <li>@item.Quantidade &times; @item.ProdutoCodigo - @item.ProdutoNome</li>
+    }
+</ul>
+
+<form asp-action="Expedir" asp-route-id="@pedido.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+    <div class="row">
+        <div class="col-12 col-lg-6"><aurora-campo for="Transportadora" tamanho-maximo="80" autocomplete="off" dica="Opcional." /></div>
+        <div class="col-12 col-lg-4"><aurora-campo for="CodigoRastreio" tamanho-maximo="40" autocomplete="off" dica="Opcional." /></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Confirmar expedição</button>
+    <a class="btn btn-outline-secondary" asp-controller="Pedidos" asp-action="Detalhes" asp-route-id="@pedido.Id">Voltar</a>
+</form>

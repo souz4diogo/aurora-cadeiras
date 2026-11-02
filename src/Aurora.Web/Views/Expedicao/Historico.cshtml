@@ -1,0 +1,46 @@
+@model HistoricoDeExpedicoesViewModel
+@{
+    ViewData["Title"] = "Histórico de expedições";
+}
+
+<h1 class="h3 mb-3">Expedição</h1>
+
+<partial name="_Abas" model="@("Historico")" />
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhuma expedição registrada.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Expedições, da mais recente à mais antiga</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Saída</th>
+                    <th scope="col">Pedido</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Transportadora</th>
+                    <th scope="col">Rastreio</th>
+                    <th scope="col">Responsável</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var expedicao in Model.Pagina.Items)
+                {
+                    <tr>
+                        <td>@Formatacao.DataHora(expedicao.DataHora)</td>
+                        <th scope="row"><a asp-controller="Pedidos" asp-action="Detalhes" asp-route-id="@expedicao.PedidoId">@expedicao.PedidoNumero</a></th>
+                        <td>@expedicao.ClienteNome</td>
+                        <td>@(expedicao.Transportadora ?? "—")</td>
+                        <td>@(expedicao.CodigoRastreio ?? "—")</td>
+                        <td>@expedicao.UsuarioNome</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

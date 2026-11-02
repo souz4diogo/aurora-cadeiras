@@ -1,0 +1,71 @@
+@model RelatoriosViewModel
+@{
+    ViewData["Title"] = "Relatórios";
+}
+
+<h1 class="h3 mb-3">Relatórios</h1>
+
+<p class="text-muted">
+    Escolha o relatório, ajuste os filtros que ele aceita e baixe em PDF ou em Excel. Os arquivos trazem os dados de agora e
+    não ficam guardados no servidor.
+</p>
+
+@if (Model.Relatorios.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum relatório disponível para o seu perfil.</p>
+}
+
+<div class="row g-3">
+    @foreach (var relatorio in Model.Relatorios)
+    {
+        <div class="col-12 col-xl-6">
+            <section class="card h-100" aria-labelledby="relatorio-@relatorio.Tipo">
+                <div class="card-body">
+                    <h2 id="relatorio-@relatorio.Tipo" class="h5 card-title">@relatorio.Titulo</h2>
+                    <form asp-action="Baixar" asp-route-tipo="@relatorio.Tipo" method="get" class="row g-2 align-items-end">
+                        @if (relatorio.AceitaPeriodo)
+                        {
+                            <div class="col-6">
+                                <label for="de-@relatorio.Tipo" class="form-label">De</label>
+                                <input id="de-@relatorio.Tipo" name="de" type="date" class="form-control" />
+                            </div>
+                            <div class="col-6">
+                                <label for="ate-@relatorio.Tipo" class="form-label">Até</label>
+                                <input id="ate-@relatorio.Tipo" name="ate" type="date" class="form-control" />
+                            </div>
+                        }
+                        @if (relatorio.AceitaStatus)
+                        {
+                            <div class="col-12 col-md-6">
+                                <label for="status-@relatorio.Tipo" class="form-label">Situação</label>
+                                <select id="status-@relatorio.Tipo" name="status" class="form-select">
+                                    <option value="">Todas</option>
+                                    @foreach (var situacao in Model.Situacoes(relatorio.Tipo))
+                                    {
+                                        <option value="@situacao.Valor">@situacao.Rotulo</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        @if (relatorio.AceitaAno)
+                        {
+                            <div class="col-6 col-md-3">
+                                <label for="ano-@relatorio.Tipo" class="form-label">Ano</label>
+                                <input id="ano-@relatorio.Tipo" name="ano" type="number" min="2000" max="2100" step="1"
+                                       class="form-control" value="@Model.AnoAtual" />
+                            </div>
+                        }
+                        <div class="col-12 d-flex flex-wrap gap-2">
+                            @foreach (var formato in Model.Formatos)
+                            {
+                                <button type="submit" name="formato" value="@formato.Codigo" class="btn btn-outline-primary">
+                                    Baixar em @formato.Rotulo<span class="visually-hidden"> o relatório @relatorio.Titulo</span>
+                                </button>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    }
+</div>

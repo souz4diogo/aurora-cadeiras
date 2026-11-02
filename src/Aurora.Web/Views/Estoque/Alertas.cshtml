@@ -42,7 +42,9 @@ else
                         @if (podeMarcar)
                         {
                             <td>
-                                <form asp-action="LerAlerta" asp-route-id="@alerta.Id" method="post">
+                                <form asp-action="LerAlerta" asp-route-id="@alerta.Id" method="post" class="d-flex gap-2">
+                                    <a class="btn btn-sm btn-primary" asp-controller="Compras" asp-action="Novo" asp-route-materiaPrimaId="@alerta.MateriaPrimaId"
+                                       aria-label="Comprar @alerta.MateriaPrimaNome">Comprar</a>
                                     <button type="submit" class="btn btn-sm btn-outline-secondary"
                                             aria-label="Marcar como lido o alerta de @alerta.MateriaPrimaNome">Marcar como lido</button>
                                 </form>

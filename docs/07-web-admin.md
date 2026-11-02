@@ -130,4 +130,4 @@ chama a API por um **HttpClient tipado**, o que demonstra a integração entre m
 ## 7. Evidências para o texto
 
 Salvar em `docs/evidencias/`: `E04-login.png`, `E04-pedido-novo.png`, `E04-quadro-producao.png`,
-`E04-painel.png`, `E04-ficha-tecnica.png`, `E04-swagger.png`, `E04-lighthouse.png`.
+`E04-painel.png`, `E04-compras.png`, `E04-expedicao.png`, `E04-relatorios.png`, `E04-ficha-tecnica.png`, `E04-swagger.png`, `E04-lighthouse.png`.

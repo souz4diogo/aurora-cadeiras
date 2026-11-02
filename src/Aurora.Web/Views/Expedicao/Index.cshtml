@@ -1,0 +1,64 @@
+@model ProntosViewModel
+@{
+    ViewData["Title"] = "Expedição";
+    var podeExpedir = User.IsInRole(Perfis.Almoxarife);
+}
+
+<h1 class="h3 mb-3">Expedição</h1>
+
+<partial name="_Abas" model="@("Index")" />
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum pedido pronto para expedir no momento.</p>
+}
+else
+{
+    <p class="text-muted">Pedidos prontos, com o produto acabado reservado.</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Pedidos prontos para expedir</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Pedido</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Prazo de entrega</th>
+                    <th scope="col" class="numero">Itens</th>
+                    <th scope="col" class="numero">Valor total</th>
+                    @if (podeExpedir)
+                    {
+                        <th scope="col"><span class="visually-hidden">Ações</span></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pedido in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row"><a asp-controller="Pedidos" asp-action="Detalhes" asp-route-id="@pedido.Id">@pedido.Numero</a></th>
+                        <td>@pedido.ClienteNome</td>
+                        <td>
+                            @Formatacao.Data(pedido.PrazoEntrega)
+                            @if (pedido.Atrasado)
+                            {
+                                <span class="badge text-bg-warning">Atrasado</span>
+                            }
+                        </td>
+                        <td class="numero">@pedido.QuantidadeItens</td>
+                        <td class="numero">@Formatacao.Moeda(pedido.ValorTotal)</td>
+                        @if (podeExpedir)
+                        {
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="Expedir" asp-route-id="@pedido.Id"
+                                   aria-label="Expedir o pedido @pedido.Numero">Expedir</a>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

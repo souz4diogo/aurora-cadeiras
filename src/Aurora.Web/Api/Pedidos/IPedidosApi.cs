@@ -8,6 +8,9 @@ public interface IPedidosApi
 
     Task<PedidoResposta> ObterAsync(int id, CancellationToken ct = default);
 
+    /// <summary>Pedido com os itens e a linha do tempo da produção (RF08, RF22).</summary>
+    Task<AcompanhamentoResposta> ObterAcompanhamentoAsync(int id, CancellationToken ct = default);
+
     Task<PedidoResposta> CriarAsync(PedidoRequisicao dados, CancellationToken ct = default);
 
     Task<PedidoResposta> AtualizarAsync(int id, PedidoRequisicao dados, CancellationToken ct = default);

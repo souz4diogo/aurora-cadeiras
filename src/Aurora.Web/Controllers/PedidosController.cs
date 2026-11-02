@@ -38,9 +38,9 @@ public class PedidosController(IPedidosApi pedidos, IClientesApi clientes, IProd
     [HttpGet]
     public async Task<IActionResult> Detalhes(int id, CancellationToken ct)
     {
-        var pedido = await pedidos.ObterAsync(id, ct);
+        var acompanhamento = await pedidos.ObterAcompanhamentoAsync(id, ct);
         var ordens = PodeConsultarProducao ? await producao.ListarOrdensDoPedidoAsync(id, ct) : null;
-        return View(new PedidoDetalhesViewModel(pedido, ordens));
+        return View(new PedidoDetalhesViewModel(acompanhamento.Pedido, ordens, acompanhamento.Eventos));
     }
 
     /// <summary>Tela de confirmação: confirmar reserva estoque e gera ordens de produção, então pede uma segunda confirmação.</summary>

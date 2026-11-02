@@ -1,0 +1,111 @@
+@model PedidoCompraResposta
+@{
+    ViewData["Title"] = "Pedido de compra " + Model.Numero;
+    var almoxarife = User.IsInRole(Perfis.Almoxarife);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Pedido de compra @Model.Numero <partial name="_StatusDaCompra" model="Model.Status" /></h1>
+    <div class="d-flex flex-wrap gap-2">
+        @if (almoxarife && Model.PodeEmitir)
+        {
+            <form asp-action="Emitir" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="btn btn-primary">Emitir pedido</button>
+            </form>
+        }
+        @if (almoxarife && Model.PodeCancelar)
+        {
+            <a class="btn btn-outline-danger" asp-action="Cancelar" asp-route-id="@Model.Id">Cancelar pedido</a>
+        }
+        <a class="btn btn-link" asp-action="Index">Voltar à lista</a>
+    </div>
+</div>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert" tabindex="-1"></div>
+
+@if (Model.Atrasado)
+{
+    <p class="alert alert-warning" role="status">Este pedido está atrasado: a entrega prevista era @(Model.DataPrevista is DateOnly prevista ? Formatacao.Data(prevista) : "—").</p>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Fornecedor</dt>
+    <dd class="col-sm-9">
+        @Model.FornecedorNome
+        @if (Model.ComunidadeTradicional)
+        {
+            <span class="badge text-bg-success">Comunidade tradicional</span>
+        }
+    </dd>
+    <dt class="col-sm-3">Comprador</dt>
+    <dd class="col-sm-9">@(Model.CompradorNome ?? "—")</dd>
+    <dt class="col-sm-3">Criado em</dt>
+    <dd class="col-sm-9">@Formatacao.DataHora(Model.CriadoEm)</dd>
+    <dt class="col-sm-3">Entrega prevista</dt>
+    <dd class="col-sm-9">@(Model.DataPrevista is DateOnly entrega ? Formatacao.Data(entrega) : "—")</dd>
+</dl>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <caption class="visually-hidden">Itens do pedido de compra</caption>
+        <thead>
+            <tr>
+                <th scope="col">Matéria-prima</th>
+                <th scope="col" class="numero">Pedido</th>
+                <th scope="col" class="numero">Recebido</th>
+                <th scope="col" class="numero">Falta</th>
+                <th scope="col" class="numero">Custo unitário</th>
+                <th scope="col" class="numero">Subtotal</th>
+                @if (almoxarife && Model.PodeReceber)
+                {
+                    <th scope="col">Receber</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Itens)
+            {
+                <tr>
+                    <th scope="row">@item.MateriaPrimaCodigo - @item.MateriaPrimaNome</th>
+                    <td class="numero">@Formatacao.Quantidade(item.Quantidade) @item.Unidade</td>
+                    <td class="numero">@Formatacao.Quantidade(item.QuantidadeRecebida) @item.Unidade</td>
+                    <td class="numero">@(item.Saldo > 0 ? Formatacao.Quantidade(item.Saldo) + " " + item.Unidade : "Completo")</td>
+                    <td class="numero">@Formatacao.Moeda(item.CustoUnitario)</td>
+                    <td class="numero">@Formatacao.Moeda(item.Subtotal)</td>
+                    @if (almoxarife && Model.PodeReceber)
+                    {
+                        <td>
+                            @if (item.Saldo > 0)
+                            {
+                                <form asp-action="Receber" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="itemId" value="@item.Id" />
+                                    <label class="visually-hidden" for="quantidade-@item.Id">Quantidade recebida de @item.MateriaPrimaNome</label>
+                                    <input id="quantidade-@item.Id" name="quantidade" type="text" inputmode="decimal" autocomplete="off"
+                                           class="form-control form-control-sm numero" value="@Formatacao.Quantidade(item.Saldo)" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Receber<span class="visually-hidden"> @item.MateriaPrimaNome</span></button>
+                                </form>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th scope="row" colspan="5" class="numero">Valor total</th>
+                <td class="numero"><strong>@Formatacao.Moeda(Model.ValorTotal)</strong></td>
+                @if (almoxarife && Model.PodeReceber)
+                {
+                    <td></td>
+                }
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+@if (almoxarife && Model.PodeReceber)
+{
+    <p class="text-muted">
+        Informe a quantidade que chegou agora; pode ser parcial. Cada recebimento dá entrada no estoque na hora e não é desfeito.
+    </p>
+}

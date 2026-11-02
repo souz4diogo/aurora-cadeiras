@@ -15,6 +15,10 @@ public static class MenuPrincipal
         new("Pedidos", "Pedidos de venda", "Pedidos", Perfis.Administrador + "," + Perfis.GerenteProducao + "," + Perfis.Vendedor),
         new("Produção", "Quadro de produção e ordens de produção", "Producao", Perfis.AdministradorOuGerente),
         new("Estoque", "Saldos, movimentos e alertas de estoque", "Estoque", Perfis.ConsultaDeEstoque),
+        new("Compras", "Pedidos de compra de matéria-prima e recebimento", "Compras", Perfis.ConsultaDeCompras),
+        new("Expedição", "Pedidos prontos para sair e histórico de expedições", "Expedicao", Perfis.ConsultaDeExpedicoes),
+        new("Painel", "Painel gerencial: pedidos, produção, estoque e compras", "Painel", Perfis.AdministradorOuGerente),
+        new("Relatórios", "Relatórios em PDF e Excel", "Relatorios", Perfis.ConsultaDeRelatorios),
     ];
 
     public static IReadOnlyList<ItemDeMenu> Para(ClaimsPrincipal usuario) =>

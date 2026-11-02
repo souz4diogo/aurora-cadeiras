@@ -1,0 +1,14 @@
+@* Status do pedido de compra em texto dentro de uma etiqueta colorida: a cor reforça, mas nunca é a única informação *@
+@model string
+@{
+    var classe = Model switch
+    {
+        "Solicitado" => "text-bg-secondary",
+        "Emitido" => "text-bg-primary",
+        "ParcialmenteRecebido" => "text-bg-info",
+        "Recebido" => "text-bg-success",
+        "Cancelado" => "text-bg-danger",
+        _ => "text-bg-light",
+    };
+}
+<span class="badge @classe">@Formatacao.StatusDaCompra(Model)</span>

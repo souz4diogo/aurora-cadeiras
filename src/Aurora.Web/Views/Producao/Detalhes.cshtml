@@ -1,6 +1,6 @@
-@model OrdemProducaoResposta
+@model DetalhesDaOrdemViewModel
 @{
-    var ordem = Model.Ordem;
+    var ordem = Model.Dados.Ordem;
     ViewData["Title"] = "Ordem " + ordem.Numero;
 }
 
@@ -21,7 +21,7 @@
 
 <dl class="row">
     <dt class="col-sm-3">Pedido</dt>
-    <dd class="col-sm-9">@ordem.PedidoNumero &middot; @Model.ClienteNome</dd>
+    <dd class="col-sm-9">@ordem.PedidoNumero &middot; @Model.Dados.ClienteNome</dd>
     <dt class="col-sm-3">Produto</dt>
     <dd class="col-sm-9">@ordem.ProdutoCodigo - @ordem.ProdutoNome</dd>
     <dt class="col-sm-3">Quantidade</dt>
@@ -53,7 +53,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var etapa in Model.Etapas)
+                @foreach (var etapa in Model.Dados.Etapas)
                 {
                     <tr>
                         <td class="numero">@etapa.Sequencia</td>
@@ -72,7 +72,7 @@
 
 <section aria-labelledby="titulo-apontamentos" class="mt-4">
     <h2 id="titulo-apontamentos" class="h5">Apontamentos</h2>
-    @if (Model.Apontamentos.Count == 0)
+    @if (Model.Dados.Apontamentos.Count == 0)
     {
         <p class="text-muted">Nenhum apontamento ainda.</p>
     }
@@ -90,9 +90,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var apontamento in Model.Apontamentos)
+                    @foreach (var apontamento in Model.Dados.Apontamentos)
                     {
-                        var estacao = Model.Etapas.FirstOrDefault(e => e.Id == apontamento.EtapaId)?.EstacaoNome;
+                        var estacao = Model.Dados.Etapas.FirstOrDefault(e => e.Id == apontamento.EtapaId)?.EstacaoNome;
                         <tr>
                             <td>@Formatacao.DataHora(apontamento.DataHoraServidor)</td>
                             <td>@(apontamento.Tipo == "Inicio" ? "Início" : "Fim")</td>
@@ -108,7 +108,7 @@
 
 <section aria-labelledby="titulo-perdas" class="mt-4">
     <h2 id="titulo-perdas" class="h5">Perdas</h2>
-    @if (Model.Perdas.Count == 0)
+    @if (Model.Dados.Perdas.Count == 0)
     {
         <p class="text-muted">Nenhuma perda registrada.</p>
     }
@@ -128,7 +128,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var perda in Model.Perdas)
+                    @foreach (var perda in Model.Dados.Perdas)
                     {
                         <tr>
                             <td>@Formatacao.DataHora(perda.CriadoEm)</td>
@@ -144,3 +144,45 @@
         </div>
     }
 </section>
+
+@if (Model.Inspecoes is not null)
+{
+    <section aria-labelledby="titulo-inspecoes" class="mt-4">
+        <h2 id="titulo-inspecoes" class="h5">Inspeções de qualidade</h2>
+        @if (Model.Inspecoes.Count == 0)
+        {
+            <p class="text-muted">Nenhuma inspeção registrada.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <caption class="visually-hidden">Inspeções da ordem, da mais recente à mais antiga</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Data</th>
+                            <th scope="col">Resultado</th>
+                            <th scope="col">Retrabalho em</th>
+                            <th scope="col">Observação</th>
+                            <th scope="col">Inspetor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var inspecao in Model.Inspecoes)
+                        {
+                            <tr>
+                                <td>@Formatacao.DataHora(inspecao.DataHora)</td>
+                                <td>
+                                    <span class="badge @(inspecao.Resultado == "Aprovada" ? "text-bg-success" : "text-bg-danger")">@(inspecao.Resultado == "Aprovada" ? "Aprovada" : "Reprovada")</span>
+                                </td>
+                                <td>@(inspecao.EstacaoRetrabalhoNome ?? "—")</td>
+                                <td>@(inspecao.Observacao ?? "—")</td>
+                                <td>@inspecao.InspetorNome</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+}

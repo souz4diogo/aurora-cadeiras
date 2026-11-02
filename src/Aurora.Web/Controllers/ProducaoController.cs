@@ -1,5 +1,6 @@
 using Aurora.Web.Api.Estacoes;
 using Aurora.Web.Api.Producao;
+using Aurora.Web.Api.Qualidade;
 using Aurora.Web.Extensions;
 using Aurora.Web.Models.Producao;
 using Aurora.Web.Seguranca;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aurora.Web.Controllers;
 
 [Authorize(Roles = Perfis.ConsultaDeProducao)]
-public class ProducaoController(IProducaoApi producao, IEstacoesApi estacoes) : AuroraController
+public class ProducaoController(IProducaoApi producao, IEstacoesApi estacoes, IQualidadeApi qualidade) : AuroraController
 {
     /// <summary>Quadro de produção: uma coluna por estação, com as OPs que estão nela agora.</summary>
     [HttpGet]
@@ -26,7 +27,16 @@ public class ProducaoController(IProducaoApi producao, IEstacoesApi estacoes) : 
     }
 
     [HttpGet]
-    public async Task<IActionResult> Detalhes(int id, CancellationToken ct) => View(await producao.ObterOrdemAsync(id, ct));
+    public async Task<IActionResult> Detalhes(int id, CancellationToken ct)
+    {
+        var ordem = await producao.ObterOrdemAsync(id, ct);
+
+        // O Vendedor consulta OPs mas não inspeções (docs/06 §3): para ele a seção não aparece
+        var inspecoes = Perfis.ConsultaDeInspecoes.Split(',').Any(User.IsInRole)
+            ? (await qualidade.ListarDaOrdemAsync(id, ct)).Items
+            : null;
+        return View(new DetalhesDaOrdemViewModel(ordem, inspecoes));
+    }
 
     /// <summary>Página de impressão da etiqueta: o QR carrega o código da OP, que o app mobile lê para abrir a OP.</summary>
     [HttpGet]

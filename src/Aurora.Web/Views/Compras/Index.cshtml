@@ -1,0 +1,103 @@
+@model PedidosCompraListaViewModel
+@{
+    ViewData["Title"] = "Compras";
+    var podeCriar = User.IsInRole(Perfis.Almoxarife);
+    var filtro = Model.Filtro;
+    string[] statusPossiveis = ["Solicitado", "Emitido", "ParcialmenteRecebido", "Recebido", "Cancelado"];
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Pedidos de compra</h1>
+    @if (podeCriar)
+    {
+        <a class="btn btn-primary" asp-action="Novo">Novo pedido de compra</a>
+    }
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar pedidos de compra">
+    <div class="col-12 col-md-3 col-lg-2">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" name="status" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var status in statusPossiveis)
+            {
+                <option value="@status" selected="@(filtro.Status == status)">@Formatacao.StatusDaCompra(status)</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-4 col-lg-3">
+        <label for="fornecedorId" class="form-label">Fornecedor</label>
+        <select id="fornecedorId" name="fornecedorId" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var fornecedor in Model.Fornecedores)
+            {
+                <option value="@fornecedor.Value" selected="@(filtro.FornecedorId?.ToString(System.Globalization.CultureInfo.InvariantCulture) == fornecedor.Value)">@fornecedor.Text</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="de" class="form-label">Criados de</label>
+        <input id="de" name="de" type="date" class="form-control" value="@filtro.De?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="ate" class="form-label">até</label>
+        <input id="ate" name="ate" type="date" class="form-control" value="@filtro.Ate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-12 col-md-3 col-lg-2">
+        <label for="atrasados" class="form-label">Entrega</label>
+        <select id="atrasados" name="atrasados" class="form-select">
+            <option value="" selected="@(filtro.Atrasados is null)">Todas</option>
+            <option value="true" selected="@(filtro.Atrasados == true)">Somente atrasadas</option>
+            <option value="false" selected="@(filtro.Atrasados == false)">Em dia</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    </div>
+</form>
+
+@if (Model.Pagina.Items.Count == 0)
+{
+    <p class="alert alert-info" role="status">Nenhum pedido de compra encontrado.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <caption class="visually-hidden">Pedidos de compra, do mais recente ao mais antigo</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Número</th>
+                    <th scope="col">Fornecedor</th>
+                    <th scope="col">Criado em</th>
+                    <th scope="col">Entrega prevista</th>
+                    <th scope="col" class="numero">Itens</th>
+                    <th scope="col" class="numero">Valor total</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var compra in Model.Pagina.Items)
+                {
+                    <tr>
+                        <th scope="row"><a asp-action="Detalhes" asp-route-id="@compra.Id">@compra.Numero</a></th>
+                        <td>@compra.FornecedorNome</td>
+                        <td>@Formatacao.DataHora(compra.CriadoEm)</td>
+                        <td>
+                            @(compra.DataPrevista is DateOnly prevista ? Formatacao.Data(prevista) : "—")
+                            @if (compra.Atrasado)
+                            {
+                                <span class="badge text-bg-warning">Atrasado</span>
+                            }
+                        </td>
+                        <td class="numero">@compra.QuantidadeItens</td>
+                        <td class="numero">@Formatacao.Moeda(compra.ValorTotal)</td>
+                        <td><partial name="_StatusDaCompra" model="compra.Status" /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Paginacao" model="new PaginacaoViewModel(Model.Pagina.Page, Model.Pagina.TotalDePaginas, Model.Pagina.Total)" />
+}

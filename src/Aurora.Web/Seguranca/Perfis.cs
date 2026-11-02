@@ -43,4 +43,16 @@ public static class Perfis
 
     /// <summary>Quem consulta o estoque (saldos, movimentos e alertas): Administrador, Gerente e Almoxarife.</summary>
     public const string ConsultaDeEstoque = Administrador + "," + GerenteProducao + "," + Almoxarife;
+
+    /// <summary>Quem consulta pedidos de compra: Administrador, Gerente e Almoxarife (que também cria, emite, cancela e recebe).</summary>
+    public const string ConsultaDeCompras = Administrador + "," + GerenteProducao + "," + Almoxarife;
+
+    /// <summary>Quem vê a fila e o histórico de expedição: Administrador, Gerente, Almoxarife (que expede) e Vendedor (só os próprios pedidos).</summary>
+    public const string ConsultaDeExpedicoes = Administrador + "," + GerenteProducao + "," + Almoxarife + "," + Vendedor;
+
+    /// <summary>Quem gera relatórios: Administrador, Gerente, Vendedor e Almoxarife (a API limita os tipos por perfil).</summary>
+    public const string ConsultaDeRelatorios = Administrador + "," + GerenteProducao + "," + Vendedor + "," + Almoxarife;
+
+    /// <summary>Quem consulta as inspeções de uma OP: Administrador, Gerente e Inspetor.</summary>
+    public const string ConsultaDeInspecoes = Administrador + "," + GerenteProducao + "," + Inspetor;
 }
