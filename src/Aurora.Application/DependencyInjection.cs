@@ -1,4 +1,5 @@
-﻿using Aurora.Application.Autenticacao;
+using Aurora.Application.Auditoria;
+using Aurora.Application.Autenticacao;
 using Aurora.Application.Clientes;
 using Aurora.Application.Compras;
 using Aurora.Application.Estacoes;
@@ -50,6 +51,7 @@ public static class DependencyInjection
         services.AddScoped<IGeradorDeRelatorio, RelatorioDeComprasComunitarias>();
         services.AddScoped<InspecaoService>();
         services.AddScoped<ExpedicaoService>();
+        services.AddScoped<AuditoriaService>();
         services.AddScoped<MateriaPrimaService>();
         return services;
     }

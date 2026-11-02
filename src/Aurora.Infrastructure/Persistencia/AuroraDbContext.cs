@@ -1,4 +1,4 @@
-﻿using Aurora.Domain.Entidades;
+using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +41,8 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
     public DbSet<Inspecao> Inspecoes => Set<Inspecao>();
 
     public DbSet<Expedicao> Expedicoes => Set<Expedicao>();
+
+    public DbSet<RegistroDeAuditoria> Auditorias => Set<RegistroDeAuditoria>();
 
     public DbSet<AlertaEstoque> Alertas => Set<AlertaEstoque>();
 

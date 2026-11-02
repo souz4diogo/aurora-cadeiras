@@ -19,6 +19,7 @@ public static class MenuPrincipal
         new("Expedição", "Pedidos prontos para sair e histórico de expedições", "Expedicao", Perfis.ConsultaDeExpedicoes),
         new("Painel", "Painel gerencial: pedidos, produção, estoque e compras", "Painel", Perfis.AdministradorOuGerente),
         new("Relatórios", "Relatórios em PDF e Excel", "Relatorios", Perfis.ConsultaDeRelatorios),
+        new("Auditoria", "Histórico de alterações: quem mudou o quê e quando", "Auditoria", Perfis.Administrador),
     ];
 
     public static IReadOnlyList<ItemDeMenu> Para(ClaimsPrincipal usuario) =>

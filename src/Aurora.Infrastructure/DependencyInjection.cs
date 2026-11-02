@@ -1,4 +1,4 @@
-﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Abstracoes;
 using Aurora.Application.Relatorios;
 using Aurora.Infrastructure.Persistencia;
 using Aurora.Infrastructure.Relatorios;
@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IPedidoCompraRepository, PedidoCompraRepository>();
         services.AddScoped<IQualidadeRepository, QualidadeRepository>();
         services.AddScoped<IExpedicaoRepository, ExpedicaoRepository>();
+        services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
         services.AddScoped<IMateriaPrimaRepository, MateriaPrimaRepository>();
         services.AddScoped<IPainelRepository, PainelRepository>();
         services.AddScoped<IRelatoriosRepository, RelatoriosRepository>();

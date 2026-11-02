@@ -1,3 +1,4 @@
+using Aurora.Web.Api.Auditoria;
 using Aurora.Web.Api.Autenticacao;
 using Aurora.Web.Api.Clientes;
 using Aurora.Web.Api.Compras;
@@ -13,6 +14,7 @@ using Aurora.Web.Api.Producao;
 using Aurora.Web.Api.Produtos;
 using Aurora.Web.Api.Qualidade;
 using Aurora.Web.Api.Relatorios;
+using Aurora.Web.Api.Usuarios;
 
 namespace Aurora.Web.Extensions;
 
@@ -45,6 +47,8 @@ public static class ApiClientsExtensions
         services.AddModuloDaApi<IPainelApi, PainelApi>(configuracao);
         services.AddModuloDaApi<IRelatoriosApi, RelatoriosApi>(configuracao);
         services.AddModuloDaApi<IQualidadeApi, QualidadeApi>(configuracao);
+        services.AddModuloDaApi<IAuditoriaApi, AuditoriaApi>(configuracao);
+        services.AddModuloDaApi<IUsuariosApi, UsuariosApi>(configuracao);
         return services;
     }
 
