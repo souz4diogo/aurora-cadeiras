@@ -1,5 +1,6 @@
 ﻿using Aurora.Application.Autenticacao;
 using Aurora.Application.Clientes;
+using Aurora.Application.Compras;
 using Aurora.Application.Estacoes;
 using Aurora.Application.Estoque;
 using Aurora.Application.Expedicoes;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<OrdemProducaoService>();
         services.AddScoped<EtapaService>();
         services.AddScoped<ApontamentoService>();
+        services.AddScoped<PedidoCompraService>();
         services.AddScoped<InspecaoService>();
         services.AddScoped<ExpedicaoService>();
         services.AddScoped<MateriaPrimaService>();

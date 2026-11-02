@@ -59,6 +59,9 @@ public static class Perfis
     /// <summary>Quem consulta o estoque (movimentos): Administrador, Gerente e Almoxarife.</summary>
     public const string ConsultaDeEstoque = Administrador + "," + GerenteProducao + "," + Almoxarife;
 
+    /// <summary>Quem consulta pedidos de compra: Almoxarife (que também os cria e recebe), Gerente e Administrador.</summary>
+    public const string ConsultaDeCompras = Almoxarife + "," + GerenteProducao + "," + Administrador;
+
     /// <summary>Quem consulta clientes: Administrador, Gerente e Vendedor.</summary>
     public const string ConsultaDeClientes = Administrador + "," + GerenteProducao + "," + Vendedor;
 

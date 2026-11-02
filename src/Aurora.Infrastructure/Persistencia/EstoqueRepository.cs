@@ -1,4 +1,4 @@
-using Aurora.Application.Abstracoes;
+﻿using Aurora.Application.Abstracoes;
 using Aurora.Application.Estoque;
 using Aurora.Domain.Entidades;
 using Aurora.Domain.Enums;
@@ -42,10 +42,16 @@ public sealed class EstoqueRepository(AuroraDbContext db) : IEstoqueRepository
         return (itens, total);
     }
 
-    public async Task AjustarMateriaPrimaAsync(
+    public Task AjustarMateriaPrimaAsync(
         int materiaPrimaId, decimal novaQuantidade, string motivo, CancellationToken ct = default) =>
-        await db.Database.ExecuteSqlInterpolatedAsync(
-            $"EXEC dbo.sp_AjustarEstoque @MateriaPrimaId = {materiaPrimaId}, @NovaQuantidade = {novaQuantidade}, @Motivo = {motivo}", ct);
+        db.ExecutarProcedureAsync(
+            "EXEC dbo.sp_AjustarEstoque @MateriaPrimaId = @materia, @NovaQuantidade = @quantidade, @Motivo = @motivo",
+            [
+                Parametro.Inteiro("@materia", materiaPrimaId),
+                Parametro.Numerica("@quantidade", novaQuantidade, 12, 3),
+                Parametro.Texto("@motivo", motivo, 200),
+            ],
+            ct);
 
     public async Task<(IReadOnlyList<SaldoDeMateriaPrimaDto> Itens, int Total)> ListarSaldosDeMateriaPrimaAsync(
         string? busca, bool? critico, int pagina, int tamanho, CancellationToken ct = default)

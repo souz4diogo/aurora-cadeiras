@@ -36,6 +36,8 @@ public class AuroraDbContext(DbContextOptions<AuroraDbContext> options) : DbCont
 
     public DbSet<RegistroPerda> Perdas => Set<RegistroPerda>();
 
+    public DbSet<PedidoCompra> PedidosCompra => Set<PedidoCompra>();
+
     public DbSet<Inspecao> Inspecoes => Set<Inspecao>();
 
     public DbSet<Expedicao> Expedicoes => Set<Expedicao>();
