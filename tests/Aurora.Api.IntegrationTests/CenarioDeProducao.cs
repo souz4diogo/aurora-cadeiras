@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Aurora.Application.Clientes;
@@ -76,14 +76,15 @@ internal sealed class CenarioDeProducao
         return new CenarioDeProducao(api, materia, produto, cliente, consumoPorUnidade);
     }
 
-    public async Task<PedidoDto> PedidoAbertoAsync(HttpClient vendedor, int quantidade) =>
+    /// <summary>Pedido Aberto; <paramref name="prazo"/> padrão é daqui a 30 dias (ontem é o mais antigo que a API aceita).</summary>
+    public async Task<PedidoDto> PedidoAbertoAsync(HttpClient vendedor, int quantidade, DateOnly? prazo = null) =>
         await CriarAsync<PedidoDto>(
-            vendedor, "/api/v1/pedidos", new PedidoRequest(Cliente.Id, Prazo, null, [new PedidoItemRequest(Produto.Id, quantidade)]));
+            vendedor, "/api/v1/pedidos", new PedidoRequest(Cliente.Id, prazo ?? Prazo, null, [new PedidoItemRequest(Produto.Id, quantidade)]));
 
     /// <summary>Cria o pedido e o confirma: com estoque de produto zerado, gera uma OP para a quantidade toda.</summary>
-    public async Task<PedidoDto> PedidoConfirmadoAsync(HttpClient vendedor, int quantidade)
+    public async Task<PedidoDto> PedidoConfirmadoAsync(HttpClient vendedor, int quantidade, DateOnly? prazo = null)
     {
-        var pedido = await PedidoAbertoAsync(vendedor, quantidade);
+        var pedido = await PedidoAbertoAsync(vendedor, quantidade, prazo);
         var resposta = await vendedor.PostAsync($"/api/v1/pedidos/{pedido.Id}/confirmar", content: null);
         resposta.AssertStatus(HttpStatusCode.OK);
         return (await resposta.Content.ReadFromJsonAsync<PedidoDto>())!;

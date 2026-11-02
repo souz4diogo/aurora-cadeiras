@@ -1,5 +1,7 @@
 ﻿using Aurora.Application.Abstracoes;
+using Aurora.Application.Relatorios;
 using Aurora.Infrastructure.Persistencia;
+using Aurora.Infrastructure.Relatorios;
 using Aurora.Infrastructure.Seguranca;
 using Aurora.Infrastructure.Tempo;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +46,14 @@ public static class DependencyInjection
         services.AddScoped<IQualidadeRepository, QualidadeRepository>();
         services.AddScoped<IExpedicaoRepository, ExpedicaoRepository>();
         services.AddScoped<IMateriaPrimaRepository, MateriaPrimaRepository>();
+        services.AddScoped<IPainelRepository, PainelRepository>();
+        services.AddScoped<IRelatoriosRepository, RelatoriosRepository>();
+
+        // Exportadores de relatório (Strategy) e a fábrica que escolhe pelo formato; os formatos vêm da configuração
+        services.AddOptions<RelatoriosOptions>().Bind(configuracao.GetSection(RelatoriosOptions.Secao));
+        services.AddSingleton<IExportadorDeRelatorio, ExportadorPdf>();
+        services.AddSingleton<IExportadorDeRelatorio, ExportadorExcel>();
+        services.AddSingleton<IExportadorFactory, ExportadorFactory>();
 
         services.AddSingleton<IRelogio, RelogioDoSistema>();
         services.AddSingleton<ITokenService, JwtTokenService>();

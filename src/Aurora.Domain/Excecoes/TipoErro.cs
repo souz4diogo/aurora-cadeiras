@@ -7,4 +7,7 @@ public enum TipoErro
     NaoAutenticado,
     Conflito,
     EntidadeNaoProcessavel,
+
+    /// <summary>Autenticado, mas sem permissão para este recurso (403).</summary>
+    Proibido,
 }

@@ -62,6 +62,18 @@ public static class Perfis
     /// <summary>Quem consulta pedidos de compra: Almoxarife (que também os cria e recebe), Gerente e Administrador.</summary>
     public const string ConsultaDeCompras = Almoxarife + "," + GerenteProducao + "," + Administrador;
 
+    /// <summary>Quem vê o painel gerencial: Administrador e Gerente de Produção.</summary>
+    public const string ConsultaDoPainel = Administrador + "," + GerenteProducao;
+
+    /// <summary>Quem vê os pedidos atrasados: o painel mais o Vendedor (só os próprios).</summary>
+    public const string PedidosAtrasadosDoPainel = ConsultaDoPainel + "," + Vendedor;
+
+    /// <summary>
+    /// Quem abre a área de relatórios: cada tipo ainda confere o próprio perfil (pedidos: Administrador, Gerente e
+    /// Vendedor; estoque: Administrador, Gerente e Almoxarife; os demais: Administrador e Gerente).
+    /// </summary>
+    public const string ConsultaDeRelatorios = Administrador + "," + GerenteProducao + "," + Vendedor + "," + Almoxarife;
+
     /// <summary>Quem consulta clientes: Administrador, Gerente e Vendedor.</summary>
     public const string ConsultaDeClientes = Administrador + "," + GerenteProducao + "," + Vendedor;
 

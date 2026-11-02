@@ -107,6 +107,7 @@ public sealed partial class TratamentoDeErrosMiddleware(RequestDelegate proximo,
     {
         TipoErro.Validacao => StatusCodes.Status400BadRequest,
         TipoErro.NaoAutenticado => StatusCodes.Status401Unauthorized,
+        TipoErro.Proibido => StatusCodes.Status403Forbidden,
         TipoErro.NaoEncontrado => StatusCodes.Status404NotFound,
         TipoErro.EntidadeNaoProcessavel => StatusCodes.Status422UnprocessableEntity,
         _ => StatusCodes.Status409Conflict,
