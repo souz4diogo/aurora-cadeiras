@@ -7,8 +7,9 @@ COPY src/ src/
 RUN dotnet publish src/Aurora.Api/Aurora.Api.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
-# O projeto usa globalização completa (pt-BR), que no Alpine depende do ICU
-RUN apk add --no-cache icu-libs
+# O projeto usa globalização completa (pt-BR), que no Alpine depende do ICU. O icu-data-full é o que traz os dados
+# da cultura: sem ele os relatórios (PDF e Excel) saem formatados em inglês, e a API recusa subir assim.
+RUN apk add --no-cache icu-libs icu-data-full
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_HTTP_PORTS=8080
 WORKDIR /app

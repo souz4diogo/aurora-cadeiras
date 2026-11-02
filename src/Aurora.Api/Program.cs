@@ -5,6 +5,7 @@ using Aurora.Application;
 using Aurora.Application.Abstracoes;
 using Aurora.Infrastructure;
 using Aurora.Infrastructure.Persistencia;
+using Aurora.Infrastructure.Relatorios;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,9 @@ builder.Services.AddAuroraCors();
 builder.Services.AddAuroraForwardedHeaders();
 
 var app = builder.Build();
+
+// Falha cedo se o ambiente não formata em pt-BR (imagem Alpine sem icu-data-full): relatório errado é pior que API fora do ar
+CulturaDosRelatorios.Garantir();
 
 app.UseForwardedHeaders();
 app.UseMiddleware<TratamentoDeErrosMiddleware>();
