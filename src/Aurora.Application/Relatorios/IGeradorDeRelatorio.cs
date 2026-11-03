@@ -1,3 +1,4 @@
+using System.Globalization;
 using Aurora.Domain.Enums;
 
 namespace Aurora.Application.Relatorios;
@@ -39,7 +40,9 @@ internal static class ConstantesDeRelatorio
 
     public static string? AvisoDeCorte(int exibidas, int total) =>
         total > exibidas
-            ? $"Exibindo {exibidas:N0} de {total:N0} linhas. Use os filtros para restringir o relatório."
+            ? string.Create(
+                CultureInfo.GetCultureInfo("pt-BR"),
+                $"Exibindo {exibidas:N0} de {total:N0} linhas. Use os filtros para restringir o relatório.")
             : null;
 
     public static string Periodo(DateOnly? de, DateOnly? ate) => (de, ate) switch
