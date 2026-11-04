@@ -10,6 +10,8 @@ import { apagarDadosLocais } from '@/core/db/migracoes';
 import { criarApiClient } from '@/core/http/apiClient';
 import { AuthApi } from '@/features/auth/authApi';
 import { AuthService } from '@/features/auth/authService';
+import { ClientesRepository } from '@/features/clientes/clientesRepository';
+import { ClientesHttpApi, ClientesService } from '@/features/clientes/clientesService';
 import { EstacoesService } from '@/features/estacoes/estacoesService';
 import { EtapaCacheRepository } from '@/features/etapas/etapaCacheRepository';
 import { EtapasApi } from '@/features/etapas/etapasApi';
@@ -36,6 +38,7 @@ export interface Servicos {
   estacoes: EstacoesService;
   sync: SyncService;
   fila: FilaRepository;
+  clientes: ClientesService;
   perdas: PerdasService;
   inspecao: InspecaoService;
   estoque: EstoqueService;
@@ -56,6 +59,12 @@ export async function criarServicos(aoExpirarSessao: () => void): Promise<Servic
   const fila = new FilaRepository(db);
   // O envio que o app interrompeu ao fechar volta para a fila; o servidor ignora o que já recebeu
   await fila.recuperarEnvioInterrompido();
+  const clientes = new ClientesService({
+    repo: new ClientesRepository(db),
+    api: new ClientesHttpApi(http),
+    novoId: randomUUID,
+  });
+  await clientes.recuperarEnvioInterrompido();
 
   const cacheJson = new CacheJsonRepository(db);
   const preferencias = new PreferenciasRepository(db);
@@ -65,6 +74,7 @@ export async function criarServicos(aoExpirarSessao: () => void): Promise<Servic
   const sync = new SyncService({
     fila,
     api: new SincronizacaoHttpApi(http),
+    clientes,
     aoConfirmar: (itens) => etapas.registrarConfirmados(itens),
     // Depois de enviar, recarrega do servidor a lista da estação escolhida (o servidor é a fonte da verdade)
     aposSincronizar: async () => {
@@ -93,6 +103,7 @@ export async function criarServicos(aoExpirarSessao: () => void): Promise<Servic
     estacoes,
     sync,
     fila,
+    clientes,
     perdas: new PerdasService(etapasApi),
     inspecao: new InspecaoService(http, etapasApi),
     estoque: new EstoqueService(http, cacheJson),

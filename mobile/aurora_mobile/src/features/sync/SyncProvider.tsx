@@ -13,12 +13,15 @@ import { AppState } from 'react-native';
 
 import { INTERVALO_DE_SINCRONIZACAO_MS } from '@/core/config';
 import { useServicos } from '@/core/ServicosProvider';
+import type { ContagemDeClientes } from '@/features/clientes/tipos';
 import type { ContagemDaFila, ResumoDaSincronizacao } from '@/features/sync/tipos';
 
 interface ContextoDeSync {
   online: boolean;
   sincronizando: boolean;
   contagem: ContagemDaFila;
+  /** Clientes cadastrados no aparelho que ainda não foram enviados (A60). */
+  clientes: ContagemDeClientes;
   /** Resultado da última rodada, para a tela avisar "N rejeitados". */
   ultimaRodada: ResumoDaSincronizacao | null;
   /** Envia a fila agora (botão e puxar para atualizar). */
@@ -36,16 +39,18 @@ const Contexto = createContext<ContextoDeSync | null>(null);
  * 5 minutos com o app em primeiro plano e quando ele volta ao primeiro plano. Fica atrás do login.
  */
 export function SyncProvider({ ativo, children }: { ativo: boolean; children: ReactNode }) {
-  const { sync, fila } = useServicos();
+  const { sync, fila, clientes: clientesService } = useServicos();
   const [online, setOnline] = useState(true);
   const [sincronizando, setSincronizando] = useState(false);
   const [contagem, setContagem] = useState<ContagemDaFila>(VAZIA);
+  const [clientes, setClientes] = useState<ContagemDeClientes>(VAZIA);
   const [ultimaRodada, setUltimaRodada] = useState<ResumoDaSincronizacao | null>(null);
   const estavaOnline = useRef(true);
 
   const atualizarContagem = useCallback(async () => {
     setContagem(await fila.contar());
-  }, [fila]);
+    setClientes(await clientesService.contar());
+  }, [fila, clientesService]);
 
   const sincronizarAgora = useCallback(async () => {
     setSincronizando(true);
@@ -67,10 +72,11 @@ export function SyncProvider({ ativo, children }: { ativo: boolean; children: Re
   useEffect(() => {
     if (!ativo) return;
     void fila.contar().then(setContagem);
+    void clientesService.contar().then(setClientes);
     // Ao abrir o app. Adiado para depois da montagem, para não atualizar estado dentro do próprio efeito
     const adiado = setTimeout(tentarSincronizar, 0);
     return () => clearTimeout(adiado);
-  }, [ativo, fila, tentarSincronizar]);
+  }, [ativo, fila, clientesService, tentarSincronizar]);
 
   useEffect(() => {
     if (!ativo) return;
@@ -97,8 +103,8 @@ export function SyncProvider({ ativo, children }: { ativo: boolean; children: Re
   }, [ativo, tentarSincronizar]);
 
   const valor = useMemo(
-    () => ({ online, sincronizando, contagem, ultimaRodada, sincronizarAgora, atualizarContagem }),
-    [online, sincronizando, contagem, ultimaRodada, sincronizarAgora, atualizarContagem],
+    () => ({ online, sincronizando, contagem, clientes, ultimaRodada, sincronizarAgora, atualizarContagem }),
+    [online, sincronizando, contagem, clientes, ultimaRodada, sincronizarAgora, atualizarContagem],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

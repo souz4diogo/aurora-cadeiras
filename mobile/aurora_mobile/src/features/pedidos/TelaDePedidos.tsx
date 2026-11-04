@@ -64,6 +64,9 @@ export function TelaDePedidos() {
         />
       ) : null}
 
+      {usuario.perfil === 'Vendedor' ? (
+        <Botao titulo="Cadastrar cliente" dica="Abre o cadastro; funciona sem conexão" aoPressionar={() => router.push('/cliente-novo')} />
+      ) : null}
       <Botao titulo="Configurações" variante="secundario" aoPressionar={() => router.push('/configuracoes')} />
     </Tela>
   );

@@ -49,7 +49,7 @@ desde que o app tenha uma tela de cadastro e use banco de dados no celular. Regi
 
 | Exigência | Onde no app |
 |---|---|
-| Tela de cadastro | Registro de **perda/refugo**, **inspeção de qualidade** e, se o grupo quiser um cadastro clássico, **cadastro de cliente** pelo Vendedor (a API já tem `POST /clientes`) |
+| Tela de cadastro | Registro de **perda/refugo**, **inspeção de qualidade** e, se o grupo quiser um cadastro clássico, **cadastro de cliente** pelo Vendedor (a API já tem `POST /clientes`). **Feito (A60):** Meus pedidos → Cadastrar cliente |
 | Banco local | SQLite com `expo-sqlite`: fila de apontamentos, cache de etapas e perdas (ver §5 e §6). Todo cadastro é gravado primeiro no SQLite e depois sincronizado |
 
 ### 1.2 Equivalência de pacotes por tecnologia

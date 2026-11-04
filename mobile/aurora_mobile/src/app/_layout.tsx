@@ -96,6 +96,7 @@ function Navegacao() {
           <Stack.Screen name="fila" options={{ title: 'Fila de sincronização' }} />
           <Stack.Screen name="pedidos" options={{ title: 'Meus pedidos' }} />
           <Stack.Screen name="pedido/[id]" options={{ title: 'Pedido' }} />
+          <Stack.Screen name="cliente-novo" options={{ title: 'Novo cliente' }} />
           <Stack.Screen name="configuracoes" options={{ title: 'Configurações' }} />
           <Stack.Screen name="nao-suportado" options={{ title: 'Aurora Cadeiras' }} />
         </Stack.Protected>

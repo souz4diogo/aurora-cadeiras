@@ -1,5 +1,6 @@
 import { TAMANHO_DO_LOTE } from '@/core/config';
 import { ehErroDeRede } from '@/core/http/problem';
+import type { ResumoDosClientes } from '@/features/clientes/tipos';
 import type { FilaRepository } from '@/features/sync/filaRepository';
 import type {
   ApontamentoPendente,
@@ -21,6 +22,8 @@ export interface DependenciasDaSincronizacao {
   /** Chamado com os itens confirmados ANTES de saírem da fila, para o estado local não voltar atrás. */
   aoConfirmar?: (itens: ApontamentoPendente[]) => Promise<void>;
   tamanhoDoLote?: number;
+  /** Clientes cadastrados no aparelho (A60): enviados na mesma rodada, depois dos apontamentos. */
+  clientes?: { enviarPendentes(): Promise<ResumoDosClientes> };
 }
 
 const RESUMO_VAZIO: ResumoDaSincronizacao = {
@@ -63,6 +66,13 @@ export class SyncService {
       const lote = await fila.proximosPendentes(tamanho);
       if (lote.length === 0) break;
       if ((await this.enviarLote(lote, resumo)) === 'parar') break;
+    }
+
+    if (this.deps.clientes && !resumo.interrompidaPorRede) {
+      const clientes = await this.deps.clientes.enviarPendentes();
+      resumo.confirmados += clientes.confirmados;
+      resumo.rejeitados += clientes.rejeitados;
+      resumo.interrompidaPorRede = clientes.interrompidaPorRede;
     }
 
     resumo.aindaPendentes = (await fila.contar()).pendentes;

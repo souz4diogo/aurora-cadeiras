@@ -17,7 +17,7 @@ execução completa teve **1.331 testes .NET verdes** (cobertura de linhas de 87
 | RF03 | Cadastrar, editar e inativar produtos | ✅ | API `ProdutosController`; web `Produtos` | `ProdutosTests`, `ProdutosWebTests` | |
 | RF04 | Ficha técnica do produto | ✅ | API `FichaTecnicaController`; web `Produtos/FichaTecnica` | `FichaTecnicaTests`, `ProdutosWebTests` | |
 | RF05 | Matérias-primas com unidade e estoque mínimo | ✅ | API `MateriasPrimasController`; web `MateriasPrimas` | `MateriasPrimasTests`, `MateriasPrimasWebTests` | |
-| RF06 | Cadastrar clientes e fornecedores | 🟡 | API e web `Clientes` e `Fornecedores` (com marca de comunidade tradicional) | `ClientesTests`, `FornecedoresTests`, `ClientesWebTests`, `FornecedoresWebTests` | O cadastro de cliente pelo Vendedor no app, gravado primeiro no SQLite, **não foi feito** (A60); falta confirmar com o professor |
+| RF06 | Cadastrar clientes e fornecedores | ✅ | API e web `Clientes` e `Fornecedores` (com marca de comunidade tradicional); app `features/clientes` (cadastro do Vendedor, SQLite primeiro) | `ClientesTests`, `FornecedoresTests`, `ClientesWebTests`, `FornecedoresWebTests`, Jest `clientes` e `cadastroDeCliente` | No app o cliente é gravado no SQLite e enviado depois (A60); o SQLite nativo do aparelho não foi exercitado |
 | RF07 | Pedidos de venda com vários itens e prazo | ✅ | API `PedidosController`; web `Pedidos` (novo, editar, confirmar, cancelar) | `PedidosTests`, `PedidosWebTests`, `PermissoesPedidosTests` | O vendedor só vê os próprios pedidos |
 | RF08 | Acompanhar o status do pedido | ✅ | API `AcompanhamentoController` (pedido + linha do tempo); web detalhe do pedido; app `features/pedidos` | `AcompanhamentoTests`, `ExpedicaoWebTests` (linha do tempo) | Eventos vêm de `vw_AcompanhamentoPedido` |
 | RF09 | Gerar OPs a partir de pedidos confirmados | ✅ | `sp_ConfirmarPedido`; API `PedidosController`/`OrdensProducaoController` | `ProducaoTests` (API), `Aurora.Database.Tests/ProducaoTests`, `ProducaoWebTests` | Uma OP por item que o estoque de produto acabado não cobre |
@@ -86,7 +86,7 @@ execução completa teve **1.331 testes .NET verdes** (cobertura de linhas de 87
 
 | Grupo | ✅ | 🟡 | ⏳ | Total |
 |---|---|---|---|---|
-| Requisitos funcionais | 20 | 4 | 0 | 24 |
+| Requisitos funcionais | 21 | 3 | 0 | 24 |
 | Requisitos não funcionais | 5 | 2 | 5 | 12 |
 | Regras de negócio | 7 | 1 | 0 | 8 |
 
@@ -94,7 +94,7 @@ execução completa teve **1.331 testes .NET verdes** (cobertura de linhas de 87
 
 1. **App em aparelho ou emulador** (RF11, RF23, RNF08, RNF12): rodar o fluxo do operador com TalkBack e fonte em 200%.
 2. **Teste de carga** (RNF04): k6 ou similar com 50 usuários simultâneos nas telas principais.
-3. **Cadastro de cliente no app** (RF06, A60): confirmar com o professor se Registrar perda e Inspeção bastam como "tela de cadastro".
+3. ~~Cadastro de cliente no app (RF06, A60)~~: feito em 03/11/2026 (SQLite primeiro); resta rodar em aparelho (item 1).
 4. **Notificação do alerta de estoque** (RF15, RN08): e-mail ou aviso ativo ao Almoxarife.
 5. **LGPD** (RNF11): política de privacidade, base legal por dado e procedimento de exclusão ou anonimização.
 6. **Nuvem** (RNF05, RNF06): aplicar o `infra/` em hom quando houver assinatura e confirmar o provedor com o professor.

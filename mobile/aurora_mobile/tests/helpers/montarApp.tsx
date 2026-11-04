@@ -9,6 +9,8 @@ import { ServicosProvider } from '@/core/ServicosProvider';
 import type { Servicos } from '@/core/servicos';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import type { AuthService } from '@/features/auth/authService';
+import { ClientesRepository } from '@/features/clientes/clientesRepository';
+import { ClientesService, type ClientesApi } from '@/features/clientes/clientesService';
 import { EstacoesService } from '@/features/estacoes/estacoesService';
 import { EtapaCacheRepository } from '@/features/etapas/etapaCacheRepository';
 import type { EtapasApi } from '@/features/etapas/etapasApi';
@@ -48,6 +50,8 @@ export interface AppDeTeste {
   /** O que o servidor devolve em GET /etapas/minhas; o teste altera para simular o servidor mudando. */
   doServidor: { etapas: EtapaDaEstacao[]; materiais: MaterialDaEtapa[]; ordem: OrdemProducaoDetalhe | null };
   api: { minhas: jest.Mock; registrarPerda: jest.Mock };
+  /** API de clientes de mentira: `criar` grava em `cadastrados` quando online; o teste pode trocar o comportamento. */
+  clientesApi: { criar: jest.Mock; buscar: jest.Mock; cadastrados: { nome: string; cpfCnpj: string }[] };
   http: { get: jest.Mock; post: jest.Mock };
   auth: { restaurar: jest.Mock; entrar: jest.Mock; sair: jest.Mock };
   /** Liga ou desliga a rede de mentira (API, sincronização e NetInfo). */
@@ -115,8 +119,24 @@ export async function montarApp(perfil: Perfil = 'Operador', estacaoEscolhida: n
     sair: jest.fn(async () => {}),
   };
 
+  const cadastrados: { nome: string; cpfCnpj: string }[] = [];
+  const clientesApi = {
+    criar: jest.fn(async (corpo: { nome: string; cpfCnpj: string }) => {
+      if (!online) throw erroDeRede();
+      cadastrados.push({ nome: corpo.nome, cpfCnpj: corpo.cpfCnpj });
+    }),
+    buscar: jest.fn(async () => cadastrados),
+    cadastrados,
+  };
+  const clientes = new ClientesService({
+    repo: new ClientesRepository(db),
+    api: clientesApi as unknown as ClientesApi,
+    novoId: () => `cli-${++contador}`,
+  });
+
   const sync = new SyncService({
     fila,
+    clientes,
     api: {
       sincronizar: async (itens) => {
         servidor.online = online;
@@ -148,6 +168,7 @@ export async function montarApp(perfil: Perfil = 'Operador', estacaoEscolhida: n
     estacoes,
     sync,
     fila,
+    clientes,
     perdas: new PerdasService(etapasApi),
     inspecao: new InspecaoService(http as unknown as AxiosInstance, etapasApi),
     estoque: new EstoqueService(http as unknown as AxiosInstance, cacheJson),
@@ -162,6 +183,7 @@ export async function montarApp(perfil: Perfil = 'Operador', estacaoEscolhida: n
     fila,
     doServidor,
     api,
+    clientesApi,
     http,
     auth,
     async definirOnline(valor: boolean) {

@@ -52,6 +52,24 @@ export const MIGRACOES: readonly string[] = [
     valor TEXT NOT NULL
   );
   `,
+  // 2: cadastro de cliente pelo Vendedor, gravado primeiro no aparelho e enviado depois (A60, docs/08 §1.1)
+  `
+  CREATE TABLE cliente_pendente (
+    id         TEXT    PRIMARY KEY,
+    nome       TEXT    NOT NULL,
+    cpf_cnpj   TEXT    NOT NULL UNIQUE,
+    email      TEXT,
+    telefone   TEXT,
+    cidade     TEXT,
+    uf         TEXT,
+    criado_em  TEXT    NOT NULL,
+    tentativas INTEGER NOT NULL DEFAULT 0,
+    estado     TEXT    NOT NULL CHECK (estado IN ('Pendente', 'Enviando', 'Rejeitado')),
+    codigo     TEXT,
+    mensagem   TEXT
+  );
+  CREATE INDEX ix_cliente_pendente_estado ON cliente_pendente (estado, criado_em);
+  `,
 ];
 
 export async function migrar(db: Db): Promise<void> {
@@ -74,6 +92,7 @@ export async function apagarDadosLocais(db: Db): Promise<void> {
   await db.transacao(async () => {
     await db.executar('DELETE FROM etapa_cache');
     await db.executar('DELETE FROM apontamento_pendente');
+    await db.executar('DELETE FROM cliente_pendente');
     await db.executar('DELETE FROM cache_json');
     await db.executar(`DELETE FROM preferencia WHERE chave NOT IN (${marcas})`, PREFERENCIAS_QUE_FICAM);
   });
