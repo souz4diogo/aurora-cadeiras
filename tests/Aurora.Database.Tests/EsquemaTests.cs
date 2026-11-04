@@ -47,6 +47,25 @@ public class EsquemaTests(BancoFixture banco)
     }
 
     [Fact]
+    public async Task Pedido_que_vence_hoje_em_Brasilia_nao_esta_atrasado_e_o_de_ontem_esta()
+    {
+        const string hojeEmBrasilia = "CAST(DATEADD(HOUR, -3, SYSUTCDATETIME()) AS date)";
+        var c = new Cenario(Db, banco.Usuarios);
+        var pedido = await c.CriarPedidoAsync(await c.CriarProdutoAsync(), 1);
+
+        await Db.ExecutarAsync($"UPDATE dbo.Pedido SET PrazoEntrega = {hojeEmBrasilia} WHERE PedidoId = @p", banco.Usuarios.Vendedor, ("@p", pedido));
+        var venceHoje = await Db.InteiroAsync("SELECT COUNT(*) FROM dbo.vw_PedidosAtrasados WHERE PedidoId = @p", null, ("@p", pedido));
+
+        await Db.ExecutarAsync($"UPDATE dbo.Pedido SET PrazoEntrega = DATEADD(DAY, -1, {hojeEmBrasilia}) WHERE PedidoId = @p", banco.Usuarios.Vendedor, ("@p", pedido));
+        var venceuOntem = await Db.InteiroAsync("SELECT COUNT(*) FROM dbo.vw_PedidosAtrasados WHERE PedidoId = @p", null, ("@p", pedido));
+        var diasDeAtraso = await Db.InteiroAsync("SELECT DiasAtraso FROM dbo.vw_PedidosAtrasados WHERE PedidoId = @p", null, ("@p", pedido));
+
+        Assert.Equal(0, venceHoje);
+        Assert.Equal(1, venceuOntem);
+        Assert.Equal(1, diasDeAtraso);
+    }
+
+    [Fact]
     public async Task Numeracao_dos_documentos_segue_o_padrao()
     {
         var produto = await new Cenario(Db, banco.Usuarios).CriarProdutoAsync();

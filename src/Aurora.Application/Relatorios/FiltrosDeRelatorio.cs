@@ -1,3 +1,4 @@
+using Aurora.Application.Comum;
 using Aurora.Domain.Enums;
 using Aurora.Domain.Excecoes;
 
@@ -19,7 +20,7 @@ public static class FiltrosDeRelatorio
     public static (DateOnly De, DateOnly Ate) PeriodoOuPadrao(DateOnly? de, DateOnly? ate, DateTime agoraUtc, int diasPadrao = 30)
     {
         ValidarPeriodo(de, ate);
-        var fim = ate ?? DateOnly.FromDateTime(agoraUtc);
+        var fim = ate ?? DiaDeNegocio.De(agoraUtc);
         return (de ?? fim.AddDays(1 - diasPadrao), fim);
     }
 }

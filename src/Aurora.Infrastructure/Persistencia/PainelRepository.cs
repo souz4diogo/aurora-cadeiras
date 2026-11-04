@@ -9,7 +9,7 @@ public sealed class PainelRepository(AuroraDbContext db) : IPainelRepository
 {
     public async Task<ResumoDoPainelDto> ObterResumoAsync(DateTime agoraUtc, CancellationToken ct = default)
     {
-        // "Hoje" dos atrasos é o do banco (UTC), o mesmo das views; tudo numa ida só ao servidor
+        // "Hoje" dos atrasos é o dia de negócio (Brasília, UTC-3), o mesmo das views (script 008); tudo numa ida só ao servidor
         var linha = await db.Database.SqlQuery<LinhaDoResumo>($"""
             SELECT
               (SELECT COUNT(*) FROM dbo.Pedido WHERE Status IN ('Aberto', 'Confirmado', 'EmProducao', 'Pronto')) AS PedidosEmAberto,
@@ -18,11 +18,11 @@ public sealed class PainelRepository(AuroraDbContext db) : IPainelRepository
               (SELECT COUNT(*) FROM dbo.OrdemProducao WHERE Status = 'Planejada') AS OrdensPlanejadas,
               (SELECT COUNT(*) FROM dbo.OrdemProducao WHERE Status = 'EmAndamento') AS OrdensEmAndamento,
               (SELECT COUNT(*) FROM dbo.OrdemProducao
-                WHERE Status IN ('Planejada', 'EmAndamento') AND PrevisaoConclusao < CAST(SYSUTCDATETIME() AS date)) AS OrdensAtrasadas,
+                WHERE Status IN ('Planejada', 'EmAndamento') AND PrevisaoConclusao < CAST(DATEADD(HOUR, -3, SYSUTCDATETIME()) AS date)) AS OrdensAtrasadas,
               (SELECT COUNT(*) FROM dbo.vw_EstoqueCritico) AS MateriaisCriticos,
               (SELECT COUNT(*) FROM dbo.PedidoCompra WHERE Status IN ('Emitido', 'ParcialmenteRecebido')) AS ComprasAReceber,
               (SELECT COUNT(*) FROM dbo.PedidoCompra
-                WHERE Status IN ('Emitido', 'ParcialmenteRecebido') AND DataPrevista < CAST(SYSUTCDATETIME() AS date)) AS ComprasAtrasadas
+                WHERE Status IN ('Emitido', 'ParcialmenteRecebido') AND DataPrevista < CAST(DATEADD(HOUR, -3, SYSUTCDATETIME()) AS date)) AS ComprasAtrasadas
             """).SingleAsync(ct);
 
         return new ResumoDoPainelDto(

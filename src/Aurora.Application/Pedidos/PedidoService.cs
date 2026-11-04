@@ -16,7 +16,7 @@ public class PedidoService(
     IRelogio relogio,
     IValidator<PedidoRequest> validador)
 {
-    private DateOnly Hoje => DateOnly.FromDateTime(relogio.AgoraUtc);
+    private DateOnly Hoje => DiaDeNegocio.De(relogio.AgoraUtc);
 
     /// <summary>O vendedor enxerga e altera só os próprios pedidos; os demais perfis com acesso enxergam todos.</summary>
     private int? RestricaoDeVendedor =>

@@ -22,7 +22,7 @@ public class PedidoCompraService(
     IValidator<PedidoCompraRequest> validadorDoPedido,
     IValidator<ReceberItemRequest> validadorDoRecebimento)
 {
-    private DateOnly Hoje => DateOnly.FromDateTime(relogio.AgoraUtc);
+    private DateOnly Hoje => DiaDeNegocio.De(relogio.AgoraUtc);
 
     public async Task<Pagina<PedidoCompraResumoDto>> ListarAsync(
         StatusPedidoCompra? status,

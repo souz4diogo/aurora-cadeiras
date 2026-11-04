@@ -134,7 +134,7 @@ Pim_Final/
 | **Unit of Work** | `AuroraDbContext` / `IUnitOfWork` | Gravar várias alterações numa transação |
 | **Dependency Injection** | Todo o sistema | Baixo acoplamento; testes com mocks |
 | **Factory** | `ExportadorFactory` (devolve `ExportadorPdf` ou `ExportadorExcel` conforme o formato pedido) | Esconder a criação do objeto certo. **Implementar de fato**, para ter exemplo real na Etapa 6 |
-| **Strategy** | `ICalculoPrevisaoStrategy` com `PrevisaoPeloPrazoDoPedido` (prazo menos margem) e `PrevisaoPorLinha` (dias padrão por linha, em configuração) | Trocar o algoritmo sem alterar quem usa. **Implementar de fato** |
+| **Strategy** | `IGeradorDeRelatorio` (um por tipo de relatório: pedidos, produção, estoque, consumo, compras comunitárias), escolhido pelo `RelatorioService` (A69). A previsão da OP continua um padrão em SQL, prazo menos 2 dias (B03); o `ICalculoPrevisaoStrategy` previsto aqui **não foi implementado** (A81) | Trocar o algoritmo sem alterar quem usa |
 | **Domain Events / Observer** | `EtapaConcluida`, `PedidoConfirmado` | Reagir a fatos sem acoplar módulos. **Opcional** (os alertas de estoque já são feitos por trigger) |
 | **DTO + Mapper** | Application | Não expor entidades na API |
 | **Options** | `JwtOptions`, `StorageOptions` | Configuração tipada |

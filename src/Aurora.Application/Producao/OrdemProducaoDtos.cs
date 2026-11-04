@@ -1,3 +1,4 @@
+using Aurora.Application.Comum;
 using Aurora.Domain.Enums;
 
 namespace Aurora.Application.Producao;
@@ -86,7 +87,7 @@ public sealed record OrdemProducaoResumoDto(
         o.Quantidade,
         o.Status.ToString(),
         o.PrevisaoConclusao,
-        o.EstaAtrasada(DateOnly.FromDateTime(agoraUtc)),
+        o.EstaAtrasada(DiaDeNegocio.De(agoraUtc)),
         o.CriadaEm,
         o.ConcluidaEm,
         o.TotalDeEtapas,

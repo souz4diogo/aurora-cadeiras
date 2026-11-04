@@ -29,7 +29,7 @@ public class OrdemProducaoService(
     {
         (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
         var agora = relogio.AgoraUtc;
-        var filtro = new FiltroDeOrdens(RestricaoDeVendedor, status, estacaoId, pedidoId, atrasadas, DateOnly.FromDateTime(agora));
+        var filtro = new FiltroDeOrdens(RestricaoDeVendedor, status, estacaoId, pedidoId, atrasadas, DiaDeNegocio.De(agora));
         var (itens, total) = await producao.ListarOrdensAsync(filtro, pagina, tamanho, ct);
         return new Pagina<OrdemProducaoResumoDto>(
             itens.Select(o => OrdemProducaoResumoDto.De(o, agora)).ToList(), total, pagina, tamanho);
@@ -43,7 +43,7 @@ public class OrdemProducaoService(
     {
         var agora = relogio.AgoraUtc;
         var filtro = new FiltroDeOrdens(
-            RestricaoDeVendedor, null, null, null, null, DateOnly.FromDateTime(agora), SomenteAbertas: true);
+            RestricaoDeVendedor, null, null, null, null, DiaDeNegocio.De(agora), SomenteAbertas: true);
         var (ordens, total) = await producao.ListarOrdensAsync(filtro, 1, LimiteDoQuadro, ct);
 
         var porEstacao = ordens

@@ -33,7 +33,7 @@ public sealed class RelatorioDePedidos(IRelatoriosRepository relatorios, ICurren
         var resultado = await relatorios.ListarPedidosAsync(
             somenteDoVendedor, status, filtro.De, filtro.Ate, ConstantesDeRelatorio.LimiteDeLinhas, ct);
 
-        var hoje = DateOnly.FromDateTime(agoraUtc);
+        var hoje = DiaDeNegocio.De(agoraUtc);
         var linhas = resultado.Itens
             .Select(p => (IReadOnlyList<object?>)
             [

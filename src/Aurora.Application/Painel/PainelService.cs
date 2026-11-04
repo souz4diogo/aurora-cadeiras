@@ -47,7 +47,7 @@ public class PainelService(
     public async Task<IReadOnlyList<ConsumoDeMaterialDto>> ObterConsumoAsync(int? dias, CancellationToken ct = default)
     {
         var janela = Math.Clamp(dias ?? JanelaPadraoDeConsumoEmDias, 1, JanelaMaximaDeConsumoEmDias);
-        var ate = DateOnly.FromDateTime(relogio.AgoraUtc);
+        var ate = DiaDeNegocio.De(relogio.AgoraUtc);
         return await painel.ListarConsumoAsync(ate.AddDays(1 - janela), ate, MateriaisNoGrafico, ct);
     }
 }

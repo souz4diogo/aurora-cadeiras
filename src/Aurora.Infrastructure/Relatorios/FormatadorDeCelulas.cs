@@ -12,7 +12,7 @@ internal static class FormatadorDeCelulas
     /// Horário de Brasília (UTC-3). O Brasil não tem horário de verão desde 2019, então um deslocamento fixo dispensa o
     /// banco de fusos horários, que a imagem Alpine do contêiner não traz.
     /// </summary>
-    public static readonly TimeSpan DeslocamentoDeBrasilia = TimeSpan.FromHours(-3);
+    public static readonly TimeSpan DeslocamentoDeBrasilia = Aurora.Application.Comum.DiaDeNegocio.Deslocamento;
 
     public static DateTime ParaHorarioLocal(DateTime utc) => DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(DeslocamentoDeBrasilia);
 

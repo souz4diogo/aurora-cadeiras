@@ -352,6 +352,7 @@ Sem senhas no repositório: os usuários de demonstração são criados pela apl
 5. `005-seguranca.sql`
 6. `006-seed.sql`
 7. `007-idempotencia-concorrente.sql` - corrige o reenvio simultâneo do mesmo `ClientRequestId` em `sp_IniciarEtapa` e `sp_FinalizarEtapa`
+8. `008-dia-de-negocio.sql` - o "hoje" das views `vw_PainelProducao` e `vw_PedidosAtrasados` passa a ser a data de Brasília (UTC-3), não a UTC
 
 O DbUp executa na ordem e registra o que já foi aplicado. Scripts já aplicados não mudam: correções entram em
 um novo script numerado.
