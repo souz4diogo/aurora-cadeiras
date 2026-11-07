@@ -4,6 +4,7 @@ using Aurora.Application.Comum;
 using Aurora.Application.Expedicoes;
 using Aurora.Application.Pedidos;
 using Aurora.Application.Qualidade;
+using Microsoft.Data.SqlClient;
 
 namespace Aurora.Api.IntegrationTests;
 
@@ -48,6 +49,44 @@ public class AcompanhamentoTests(ApiFactory api)
         Assert.Equal(completo.Eventos.OrderBy(e => e.DataHora).Select(e => e.DataHora), completo.Eventos.Select(e => e.DataHora));
         Assert.Equal(ordem.Ordem.Numero, completo.Eventos.First(e => e.Evento == "Etapa iniciada: Corte").NumeroOp);
         Assert.Null(completo.Eventos[0].NumeroOp);
+    }
+
+    [Fact]
+    public async Task Etapas_no_mesmo_segundo_seguem_a_ordem_do_roteiro_e_nao_a_alfabetica()
+    {
+        var cenario = await CenarioDeProducao.CriarAsync(api);
+        using var vendedor = await api.ComoAsync("Vendedor");
+        using var gerente = await api.ComoAsync("GerenteProducao");
+        using var operador = await api.ComoAsync("Operador");
+        var pedido = await cenario.PedidoConfirmadoAsync(vendedor, quantidade: 1);
+        var ordem = await CenarioDeProducao.AvancarAteAQualidadeAsync(gerente, operador, pedido.Id);
+
+        // Todo início e fim desta OP no mesmo segundo: o desempate fica só por conta da linha do tempo.
+        await using (var conexao = new SqlConnection(api.ConnectionString))
+        {
+            await conexao.OpenAsync();
+            await using var comando = conexao.CreateCommand();
+            comando.CommandText =
+                """
+                UPDATE dbo.OrdemProducaoEtapa
+                   SET IniciadaEm  = CASE WHEN IniciadaEm  IS NULL THEN NULL ELSE '2026-11-02T12:00:00' END,
+                       ConcluidaEm = CASE WHEN ConcluidaEm IS NULL THEN NULL ELSE '2026-11-02T12:00:00' END
+                 WHERE OrdemProducaoId = @ordem
+                """;
+            comando.Parameters.AddWithValue("@ordem", ordem.Ordem.Id);
+            await comando.ExecuteNonQueryAsync();
+        }
+
+        var eventosDaOrdem = (await AcompanharAsync(vendedor, pedido.Id))!.Eventos
+            .Where(e => e.NumeroOp == ordem.Ordem.Numero)
+            .Select(e => e.Evento);
+
+        var esperado = ordem.Etapas
+            .OrderBy(e => e.Sequencia)
+            .SelectMany(e => e.EstacaoId == CenarioDeProducao.Qualidade
+                ? [$"Etapa iniciada: {e.EstacaoNome}"]
+                : new[] { $"Etapa iniciada: {e.EstacaoNome}", $"Etapa concluída: {e.EstacaoNome}" });
+        Assert.Equal(esperado, eventosDaOrdem);
     }
 
     [Fact]
