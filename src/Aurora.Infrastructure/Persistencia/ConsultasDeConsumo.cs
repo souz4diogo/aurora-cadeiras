@@ -1,3 +1,4 @@
+using Aurora.Application.Comum;
 using Aurora.Application.Painel;
 using Aurora.Application.Relatorios;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +11,9 @@ internal static class ConsultasDeConsumo
     public static async Task<IReadOnlyList<ConsumoDeMaterialDto>> PorMateriaAsync(
         AuroraDbContext db, DateOnly de, DateOnly ate, int limite, CancellationToken ct)
     {
-        var inicio = de.ToDateTime(TimeOnly.MinValue);
-        var fim = ate.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        // O período é em dias de Brasília e a view guarda horários em UTC
+        var inicio = DiaDeNegocio.InicioEmUtc(de);
+        var fim = DiaDeNegocio.InicioEmUtc(ate.AddDays(1));
         var linhas = await db.Database.SqlQuery<LinhaDeMateria>($"""
             SELECT TOP ({limite})
                    MateriaPrimaId,
@@ -31,8 +33,9 @@ internal static class ConsultasDeConsumo
     public static async Task<IReadOnlyList<LinhaDeConsumoPorProduto>> PorProdutoAsync(
         AuroraDbContext db, DateOnly de, DateOnly ate, int limite, CancellationToken ct)
     {
-        var inicio = de.ToDateTime(TimeOnly.MinValue);
-        var fim = ate.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        // O período é em dias de Brasília e a view guarda horários em UTC
+        var inicio = DiaDeNegocio.InicioEmUtc(de);
+        var fim = DiaDeNegocio.InicioEmUtc(ate.AddDays(1));
         var linhas = await db.Database.SqlQuery<LinhaDeProduto>($"""
             SELECT TOP ({limite})
                    v.CodigoProduto AS Codigo,

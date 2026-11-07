@@ -18,7 +18,8 @@ public class PainelTests(ApiFactory api)
 {
     private static readonly string[] StatusQueContamComoAtraso = ["Confirmado", "EmProducao", "Pronto"];
 
-    private static DateOnly Hoje => DateOnly.FromDateTime(DateTime.UtcNow);
+    // O mesmo "hoje" da API: atrasos contam pelo dia de Brasília, não pelo de UTC (A81)
+    private static DateOnly Hoje => DiaDeNegocio.De(DateTime.UtcNow);
 
     private static async Task<ResumoDoPainelDto> ResumoAsync(HttpClient gerente) =>
         (await gerente.GetFromJsonAsync<ResumoDoPainelDto>("/api/v1/painel/resumo"))!;

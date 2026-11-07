@@ -20,7 +20,8 @@ public sealed partial class ComprasTests(ApiFactory api)
     private static PedidoCompraItemRequest Item(int materiaPrimaId, decimal quantidade, decimal? custo) =>
         new(materiaPrimaId, quantidade, custo);
 
-    private static DateOnly Hoje => DateOnly.FromDateTime(DateTime.UtcNow);
+    // O mesmo "hoje" da API: atrasos contam pelo dia de Brasília, não pelo de UTC (A81)
+    private static DateOnly Hoje => DiaDeNegocio.De(DateTime.UtcNow);
 
     private static async Task<T> CriarAsync<T>(HttpClient cliente, string rota, object corpo)
     {
