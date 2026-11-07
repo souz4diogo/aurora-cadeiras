@@ -59,7 +59,7 @@ function CartaoDeEtapa({ etapa }: { etapa: EtapaNaTela }) {
   return (
     <Cartao
       aoPressionar={() => router.push({ pathname: '/etapa/[id]', params: { id: String(etapa.etapaId) } })}
-      rotuloDeAcessibilidade={`${etapa.numeroOp}, ${etapa.produtoNome}, ${etapa.quantidade} unidades. ${descreverEtapa(etapa)}`}
+      rotuloDeAcessibilidade={`${etapa.numeroOp}, ${etapa.produtoNome}, ${etapa.quantidade} ${etapa.quantidade === 1 ? 'unidade' : 'unidades'}. ${descreverEtapa(etapa)}`}
       dica="Abre os detalhes da etapa"
     >
       <Texto negrito tamanho="grande">{etapa.numeroOp}</Texto>

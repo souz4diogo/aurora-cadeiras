@@ -6,6 +6,7 @@ import { apagarDadosLocais, migrar, MIGRACOES } from '@/core/db/migracoes';
 import { ApiError } from '@/core/http/problem';
 import { EtapaCacheRepository } from '@/features/etapas/etapaCacheRepository';
 import type { EtapasApi } from '@/features/etapas/etapasApi';
+import { MateriaisService } from '@/features/etapas/materiaisService';
 import { EstoqueService } from '@/features/estoque/estoqueService';
 import { InspecaoService } from '@/features/qualidade/inspecaoService';
 import { PerdasService } from '@/features/perdas/perdasService';
@@ -257,6 +258,27 @@ describe('perdas, inspeção e estoque', () => {
       { estacaoId: 1, nome: 'Corte' },
       { estacaoId: 2, nome: 'Montagem da Estrutura' },
     ]);
+  });
+
+  it('guarda as fichas da fila com rede, e a etapa aberta pela primeira vez sem rede mostra os materiais', async () => {
+    const madeira = { materiaPrimaId: 1, materiaPrimaCodigo: 'MP-001', materiaPrimaNome: 'Madeira', unidade: 'm3', estacaoId: 1, quantidade: 0.5 };
+    const tecido = { ...madeira, materiaPrimaId: 2, materiaPrimaNome: 'Tecido', estacaoId: 3 };
+    const materiaisDoProduto = jest
+      .fn()
+      .mockImplementation(async (produtoId: number) => {
+        if (produtoId === 30) throw erroDeRede();
+        return [madeira, tecido];
+      });
+    const servico = new MateriaisService({ materiaisDoProduto } as unknown as EtapasApi, new CacheJsonRepository(db));
+
+    // 10 aparece duas vezes na fila: a ficha é buscada uma vez só; a falha do 30 não impede o 10.
+    await servico.guardarFichas([10, 10, 30]);
+    expect(materiaisDoProduto).toHaveBeenCalledTimes(2);
+
+    materiaisDoProduto.mockRejectedValue(erroDeRede());
+    const offline = await servico.daEtapa(10, 1);
+
+    expect(offline).toMatchObject({ doCache: true, dados: [madeira] });
   });
 
   it('estoque guarda quantos materiais existem ao todo, para a tela avisar quando corta a lista', async () => {

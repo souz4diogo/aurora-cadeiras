@@ -15,14 +15,17 @@ export interface FilaComEstacao extends FilaDaEstacao {
  * atualizar, e relê só o aparelho quando a fila de sincronização muda (o toque aparece na hora, sem ir à rede).
  */
 export function useFilaDaEstacao() {
-  const { estacoes, etapas } = useServicos();
+  const { estacoes, etapas, materiais } = useServicos();
   const { contagem, ultimaRodada } = useSync();
 
   const carregar = useCallback(async (): Promise<FilaComEstacao> => {
     const estacaoId = await estacoes.estacaoEscolhida();
     if (estacaoId === null) return { estacaoId, etapas: [], doCache: false, atualizadoEm: null };
-    return { estacaoId, ...(await etapas.carregarFila(estacaoId)) };
-  }, [estacoes, etapas]);
+    const fila = await etapas.carregarFila(estacaoId);
+    // Com rede, guarda as fichas técnicas da fila (sem esperar), para os materiais aparecerem também sem conexão.
+    if (!fila.doCache) void materiais.guardarFichas(fila.etapas.map((e) => e.produtoId));
+    return { estacaoId, ...fila };
+  }, [estacoes, etapas, materiais]);
   const estado = useCarregamento(carregar);
   const { definir } = estado;
 

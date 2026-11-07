@@ -37,7 +37,7 @@ export function TelaDeDetalheDaEtapa({ etapaId }: { etapaId: number }) {
       <Cartao>
         <Texto tamanho="titulo" negrito accessibilityRole="header">{etapa.numeroOp}</Texto>
         <Texto tamanho="grande">{etapa.produtoNome}</Texto>
-        <Texto secundario>{`${etapa.produtoCodigo} · ${etapa.quantidade} unidades`}</Texto>
+        <Texto secundario>{`${etapa.produtoCodigo} · ${etapa.quantidade} ${etapa.quantidade === 1 ? 'unidade' : 'unidades'}`}</Texto>
         <Texto secundario>{`Pedido ${etapa.pedidoNumero}`}</Texto>
         {etapa.previsaoConclusao ? <Texto secundario>{`Previsão: ${formatarData(etapa.previsaoConclusao)}`}</Texto> : null}
         <Texto negrito>{`Estação: ${etapa.estacaoNome}`}</Texto>

@@ -16,7 +16,7 @@ export function descreverSincronizacao(online: boolean, pendentes: number, rejei
 }
 
 /** Indicador permanente de conexão e de itens pendentes (docs/08 §8). Tocar abre a fila de sincronização. */
-export function SeloDeSincronizacao() {
+export function SeloDeSincronizacao({ recuoNoTopo = 0 }: { recuoNoTopo?: number }) {
   const { online, sincronizando, contagem, clientes } = useSync();
   const { cores } = useTema();
   const pendentes = contagem.pendentes + contagem.enviando;
@@ -33,6 +33,8 @@ export function SeloDeSincronizacao() {
       onPress={() => router.push('/fila')}
       style={[
         estilos.faixa,
+        // Numa tela sem cabeçalho a faixa ocupa a área da barra de status, sem ficar sob o relógio.
+        { paddingTop: 10 + recuoNoTopo },
         { backgroundColor: problema ? cores.fundoAviso : cores.fundoSucesso, borderColor: problema ? cores.aviso : cores.sucesso },
       ]}
     >

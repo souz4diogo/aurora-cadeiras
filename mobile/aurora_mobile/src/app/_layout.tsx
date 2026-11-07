@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { URL_DA_API_E_INSEGURA } from '@/core/config';
 import { ServicosProvider } from '@/core/ServicosProvider';
@@ -60,6 +61,7 @@ function Navegacao() {
   const { estado } = useAuth();
   const { cores, estiloDaBarra } = useTema();
   const logado = estado.status === 'logado';
+  const { top } = useSafeAreaInsets();
 
   if (estado.status === 'carregando') {
     return (
@@ -71,9 +73,22 @@ function Navegacao() {
 
   return (
     <SyncProvider ativo={logado}>
-      <StatusBar style={estiloDaBarra} />
-      {logado ? <SeloDeSincronizacao /> : null}
+      {/* A cor da barra acompanha o cabeçalho; o login não tem cabeçalho e fica sobre o fundo, de tom oposto. */}
+      <StatusBar style={logado ? estiloDaBarra : estiloDaBarra === 'light' ? 'dark' : 'light'} />
+      {/* O app é desenhado sob a barra de status (edge-to-edge): o login, que não tem cabeçalho, ganha um recuo no topo. */}
+      {logado ? null : <View style={{ height: top, backgroundColor: cores.fundo }} />}
       <Stack
+        // A faixa de sincronização fica logo abaixo do cabeçalho; numa tela sem cabeçalho, ela ocupa a área da barra de status.
+        screenLayout={({ children, options }) =>
+          logado ? (
+            <View style={{ flex: 1 }}>
+              <SeloDeSincronizacao recuoNoTopo={options.headerShown === false ? top : 0} />
+              {children}
+            </View>
+          ) : (
+            children
+          )
+        }
         screenOptions={{
           headerStyle: { backgroundColor: cores.primaria },
           headerTintColor: cores.textoSobrePrimaria,

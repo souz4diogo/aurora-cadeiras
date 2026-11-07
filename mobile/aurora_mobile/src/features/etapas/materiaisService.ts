@@ -14,4 +14,16 @@ export class MateriaisService {
     const ficha = await consultarComCache(this.cache, `ficha:${produtoId}`, () => this.api.materiaisDoProduto(produtoId));
     return { ...ficha, dados: ficha.dados.filter((m) => m.estacaoId === estacaoId) };
   }
+
+  /**
+   * Guarda de antemão a ficha técnica de cada produto da fila, para a etapa mostrar os materiais mesmo se for aberta
+   * pela primeira vez já sem rede. É um esforço em segundo plano: uma falha não atrapalha a fila e a etapa ainda
+   * tenta buscar a ficha quando for aberta.
+   */
+  async guardarFichas(produtoIds: readonly number[]): Promise<void> {
+    const unicos = [...new Set(produtoIds)];
+    await Promise.allSettled(
+      unicos.map(async (produtoId) => this.cache.guardar(`ficha:${produtoId}`, await this.api.materiaisDoProduto(produtoId))),
+    );
+  }
 }
